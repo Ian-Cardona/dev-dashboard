@@ -11,6 +11,14 @@ export default tseslint.config(
       '**/dist/**',
       '**/build/**',
       '**/node_modules/**',
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/__test__/**',
+      '**/test/**',
+      '**/*.config.ts',
+      '**/*.config.js',
+      '**/vite-env.d.ts',
+      '**/routeTree.gen.ts',
     ],
   },
 
@@ -18,11 +26,11 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
 
   {
-    files: ['**/*.{ts,mts,cts}'],
+    files: ['**/*.{ts,mts,cts,tsx}'],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: true,
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
       globals: { ...globals.browser, ...globals.es2020, ...globals.node },
@@ -34,6 +42,7 @@ export default tseslint.config(
       'no-var': 'error',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
 
@@ -49,6 +58,7 @@ export default tseslint.config(
       'no-var': 'error',
       'no-unused-vars': 'error',
       '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-require-imports': 'error',
     },
   },
 
