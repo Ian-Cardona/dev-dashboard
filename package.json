@@ -1,0 +1,21 @@
+{
+  "name": "dev-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "workspaces": [
+      "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=packages/api",
+    "build:api": "npm run build --workspace=packages/api",
+    "lint:api": "npm run lint --workspace=packages/api"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}
