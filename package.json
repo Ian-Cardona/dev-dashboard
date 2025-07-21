@@ -7,15 +7,26 @@
   "type": "module",
   "main": "index.js",
   "workspaces": [
-      "packages/*"
+    "packages/*"
   ],
   "scripts": {
     "dev:api": "npm run dev --workspace=packages/api",
     "build:api": "npm run build --workspace=packages/api",
-    "lint:api": "npm run lint --workspace=packages/api"
+    "lint:api": "npm run lint --workspace=packages/api",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.37.0"
   }
 }
