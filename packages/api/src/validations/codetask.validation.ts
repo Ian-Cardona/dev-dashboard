@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CodeTaskPriority } from '../types/codetask.type';
 
 const codeTaskBase = {
   id: z.string(),
@@ -7,7 +8,7 @@ const codeTaskBase = {
   filePath: z.string(),
   lineNumber: z.number(),
   syncedAt: z.string(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  priority: z.nativeEnum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
 };
 
