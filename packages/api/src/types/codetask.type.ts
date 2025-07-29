@@ -17,6 +17,7 @@ export type PredefinedCodeTaskType =
 
 export interface CodeTaskBase {
   id: string;
+  userId: string;
   content: string;
   filePath: string;
   lineNumber: number;
