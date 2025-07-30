@@ -3,7 +3,6 @@ packages/*/node_modules/
 
 TODO
 README.md
-.cursorrules
 
 dist/
 build/
@@ -22,6 +21,8 @@ pnpm-debug.log*
 Thumbs.db
 
 .vscode/
+.cursorrules
+.windsurf/
 .idea/
 *.swp
 

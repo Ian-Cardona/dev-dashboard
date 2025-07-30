@@ -44,7 +44,7 @@ interface Meta {
   scannedFiles: number;
 }
 
-export interface CodeTasksResponse {
+export interface CodeTasksInfo {
   userId: string;
   data: CodeTask[];
   meta: Meta;

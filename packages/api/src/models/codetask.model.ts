@@ -7,6 +7,7 @@ import {
 import { docClient } from '../config/dynamodb';
 import { CodeTask } from '../types/codetask.type';
 
+// TODO: Add const to a const file
 const CODE_TASK_TABLE = 'CodeTask';
 // const CODE_TASKS_RESPONSE = 'CodeTasksResponse';
 

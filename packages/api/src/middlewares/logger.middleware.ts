@@ -1,5 +1,6 @@
 import winston from 'winston';
 
+// TODO: Improve logger middleware
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(

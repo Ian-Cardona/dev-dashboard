@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import z from 'zod';
 
+// TODO: Improve the error handler middleware
 export const errorHandlerMiddleware = (
   error: unknown,
   _req: Request,
