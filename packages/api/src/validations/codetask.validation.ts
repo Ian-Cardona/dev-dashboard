@@ -1,13 +1,33 @@
 import { z } from 'zod';
 import { CodeTaskPriority } from '../types/codetask.type';
+import { CODETASK_VALIDATION } from '../constants/validations';
 
 const codeTaskBaseFields = {
-  id: z.string(),
-  userId: z.string(),
-  content: z.string(),
-  filePath: z.string(),
-  lineNumber: z.number(),
-  syncedAt: z.string(),
+  id: z
+    .string()
+    .min(CODETASK_VALIDATION.ID.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.ID.MAX_LENGTH),
+  userId: z
+    .string()
+    .min(CODETASK_VALIDATION.USER_ID.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.USER_ID.MAX_LENGTH),
+  content: z
+    .string()
+    .min(CODETASK_VALIDATION.CONTENT.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.CONTENT.MAX_LENGTH),
+  filePath: z
+    .string()
+    .max(CODETASK_VALIDATION.FILE_PATH.MAX_LENGTH)
+    .regex(CODETASK_VALIDATION.FILE_PATH.PATTERN),
+  lineNumber: z
+    .number()
+    .min(CODETASK_VALIDATION.LINE_NUMBER.MIN)
+    .max(CODETASK_VALIDATION.LINE_NUMBER.MAX),
+  syncedAt: z
+    .string()
+    .min(CODETASK_VALIDATION.SYNCED_AT.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.SYNCED_AT.MAX_LENGTH)
+    .regex(CODETASK_VALIDATION.SYNCED_AT.PATTERN),
   priority: z.enum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
 };
@@ -24,7 +44,11 @@ const predefinedCodeTaskSchema = z.object({
 
 const otherCodeTaskFields = z.object({
   type: z.literal('OTHER'),
-  customTag: z.string(),
+  customTag: z
+    .string()
+    .min(CODETASK_VALIDATION.CUSTOM_TAG.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.CUSTOM_TAG.MAX_LENGTH)
+    .regex(CODETASK_VALIDATION.CUSTOM_TAG.PATTERN),
 });
 
 const otherCodeTaskSchema = z.object({
@@ -38,7 +62,10 @@ export const codeTaskValidation = z.discriminatedUnion('type', [
 ]);
 
 const updatableFields = {
-  content: z.string(),
+  content: z
+    .string()
+    .min(CODETASK_VALIDATION.CONTENT.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.CONTENT.MAX_LENGTH),
   priority: z.enum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
 };
@@ -59,13 +86,22 @@ export const codeTaskUpdateValidation = z.discriminatedUnion('type', [
 ]);
 
 export const metaValidation = z.object({
-  totalCount: z.number(),
+  totalCount: z
+    .number()
+    .min(CODETASK_VALIDATION.META.MIN_COUNT)
+    .max(CODETASK_VALIDATION.META.MAX_COUNT),
   lastScanAt: z.string(),
-  scannedFiles: z.number(),
+  scannedFiles: z
+    .number()
+    .min(CODETASK_VALIDATION.META.MIN_COUNT)
+    .max(CODETASK_VALIDATION.META.MAX_COUNT),
 });
 
 export const codeTasksResponseValidation = z.object({
-  userId: z.string(),
+  userId: z
+    .string()
+    .min(CODETASK_VALIDATION.USER_ID.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.USER_ID.MAX_LENGTH),
   data: z.array(codeTaskValidation),
   meta: metaValidation,
 });

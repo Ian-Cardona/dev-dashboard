@@ -1,7 +1,8 @@
 import winston from 'winston';
+import { Request, Response, NextFunction } from 'express';
 
-// TODO: Improve logger middleware
-const logger = winston.createLogger({
+// TODO: Improve the logger middleware
+export const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
     winston.format.timestamp(),
@@ -10,4 +11,11 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-export default logger;
+export const loggerMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  logger.info(`${req.method} ${req.path}`);
+  next();
+};
