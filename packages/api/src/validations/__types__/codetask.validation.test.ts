@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { codeTaskValidation } from '../codetask.validation';
 import { CodeTaskPriority } from '../../types/codetask.type';
 
-describe('CodeTask Validation', () => {
+// Valid Data
+describe('CodeTask Validation - Valid Data', () => {
   it('should validate valid codetask data (Predefined)', () => {
-    const validData = {
+    const validPredefinedData = {
       id: '1',
       userId: 'TEST_USER12345',
       content: 'This is a test content. Please ignore.',
@@ -16,11 +17,13 @@ describe('CodeTask Validation', () => {
       type: 'TODO',
     };
 
-    expect(() => codeTaskValidation.parse(validData)).not.toThrow();
+    expect(codeTaskValidation.parse(validPredefinedData)).toEqual(
+      validPredefinedData
+    );
   });
 
   it('should validate valid codetask data (Other)', () => {
-    const validData = {
+    const validOtherData = {
       id: '1',
       userId: 'TEST_USER12345',
       content: 'This is a test content. Please ignore.',
@@ -33,57 +36,24 @@ describe('CodeTask Validation', () => {
       customTag: 'TEST_TAG',
     };
 
-    expect(() => codeTaskValidation.parse(validData)).not.toThrow();
+    expect(codeTaskValidation.parse(validOtherData)).toEqual(validOtherData);
   });
 
-  it('should throw error for invalid codetask data (Predefined)', () => {
-    const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
-      content: 'Test content',
-      filePath: 'Test file path',
-      lineNumber: 1,
-      syncedAt: 'Test synced at',
-      priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'INVALID',
-    };
-
-    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
-  });
-
-  it('should throw error for invalid codetask data (Other)', () => {
-    const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
-      content: 'Test content',
-      filePath: 'Test file path',
-      lineNumber: 1,
-      syncedAt: 'Test synced at',
-      priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'OTHER',
-      customTag: undefined,
-    };
-
-    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
-  });
-});
-
-describe('CodeTask Validation - Edge Cases', () => {
-  it('should handle minimum values', () => {
+  it('should handle minimum valid data', () => {
     const boundaryData = {
       id: 'a',
       userId: 'a',
       content: 'a',
-      filePath: 'Path',
+      filePath: 'a',
       lineNumber: 1,
       syncedAt: '2025-07-31T14:42:05.000Z',
       priority: CodeTaskPriority.LOW,
       status: 'todo',
-      type: 'TODO',
+      type: 'OTHER',
+      customTag: 'A',
     };
-    expect(() => codeTaskValidation.parse(boundaryData)).not.toThrow();
+
+    expect(codeTaskValidation.parse(boundaryData)).toEqual(boundaryData);
   });
 
   it('should handle maximum valid data', () => {
@@ -91,29 +61,332 @@ describe('CodeTask Validation - Edge Cases', () => {
       id: 'a'.repeat(50),
       userId: 'a'.repeat(50),
       content: 'a'.repeat(500),
-      filePath: '/This/Is/A/Test/FilePath',
+      filePath: '/Path'.repeat(52),
       lineNumber: 100000,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'OTHER',
+      customTag: 'A'.repeat(20),
+    };
+    expect(codeTaskValidation.parse(maximumData)).toEqual(maximumData);
+  });
+});
+
+// Invalid Data
+describe('CodeTask Validation - Invalid Data', () => {
+  it('should throw error for empty userId', () => {
+    const invalidData = {
+      id: '1',
+      userId: '',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
       syncedAt: '2025-07-31T14:42:05.000Z',
       priority: CodeTaskPriority.LOW,
       status: 'todo',
       type: 'TODO',
     };
-    expect(() => codeTaskValidation.parse(maximumData)).not.toThrow();
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
   });
 
-  it('should handle invalid values', () => {
+  it('should throw error for OTHER type without customTag', () => {
     const invalidData = {
-      id: 'a'.repeat(51),
-      userId: 'a'.repeat(51),
-      content: 'a'.repeat(501),
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
-      lineNumber: 100001,
-      // TODO: Invalid syncedAt
-      syncedAt: '2025-07-31T14:42:05Z',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'OTHER',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for empty required fields', () => {
+    const boundaryInvalidData = {
+      id: '',
+      userId: '',
+      content: '',
+      filePath: '',
+      lineNumber: 1,
+      syncedAt: '',
       priority: CodeTaskPriority.LOW,
       status: 'todo',
       type: 'TODO',
     };
+    expect(() => codeTaskValidation.parse(boundaryInvalidData)).toThrow();
+  });
+
+  it('should throw error for values exceeding maximum limits', () => {
+    const boundaryInvalidData = {
+      id: 'a'.repeat(51),
+      userId: 'a'.repeat(51),
+      content: 'a'.repeat(501),
+      filePath: '/Path'.repeat(261),
+      lineNumber: 100001,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+    expect(() => codeTaskValidation.parse(boundaryInvalidData)).toThrow();
+  });
+
+  it('should throw error for invalid line number', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 0,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for invalid syncedAt format', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: 'invalid-date',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for invalid type', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'INVALID_TYPE',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for invalid status', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'invalid_status',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+});
+
+// Missing Fields
+describe('CodeTask Validation - Missing Fields', () => {
+  it('should throw error for missing required id', () => {
+    const invalidData = {
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required userId', () => {
+    const invalidData = {
+      id: '1',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required content', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required filePath', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required lineNumber', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required syncedAt', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required priority', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required status', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for missing required type', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+});
+
+// Type Validation
+describe('CodeTask Validation - Type Validation', () => {
+  it('should throw error for number instead of string fields', () => {
+    const invalidData = {
+      id: 123,
+      userId: 456,
+      content: 789,
+      filePath: 101,
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for string instead of number lineNumber', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: '1',
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: CodeTaskPriority.LOW,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    expect(() => codeTaskValidation.parse(invalidData)).toThrow();
+  });
+
+  it('should throw error for invalid priority enum', () => {
+    const invalidData = {
+      id: '1',
+      userId: 'TEST_USER12345',
+      content: 'This is a test content. Please ignore.',
+      filePath: '/This/Is/A/Test/FilePath',
+      lineNumber: 1,
+      syncedAt: '2025-07-31T14:42:05.000Z',
+      priority: 'INVALID_PRIORITY',
+      status: 'todo',
+      type: 'TODO',
+    };
+
     expect(() => codeTaskValidation.parse(invalidData)).toThrow();
   });
 });
