@@ -23,11 +23,7 @@ const codeTaskBaseFields = {
     .number()
     .min(CODETASK_VALIDATION.LINE_NUMBER.MIN)
     .max(CODETASK_VALIDATION.LINE_NUMBER.MAX),
-  syncedAt: z
-    .string()
-    .min(CODETASK_VALIDATION.SYNCED_AT.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.SYNCED_AT.MAX_LENGTH)
-    .regex(CODETASK_VALIDATION.SYNCED_AT.PATTERN),
+  syncedAt: z.string().regex(CODETASK_VALIDATION.SYNCED_AT.PATTERN),
   priority: z.enum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
 };

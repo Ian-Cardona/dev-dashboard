@@ -1,19 +1,19 @@
-import express from 'express';
-import {
-  createCodeTask,
-  deleteCodeTask,
-  findCodeTasksInfoByUserId,
-  updateCodeTask,
-} from '../controllers/codetask.controller';
+import { Router } from 'express';
 
-const router = express.Router();
+import { docClient } from '../config/dynamodb';
+import { CodeTaskModel } from '../models/codetask.model';
+import { CodeTaskService } from '../services/codetask.service';
+import { CodeTaskController } from '../controllers/codetask.controller';
 
-router.post('/', createCodeTask);
+const router = Router();
 
-router.get('/:userId', findCodeTasksInfoByUserId);
+const codeTaskRepositoryInstance = CodeTaskModel(docClient);
+const codeTaskServiceInstance = CodeTaskService(codeTaskRepositoryInstance);
+const codeTaskControllerInstance = CodeTaskController(codeTaskServiceInstance);
 
-router.put('/:userId/:id', updateCodeTask);
-
-router.delete('/:userId/:id', deleteCodeTask);
+router.post('/', codeTaskControllerInstance.createCodeTask);
+router.get('/:userId', codeTaskControllerInstance.findCodeTasksInfoByUserId);
+router.put('/:id/:userId', codeTaskControllerInstance.updateCodeTask);
+router.delete('/:id/:userId', codeTaskControllerInstance.deleteCodeTask);
 
 export default router;

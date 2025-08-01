@@ -3,63 +3,57 @@ import {
   codeTaskUpdateValidation,
   codeTaskValidation,
 } from '../validations/codetask.validation';
-import { CodeTaskService } from '../services/codetask.service';
+import { ICodeTaskService } from '../services/codetask.service';
 
-export const createCodeTask = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const validatedData = codeTaskValidation.parse(req.body);
-    const result = await CodeTaskService.create(validatedData);
+export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
+  return {
+    async createCodeTask(req: Request, res: Response, next: NextFunction) {
+      try {
+        const validatedData = codeTaskValidation.parse(req.body);
 
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-};
+        const result = await codeTaskService.create(validatedData);
+        res.status(201).json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
 
-export const findCodeTasksInfoByUserId = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { userId } = req.params;
-    const result = await CodeTaskService.findByUserId(userId);
+    async findCodeTasksInfoByUserId(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const { userId } = req.params;
 
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-};
+        const result = await codeTaskService.findByUserId(userId);
+        res.json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
 
-export const updateCodeTask = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id, userId } = req.params;
-    const updates = codeTaskUpdateValidation.parse(req.body.updates);
-    await CodeTaskService.update(id, userId, updates);
-    res.status(204).end();
-  } catch (error) {
-    next(error);
-  }
-};
+    async updateCodeTask(req: Request, res: Response, next: NextFunction) {
+      try {
+        const { id, userId } = req.params;
+        const updates = codeTaskUpdateValidation.parse(req.body.updates);
 
-export const deleteCodeTask = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id, userId } = req.params;
-    await CodeTaskService.delete(id, userId);
-    res.status(204).end();
-  } catch (error) {
-    next(error);
-  }
+        await codeTaskService.update(id, userId, updates);
+        res.status(204).end();
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    async deleteCodeTask(req: Request, res: Response, next: NextFunction) {
+      try {
+        const { id, userId } = req.params;
+
+        await codeTaskService.delete(id, userId);
+        res.status(204).end();
+      } catch (error) {
+        next(error);
+      }
+    },
+  };
 };

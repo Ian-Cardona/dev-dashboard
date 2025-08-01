@@ -6,6 +6,7 @@ export const CODETASK_VALIDATION = {
   },
   FILE_PATH: {
     MAX_LENGTH: 260,
+    // NOTE: This is a "safe" pattern but disallows spaces. Re-evaluate if paths with spaces need to be supported.
     PATTERN: /^[a-zA-Z0-9\-_./\\:@]+$/,
     MESSAGE: 'Invalid file path format',
   },
@@ -15,16 +16,16 @@ export const CODETASK_VALIDATION = {
     MESSAGE: 'Line number must be between 1-100000',
   },
   SYNCED_AT: {
-    MIN_LENGTH: 1,
-    MAX_LENGTH: 50,
-    PATTERN: /^[a-zA-Z0-9\-_./\\:@]+$/,
+    PATTERN:
+      /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3}Z$/,
     MESSAGE: 'Invalid synced at format',
   },
   CUSTOM_TAG: {
     MIN_LENGTH: 1,
     MAX_LENGTH: 20,
     PATTERN: /^[A-Z][A-Z0-9_]*$/,
-    MESSAGE: 'Custom tag must be UPPERCASE with underscores only',
+    MESSAGE:
+      'Custom tag must start with a letter and contain only uppercase letters, numbers, and underscores',
   },
   ID: {
     MIN_LENGTH: 1,

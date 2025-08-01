@@ -1,1 +1,1 @@
-// TODO: Add constants here
+export const CODE_TASK_TABLE = 'CodeTask';
