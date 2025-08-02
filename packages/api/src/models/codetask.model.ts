@@ -6,7 +6,7 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { CodeTask } from '../types/codetask.type';
-import { CODE_TASK_TABLE } from '../utils/constant';
+import { CODE_TASK_TABLE } from '../constants/tables';
 
 export interface ICodeTaskModel {
   create(data: CodeTask): Promise<CodeTask>;
@@ -36,26 +36,43 @@ export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
+      if (!result.Items || !Array.isArray(result.Items)) {
+        return [];
+      }
+
       return result.Items as CodeTask[];
     },
 
     async update(id: string, userId: string, updates: Partial<CodeTask>) {
       const updateExpression: string[] = [];
+      const expressionAttributeNames: Record<string, string> = {};
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const expressionAttributeValues: Record<string, any> = {};
 
-      Object.keys(updates).forEach((key, index) => {
-        updateExpression.push(`${key} = :val${index}`);
-        expressionAttributeValues[`:val${index}`] =
+      Object.keys(updates).forEach(key => {
+        const attrNamePlaceholder = `#${key}`;
+        const attrValuePlaceholder = `:${key}`;
+
+        updateExpression.push(
+          `${attrNamePlaceholder} = ${attrValuePlaceholder}`
+        );
+        expressionAttributeNames[attrNamePlaceholder] = key;
+        expressionAttributeValues[attrValuePlaceholder] =
           updates[key as keyof CodeTask];
       });
+
+      if (updateExpression.length === 0) {
+        return;
+      }
 
       await docClient.send(
         new UpdateCommand({
           TableName: CODE_TASK_TABLE,
           Key: { id, userId },
           UpdateExpression: `SET ${updateExpression.join(', ')}`,
+          ExpressionAttributeNames: expressionAttributeNames,
           ExpressionAttributeValues: expressionAttributeValues,
+          ConditionExpression: 'attribute_exists(id)',
         })
       );
     },
@@ -65,6 +82,7 @@ export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
         new DeleteCommand({
           TableName: CODE_TASK_TABLE,
           Key: { id, userId },
+          ConditionExpression: 'attribute_exists(id)',
         })
       );
     },

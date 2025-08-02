@@ -69,6 +69,7 @@ describe('CodeTask Validation - Valid Data', () => {
       type: 'OTHER',
       customTag: 'A'.repeat(20),
     };
+
     expect(codeTaskValidation.parse(maximumData)).toEqual(maximumData);
   });
 });
@@ -119,6 +120,7 @@ describe('CodeTask Validation - Invalid Data', () => {
       status: 'todo',
       type: 'TODO',
     };
+
     expect(() => codeTaskValidation.parse(boundaryInvalidData)).toThrow();
   });
 
@@ -134,6 +136,7 @@ describe('CodeTask Validation - Invalid Data', () => {
       status: 'todo',
       type: 'TODO',
     };
+
     expect(() => codeTaskValidation.parse(boundaryInvalidData)).toThrow();
   });
 
