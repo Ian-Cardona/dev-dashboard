@@ -38,7 +38,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
     async updateCodeTask(req: Request, res: Response, next: NextFunction) {
       try {
         const { id, userId } = req.params;
-        const updates = codeTaskUpdateValidation.parse(req.body.updates);
+        const updates = codeTaskUpdateValidation.parse(req.body);
 
         await codeTaskService.update(id, userId, updates);
 

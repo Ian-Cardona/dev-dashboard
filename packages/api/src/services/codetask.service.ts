@@ -1,5 +1,6 @@
 import { CodeTask, CodeTasksInfo } from '../types/codetask.type';
 import { ICodeTaskModel } from '../models/codetask.model';
+import { ENV } from '../config/env_variables';
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -30,7 +31,10 @@ export const CodeTaskService = (
       try {
         return await codeTaskModel.create(data);
       } catch (error) {
-        console.error('Service Error: Failed to create code task.', error);
+        // TODO: Implement better dev logging
+        if (ENV.NODE_ENV === 'development') {
+          console.error('Service Error: Failed to create code task.', error);
+        }
 
         throw new DatabaseError('Could not create the task.');
       }
@@ -38,7 +42,7 @@ export const CodeTaskService = (
 
     async findByUserId(userId: string): Promise<CodeTasksInfo> {
       try {
-        const data = await codeTaskModel.findByUserId(userId); // Always gets CodeTask[]
+        const data = await codeTaskModel.findByUserId(userId);
 
         return {
           userId,
@@ -50,7 +54,11 @@ export const CodeTaskService = (
           },
         };
       } catch (error) {
-        console.error('Service Error: Failed to retrieve tasks.', error);
+        // TODO: Implement better dev logging
+        if (ENV.NODE_ENV === 'development') {
+          console.error('Service Error: Failed to retrieve tasks.', error);
+        }
+
         throw new DatabaseError('Could not retrieve tasks.');
       }
     },
@@ -63,14 +71,18 @@ export const CodeTaskService = (
       try {
         await codeTaskModel.update(id, userId, updates);
       } catch (error) {
-        if (error instanceof Error) {
-          if (error.name === 'ConditionalCheckFailedException') {
-            console.warn(`Attempted to update a non-existent task: ${id}`);
-            throw new NotFoundError(`Task with ID ${id} not found.`);
-          }
+        if (
+          error instanceof Error &&
+          error.name === 'ConditionalCheckFailedException'
+        ) {
+          console.warn(`Attempted to update a non-existent task: ${id}`);
+          throw new NotFoundError(`Task with ID ${id} not found.`);
         }
 
-        console.error(`Service Error: Failed to update task ${id}.`, error);
+        if (ENV.NODE_ENV === 'development') {
+          console.error(`Service Error: Failed to update task ${id}.`, error);
+        }
+
         throw new DatabaseError('Could not update the task.');
       }
     },
@@ -79,14 +91,18 @@ export const CodeTaskService = (
       try {
         await codeTaskModel.delete(id, userId);
       } catch (error) {
-        if (error instanceof Error) {
-          if (error.name === 'ConditionalCheckFailedException') {
-            console.warn(`Attempted to delete a non-existent task: ${id}`);
-            throw new NotFoundError(`Task with ID ${id} not found.`);
-          }
+        if (
+          error instanceof Error &&
+          error.name === 'ConditionalCheckFailedException'
+        ) {
+          console.warn(`Attempted to delete a non-existent task: ${id}`);
+          throw new NotFoundError(`Task with ID ${id} not found.`);
         }
 
-        console.error(`Service Error: Failed to delete task ${id}.`, error);
+        if (ENV.NODE_ENV === 'development') {
+          console.error(`Service Error: Failed to delete task ${id}.`, error);
+        }
+
         throw new DatabaseError('Could not delete the task.');
       }
     },

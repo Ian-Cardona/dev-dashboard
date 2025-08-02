@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CodeTaskService, DatabaseError } from '../codetask.service';
 import { CodeTaskPriority, CodeTask } from '../../types/codetask.type';
 
@@ -51,6 +51,17 @@ describe('CodeTask Service', () => {
   });
 
   describe('findByUserId', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      // Mock Date to return consistent timestamp
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should successfully find CodeTasks by userId', async () => {
       const userId = 'TEST_USER12345';
       const codeTasks: CodeTask[] = [
@@ -60,7 +71,7 @@ describe('CodeTask Service', () => {
           content: 'This is a test content. Please ignore.',
           filePath: '/This/Is/A/Test/FilePath',
           lineNumber: 1,
-          syncedAt: '2025-07-31T14:42:05.000Z',
+          syncedAt: '2025-01-01T00:00:00.000Z',
           priority: CodeTaskPriority.LOW,
           status: 'todo',
           type: 'TODO',
@@ -76,7 +87,7 @@ describe('CodeTask Service', () => {
         data: codeTasks,
         meta: {
           totalCount: codeTasks.length,
-          lastScanAt: new Date().toISOString(),
+          lastScanAt: '2025-01-01T00:00:00.000Z',
           scannedFiles: 0, // TODO: Add actual scanned files count here
         },
       });
@@ -97,7 +108,7 @@ describe('CodeTask Service', () => {
         data: codeTasks,
         meta: {
           totalCount: codeTasks.length,
-          lastScanAt: new Date().toISOString(),
+          lastScanAt: '2025-01-01T00:00:00.000Z',
           scannedFiles: 0,
         },
       });
