@@ -38,7 +38,7 @@ export interface OtherCodeTask extends CodeTaskBase {
 
 export type CodeTask = PredefinedCodeTask | OtherCodeTask;
 
-interface Meta {
+export interface Meta {
   totalCount: number;
   lastScanAt: string;
   scannedFiles: number;

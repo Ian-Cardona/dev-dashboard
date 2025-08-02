@@ -12,6 +12,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
         const validatedData = codeTaskValidation.parse(req.body);
 
         const result = await codeTaskService.create(validatedData);
+
         res.status(201).json(result);
       } catch (error) {
         next(error);
@@ -27,6 +28,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
         const { userId } = req.params;
 
         const result = await codeTaskService.findByUserId(userId);
+
         res.json(result);
       } catch (error) {
         next(error);
@@ -39,6 +41,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
         const updates = codeTaskUpdateValidation.parse(req.body.updates);
 
         await codeTaskService.update(id, userId, updates);
+
         res.status(204).end();
       } catch (error) {
         next(error);
@@ -50,6 +53,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
         const { id, userId } = req.params;
 
         await codeTaskService.delete(id, userId);
+
         res.status(204).end();
       } catch (error) {
         next(error);

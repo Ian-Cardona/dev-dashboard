@@ -17,5 +17,6 @@ export const loggerMiddleware = (
   next: NextFunction
 ) => {
   logger.info(`${req.method} ${req.path}`);
+
   next();
 };
