@@ -36,7 +36,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
       next: NextFunction
     ) {
       try {
-        const userId = z.string().pipe(z.uuid()).parse(req.params.userId);
+        const userId = z.uuidv4().parse(req.params.userId);
         const result = await codeTaskService.findByUserId(userId);
 
         // Sanitize the response content
@@ -58,8 +58,8 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
 
     async updateCodeTask(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = z.string().pipe(z.uuid()).parse(req.params.userId);
-        const id = z.string().pipe(z.uuid()).parse(req.params.id);
+        const userId = z.uuidv4().parse(req.params.userId);
+        const id = z.uuidv4().parse(req.params.id);
 
         const sanitizedBody = {
           ...req.body,
@@ -78,9 +78,9 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
 
     async deleteCodeTask(req: Request, res: Response, next: NextFunction) {
       try {
-        // TODO: Refactor this to use zod validation
-        const userId = z.string().pipe(z.uuid()).parse(req.params.userId);
-        const id = z.string().pipe(z.uuid()).parse(req.params.id);
+        // TODO: Refactor this to use user validation
+        const userId = z.uuidv4().parse(req.params.userId);
+        const id = z.uuidv4().parse(req.params.id);
 
         await codeTaskService.delete(id, userId);
 
