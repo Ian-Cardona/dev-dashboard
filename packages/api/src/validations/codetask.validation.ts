@@ -2,15 +2,10 @@ import { z } from 'zod';
 import { CodeTaskPriority } from '../types/codetask.type';
 import { CODETASK_VALIDATION } from '../constants/validations';
 
+// For existing
 const codeTaskBaseFields = {
-  id: z
-    .string()
-    .min(CODETASK_VALIDATION.ID.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.ID.MAX_LENGTH),
-  userId: z
-    .string()
-    .min(CODETASK_VALIDATION.USER_ID.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.USER_ID.MAX_LENGTH),
+  id: z.uuidv4(),
+  userId: z.uuidv4(),
   content: z
     .string()
     .min(CODETASK_VALIDATION.CONTENT.MIN_LENGTH)
@@ -23,7 +18,7 @@ const codeTaskBaseFields = {
     .number()
     .min(CODETASK_VALIDATION.LINE_NUMBER.MIN)
     .max(CODETASK_VALIDATION.LINE_NUMBER.MAX),
-  syncedAt: z.string().regex(CODETASK_VALIDATION.SYNCED_AT.PATTERN),
+  syncedAt: z.iso.datetime(),
   priority: z.enum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
 };
@@ -57,6 +52,41 @@ export const codeTaskValidation = z.discriminatedUnion('type', [
   otherCodeTaskSchema,
 ]);
 
+// For Creation
+const creatableFields = {
+  userId: z.uuidv4(),
+  content: z
+    .string()
+    .min(CODETASK_VALIDATION.CONTENT.MIN_LENGTH)
+    .max(CODETASK_VALIDATION.CONTENT.MAX_LENGTH),
+  filePath: z
+    .string()
+    .max(CODETASK_VALIDATION.FILE_PATH.MAX_LENGTH)
+    .regex(CODETASK_VALIDATION.FILE_PATH.PATTERN),
+  lineNumber: z
+    .number()
+    .min(CODETASK_VALIDATION.LINE_NUMBER.MIN)
+    .max(CODETASK_VALIDATION.LINE_NUMBER.MAX),
+  priority: z.enum(CodeTaskPriority),
+  status: z.enum(['todo', 'in-progress', 'done']),
+};
+
+const predefinedCreateSchema = z.object({
+  ...creatableFields,
+  ...predefinedCodeTaskFields.shape,
+});
+
+const otherCreateSchema = z.object({
+  ...creatableFields,
+  ...otherCodeTaskFields.shape,
+});
+
+export const codeTaskCreateValidation = z.discriminatedUnion('type', [
+  predefinedCreateSchema,
+  otherCreateSchema,
+]);
+
+// For Updating
 const updatableFields = {
   content: z
     .string()
@@ -86,7 +116,7 @@ export const metaValidation = z.object({
     .number()
     .min(CODETASK_VALIDATION.META.MIN_COUNT)
     .max(CODETASK_VALIDATION.META.MAX_COUNT),
-  lastScanAt: z.string(),
+  lastScanAt: z.iso.datetime(),
   scannedFiles: z
     .number()
     .min(CODETASK_VALIDATION.META.MIN_COUNT)
@@ -94,10 +124,7 @@ export const metaValidation = z.object({
 });
 
 export const codeTasksResponseValidation = z.object({
-  userId: z
-    .string()
-    .min(CODETASK_VALIDATION.USER_ID.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.USER_ID.MAX_LENGTH),
+  userId: z.uuidv4(),
   data: z.array(codeTaskValidation),
   meta: metaValidation,
 });
