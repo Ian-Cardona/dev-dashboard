@@ -1,13 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { codeTaskValidation } from '../codetask.validation';
 import { CodeTaskPriority } from '../../types/codetask.type';
+import { generateCodeTaskId, generateUserId } from '../../utils/uuid.utils';
 
 // Valid Data
 describe('CodeTask Validation - Valid Data', () => {
+  const id = generateCodeTaskId();
+  const userId = generateUserId();
+
   it('should validate valid codetask data (Predefined)', () => {
     const validPredefinedData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -24,8 +28,8 @@ describe('CodeTask Validation - Valid Data', () => {
 
   it('should validate valid codetask data (Other)', () => {
     const validOtherData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -41,8 +45,8 @@ describe('CodeTask Validation - Valid Data', () => {
 
   it('should handle minimum valid data', () => {
     const boundaryData = {
-      id: 'a',
-      userId: 'a',
+      id,
+      userId,
       content: 'a',
       filePath: 'a',
       lineNumber: 1,
@@ -58,8 +62,8 @@ describe('CodeTask Validation - Valid Data', () => {
 
   it('should handle maximum valid data', () => {
     const maximumData = {
-      id: 'a'.repeat(50),
-      userId: 'a'.repeat(50),
+      id,
+      userId,
       content: 'a'.repeat(500),
       filePath: '/Path'.repeat(52),
       lineNumber: 100000,
@@ -76,9 +80,12 @@ describe('CodeTask Validation - Valid Data', () => {
 
 // Invalid Data
 describe('CodeTask Validation - Invalid Data', () => {
+  const id = generateCodeTaskId();
+  const userId = generateUserId();
+
   it('should throw error for empty userId', () => {
     const invalidData = {
-      id: '1',
+      id,
       userId: '',
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
@@ -94,8 +101,8 @@ describe('CodeTask Validation - Invalid Data', () => {
 
   it('should throw error for OTHER type without customTag', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -110,8 +117,8 @@ describe('CodeTask Validation - Invalid Data', () => {
 
   it('should throw error for empty required fields', () => {
     const boundaryInvalidData = {
-      id: '',
-      userId: '',
+      id,
+      userId,
       content: '',
       filePath: '',
       lineNumber: 1,
@@ -126,8 +133,8 @@ describe('CodeTask Validation - Invalid Data', () => {
 
   it('should throw error for values exceeding maximum limits', () => {
     const boundaryInvalidData = {
-      id: 'a'.repeat(51),
-      userId: 'a'.repeat(51),
+      id,
+      userId,
       content: 'a'.repeat(501),
       filePath: '/Path'.repeat(261),
       lineNumber: 100001,
@@ -142,8 +149,8 @@ describe('CodeTask Validation - Invalid Data', () => {
 
   it('should throw error for invalid line number', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 0,
@@ -158,8 +165,8 @@ describe('CodeTask Validation - Invalid Data', () => {
 
   it('should throw error for invalid syncedAt format', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -174,8 +181,8 @@ describe('CodeTask Validation - Invalid Data', () => {
 
   it('should throw error for invalid type', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -190,8 +197,8 @@ describe('CodeTask Validation - Invalid Data', () => {
 
   it('should throw error for invalid status', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -207,9 +214,12 @@ describe('CodeTask Validation - Invalid Data', () => {
 
 // Missing Fields
 describe('CodeTask Validation - Missing Fields', () => {
+  const id = generateCodeTaskId();
+  const userId = generateUserId();
+
   it('should throw error for missing required id', () => {
     const invalidData = {
-      userId: 'TEST_USER12345',
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -224,7 +234,7 @@ describe('CodeTask Validation - Missing Fields', () => {
 
   it('should throw error for missing required userId', () => {
     const invalidData = {
-      id: '1',
+      id,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -239,8 +249,8 @@ describe('CodeTask Validation - Missing Fields', () => {
 
   it('should throw error for missing required content', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
       syncedAt: '2025-07-31T14:42:05.000Z',
@@ -254,8 +264,8 @@ describe('CodeTask Validation - Missing Fields', () => {
 
   it('should throw error for missing required filePath', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       lineNumber: 1,
       syncedAt: '2025-07-31T14:42:05.000Z',
@@ -345,10 +355,13 @@ describe('CodeTask Validation - Missing Fields', () => {
 
 // Type Validation
 describe('CodeTask Validation - Type Validation', () => {
+  const id = generateCodeTaskId();
+  const userId = generateUserId();
+
   it('should throw error for number instead of string fields', () => {
     const invalidData = {
-      id: 123,
-      userId: 456,
+      id,
+      userId,
       content: 789,
       filePath: 101,
       lineNumber: 1,
@@ -363,8 +376,8 @@ describe('CodeTask Validation - Type Validation', () => {
 
   it('should throw error for string instead of number lineNumber', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: '1',
@@ -379,8 +392,8 @@ describe('CodeTask Validation - Type Validation', () => {
 
   it('should throw error for invalid priority enum', () => {
     const invalidData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      id,
+      userId,
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,

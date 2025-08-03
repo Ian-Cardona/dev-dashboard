@@ -14,28 +14,50 @@ const codeTaskService = CodeTaskService(mockCodeTaskModel);
 describe('CodeTask Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('create', () => {
-    const createCodeTask: CodeTask = {
-      id: '1',
-      userId: 'TEST_USER12345',
+    const createCodeTaskInput = {
+      userId: '550e8400-e29b-41d4-a716-446655440001',
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
-      syncedAt: '2025-07-31T14:42:05.000Z',
       priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'TODO',
+      status: 'todo' as const,
+      type: 'TODO' as const,
     };
 
     it('should successfully create a new CodeTask and return it', async () => {
-      mockCodeTaskModel.create.mockResolvedValue(createCodeTask);
+      const expectedResult = {
+        id: expect.any(String),
+        userId: '550e8400-e29b-41d4-a716-446655440001',
+        content: 'This is a test content. Please ignore.',
+        filePath: '/This/Is/A/Test/FilePath',
+        lineNumber: 1,
+        syncedAt: '2025-01-01T00:00:00.000Z',
+        priority: CodeTaskPriority.LOW,
+        status: 'todo',
+        type: 'TODO',
+      };
 
-      const result = await codeTaskService.create(createCodeTask);
+      mockCodeTaskModel.create.mockResolvedValue(expectedResult);
 
-      expect(result).toEqual(createCodeTask);
-      expect(mockCodeTaskModel.create).toHaveBeenCalledWith(createCodeTask);
+      const result = await codeTaskService.create(createCodeTaskInput);
+
+      expect(result).toEqual(expectedResult);
+      expect(mockCodeTaskModel.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(String),
+          syncedAt: '2025-01-01T00:00:00.000Z',
+          ...createCodeTaskInput,
+        })
+      );
       expect(mockCodeTaskModel.create).toHaveBeenCalledTimes(1);
     });
 
@@ -44,29 +66,19 @@ describe('CodeTask Service', () => {
 
       mockCodeTaskModel.create.mockRejectedValue(error);
 
-      await expect(codeTaskService.create(createCodeTask)).rejects.toThrow();
-      expect(mockCodeTaskModel.create).toHaveBeenCalledWith(createCodeTask);
+      await expect(
+        codeTaskService.create(createCodeTaskInput)
+      ).rejects.toThrow();
       expect(mockCodeTaskModel.create).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('findByUserId', () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-      // Mock Date to return consistent timestamp
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
     it('should successfully find CodeTasks by userId', async () => {
-      const userId = 'TEST_USER12345';
+      const userId = '550e8400-e29b-41d4-a716-446655440000';
       const codeTasks: CodeTask[] = [
         {
-          id: '1',
+          id: '550e8400-e29b-41d4-a716-446655440001',
           userId,
           content: 'This is a test content. Please ignore.',
           filePath: '/This/Is/A/Test/FilePath',
@@ -96,7 +108,7 @@ describe('CodeTask Service', () => {
     });
 
     it('should successfully find empty CodeTasks by userId', async () => {
-      const userId = 'TEST_USER12345';
+      const userId = '550e8400-e29b-41d4-a716-446655440000';
       const codeTasks: CodeTask[] = [];
 
       mockCodeTaskModel.findByUserId.mockResolvedValue(codeTasks);
@@ -122,10 +134,10 @@ describe('CodeTask Service', () => {
       mockCodeTaskModel.findByUserId.mockRejectedValue(error);
 
       await expect(
-        codeTaskService.findByUserId('TEST_USER12345')
+        codeTaskService.findByUserId('550e8400-e29b-41d4-a716-446655440002')
       ).rejects.toThrow(error);
       expect(mockCodeTaskModel.findByUserId).toHaveBeenCalledWith(
-        'TEST_USER12345'
+        '550e8400-e29b-41d4-a716-446655440002'
       );
       expect(mockCodeTaskModel.findByUserId).toHaveBeenCalledTimes(1);
     });
@@ -133,8 +145,8 @@ describe('CodeTask Service', () => {
 
   describe('update', () => {
     it('should successfully update a CodeTask', async () => {
-      const id = '1';
-      const userId = 'TEST_USER12345';
+      const id = '550e8400-e29b-41d4-a716-446655440002';
+      const userId = '550e8400-e29b-41d4-a716-446655440002';
       const updates: Partial<CodeTask> = {
         content: 'Updated content',
       };
@@ -150,8 +162,8 @@ describe('CodeTask Service', () => {
     });
 
     it('should handle model update failure', async () => {
-      const id = '1';
-      const userId = 'TEST_USER12345';
+      const id = '550e8400-e29b-41d4-a716-446655440002';
+      const userId = '550e8400-e29b-41d4-a716-446655440002';
       const updates: Partial<CodeTask> = {
         content: 'Updated content',
       };
@@ -174,8 +186,8 @@ describe('CodeTask Service', () => {
 
   describe('delete', () => {
     it('should successfully delete a CodeTask', async () => {
-      const id = '1';
-      const userId = 'TEST_USER12345';
+      const id = '550e8400-e29b-41d4-a716-446655440002';
+      const userId = '550e8400-e29b-41d4-a716-446655440002';
 
       await codeTaskService.delete(id, userId);
 
@@ -184,8 +196,8 @@ describe('CodeTask Service', () => {
     });
 
     it('should handle model delete failure', async () => {
-      const id = '1';
-      const userId = 'TEST_USER12345';
+      const id = '550e8400-e29b-41d4-a716-446655440002';
+      const userId = '550e8400-e29b-41d4-a716-446655440002';
 
       const error = new DatabaseError('Could not delete the task.');
 

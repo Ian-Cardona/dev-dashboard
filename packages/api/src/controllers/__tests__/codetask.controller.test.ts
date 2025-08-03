@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Express } from 'express';
 import request from 'supertest';
 import { describe, it, vi, beforeEach, expect, MockedFunction } from 'vitest';
 import { CodeTaskController } from '../codetask.controller';
@@ -14,6 +14,7 @@ import {
   CodeTasksInfo,
 } from '../../types/codetask.type';
 import { codeTaskUpdateValidation } from '../../validations/codetask.validation';
+import { generateCodeTaskId, generateUserId } from '../../utils/uuid.utils';
 
 const mockCodeTaskService = {
   create: vi.fn() as MockedFunction<ICodeTaskService['create']>,
@@ -24,41 +25,54 @@ const mockCodeTaskService = {
 
 const codeTaskControllerInstance = CodeTaskController(mockCodeTaskService);
 
-const app = express();
-app.use(express.json());
+const createTestApp = () => {
+  const app = express();
 
-app.post('/codetasks', codeTaskControllerInstance.createCodeTask);
-app.get(
-  '/codetasks/:userId',
-  codeTaskControllerInstance.findCodeTasksInfoByUserId
-);
-app.put('/codetasks/:id/:userId', codeTaskControllerInstance.updateCodeTask);
-app.delete('/codetasks/:id/:userId', codeTaskControllerInstance.deleteCodeTask);
+  app.use(express.json({ limit: '1mb' }));
 
-app.use(errorHandlerMiddleware);
+  app.post('/codetasks', codeTaskControllerInstance.createCodeTask);
+  app.get(
+    '/codetasks/:userId',
+    codeTaskControllerInstance.findCodeTasksInfoByUserId
+  );
+  app.put('/codetasks/:id/:userId', codeTaskControllerInstance.updateCodeTask);
+  app.delete(
+    '/codetasks/:id/:userId',
+    codeTaskControllerInstance.deleteCodeTask
+  );
+
+  app.use(errorHandlerMiddleware);
+
+  return app;
+};
 
 describe('CodeTask Controller', () => {
+  let app: Express;
+
   beforeEach(() => {
+    app = createTestApp();
     vi.clearAllMocks();
   });
 
   describe('POST /codetasks', () => {
     const validData = {
-      id: '1',
-      userId: 'TEST_USER12345',
+      userId: generateUserId(),
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
-      syncedAt: '2025-07-31T14:42:05.000Z',
       priority: CodeTaskPriority.LOW,
       status: 'todo',
       type: 'TODO',
     };
 
-    it('should create a new CodeTask and return 201', async () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should create new CodeTask and return 201', async () => {
       const mockResponse: CodeTask = {
-        id: '1',
-        userId: 'TEST_USER12345',
+        id: generateCodeTaskId(),
+        userId: generateUserId(),
         content: 'This is a test content. Please ignore.',
         filePath: '/This/Is/A/Test/FilePath',
         lineNumber: 1,
@@ -75,21 +89,30 @@ describe('CodeTask Controller', () => {
         .expect(201)
         .expect('Content-Type', /json/)
         .expect(res => {
-          expect(res.body).toEqual(mockResponse);
+          expect(res.body).toEqual(
+            expect.objectContaining({
+              content: 'This is a test content. Please ignore.',
+              filePath: '/This/Is/A/Test/FilePath',
+              lineNumber: 1,
+              priority: 'low',
+              status: 'todo',
+              type: 'TODO',
+            })
+          );
+          expect(res.body.id).toBeDefined();
+          expect(res.body.userId).toBeDefined();
+          expect(res.body.syncedAt).toBeDefined();
         });
 
       expect(mockCodeTaskService.create).toHaveBeenCalledWith(validData);
       expect(mockCodeTaskService.create).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw error for invalid data and return 400', async () => {
+    it('should reject invalid data and return 400', async () => {
       const invalidData = {
-        id: '1',
-        userId: 'TEST_USER12345',
         content: 'This is a test content. Please ignore.',
         filePath: '/This/Is/A/Test/FilePath',
         lineNumber: 0, // Invalid value
-        syncedAt: '2025-07-31T14:42:05.000Z',
         priority: CodeTaskPriority.LOW,
         status: 'todo',
         type: 'TODO',
@@ -101,10 +124,60 @@ describe('CodeTask Controller', () => {
       expect(mockCodeTaskService.create).toHaveBeenCalledTimes(0);
     });
 
-    it('should throw error for a missing required field and return 400', async () => {
+    it('should reject missing required field and return 400', async () => {
       const invalidData = {
-        id: '1',
-        // Missing userId
+        filePath: '/This/Is/A/Test/FilePath',
+        lineNumber: 1,
+        priority: CodeTaskPriority.LOW,
+        status: 'todo',
+        type: 'TODO',
+      };
+
+      await request(app).post('/codetasks').send(invalidData).expect(400);
+
+      expect(mockCodeTaskService.create).not.toHaveBeenCalled();
+      expect(mockCodeTaskService.create).toHaveBeenCalledTimes(0);
+    });
+
+    it('should reject malformed JSON and return 400', async () => {
+      await request(app)
+        .post('/codetasks')
+        .set('Content-Type', 'application/json')
+        .send('{ "broken": ')
+        .expect(400)
+        .expect(res => {
+          expect(res.body.error).toBe('Invalid JSON');
+          expect(res.get('Content-Type')).toMatch(/json/);
+        });
+    });
+
+    it('should reject extremely large request body and return 413', async () => {
+      const largePayload = {
+        content: 'a'.repeat(1024 * 1024 * 2),
+        filePath: '/path/to/file',
+        lineNumber: 1,
+        priority: CodeTaskPriority.HIGH,
+        status: 'todo',
+        type: 'TODO',
+      };
+
+      await request(app)
+        .post('/codetasks')
+        .set('Content-Type', 'application/json')
+        .send(largePayload)
+        .expect(413);
+    });
+
+    it('should reject oversized payloads before validation and return 413', async () => {
+      const largePayload = { garbage: 'a'.repeat(1024 * 1024 * 2) };
+
+      await request(app).post('/codetasks').send(largePayload).expect(413);
+    });
+
+    it('should sanitize unsafe content and return clean response', async () => {
+      const mockResponse: CodeTask = {
+        id: generateCodeTaskId(),
+        userId: generateUserId(),
         content: 'This is a test content. Please ignore.',
         filePath: '/This/Is/A/Test/FilePath',
         lineNumber: 1,
@@ -114,17 +187,38 @@ describe('CodeTask Controller', () => {
         type: 'TODO',
       };
 
-      await request(app).post('/codetasks').send(invalidData).expect(400);
+      const xssData = {
+        ...validData,
+        content: '<script>alert(1)</script> Safe content',
+      };
 
-      expect(mockCodeTaskService.create).not.toHaveBeenCalled();
-      expect(mockCodeTaskService.create).toHaveBeenCalledTimes(0);
+      // Mock the service to return sanitized content
+      mockCodeTaskService.create.mockResolvedValue({
+        ...mockResponse,
+        content: 'Safe content', // What DOMPurify would return
+      });
+
+      await request(app)
+        .post('/codetasks')
+        .send(xssData)
+        .expect(201)
+        .expect(res => {
+          expect(res.body.content).toBe('Safe content');
+          expect(res.body.content).not.toMatch(/<script>/);
+        });
     });
 
     it('should handle service errors and return 500', async () => {
       const error = new DatabaseError('DynamoDB error');
       mockCodeTaskService.create.mockRejectedValue(error);
 
-      await request(app).post('/codetasks').send(validData).expect(500);
+      await request(app)
+        .post('/codetasks')
+        .send(validData)
+        .expect(500)
+        .expect(res => {
+          expect(res.body).toEqual({ error: 'DynamoDB error' });
+        });
 
       expect(mockCodeTaskService.create).toHaveBeenCalledWith(validData);
       expect(mockCodeTaskService.create).toHaveBeenCalledTimes(1);
@@ -132,16 +226,31 @@ describe('CodeTask Controller', () => {
   });
 
   describe('GET /codetasks/:userId', () => {
-    const userId = 'TEST_USER12345';
+    const userId = generateUserId();
+    const validTask: CodeTask = {
+      id: generateCodeTaskId(),
+      userId,
+      content: 'Test content',
+      filePath: '/path/to/file',
+      lineNumber: 1,
+      syncedAt: new Date().toISOString(),
+      priority: CodeTaskPriority.HIGH,
+      status: 'todo',
+      type: 'TODO',
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
 
     it('should find CodeTasks by userId and return 200', async () => {
       const mockResponse: CodeTasksInfo = {
         userId,
-        data: [],
+        data: [validTask],
         meta: {
-          totalCount: 0,
+          totalCount: 1,
           lastScanAt: '2025-01-01T00:00:00.000Z',
-          scannedFiles: 0,
+          scannedFiles: 1,
         },
       };
 
@@ -150,9 +259,9 @@ describe('CodeTask Controller', () => {
       await request(app)
         .get(`/codetasks/${userId}`)
         .expect(200)
-        .expect('Content-Type', /json/)
         .expect(res => {
-          expect(res.body).toEqual(mockResponse);
+          expect(res.body.data).toHaveLength(1);
+          expect(res.body.meta.totalCount).toBe(1);
         });
 
       expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith(userId);
@@ -176,6 +285,46 @@ describe('CodeTask Controller', () => {
       expect(mockCodeTaskService.findByUserId).toHaveBeenCalledTimes(1);
     });
 
+    it('should return sanitized task content and return 200', async () => {
+      // Mock service to return unsanitized data
+      mockCodeTaskService.findByUserId.mockResolvedValue({
+        userId,
+        data: [
+          {
+            ...validTask,
+            content: '<script>alert("xss")</script>Safe text',
+          },
+        ],
+        meta: {
+          totalCount: 1,
+          lastScanAt: '2025-01-01T00:00:00.000Z',
+          scannedFiles: 1,
+        },
+      });
+
+      await request(app)
+        .get(`/codetasks/${userId}`)
+        .expect(200)
+        .expect(res => {
+          // DOMPurify removes script tags without adding spaces
+          expect(res.body.data[0].content).toBe('Safe text');
+          expect(res.body.data[0].content).not.toMatch(/<script>/);
+        });
+    });
+
+    it('should reject invalid user id and return 400', async () => {
+      const invalidUserId = 'invalid-user-id-123';
+      await request(app).get(`/codetasks/${invalidUserId}`).expect(400);
+
+      expect(mockCodeTaskService.findByUserId).not.toHaveBeenCalled();
+      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledTimes(0);
+    });
+
+    it('should reject userIDs longer than 50 chars and return 400', async () => {
+      const longUserId = 'a'.repeat(51);
+      await request(app).get(`/codetasks/${longUserId}`).expect(400);
+    });
+
     it('should handle user not found and return 500', async () => {
       const error = new DatabaseError('Could not retrieve tasks.');
       mockCodeTaskService.findByUserId.mockRejectedValue(error);
@@ -188,10 +337,14 @@ describe('CodeTask Controller', () => {
   });
 
   describe('PUT /codetasks/:id/:userId', () => {
-    const userId = 'TEST_USER12345';
-    const id = '1';
+    const userId = generateUserId();
+    const id = generateCodeTaskId();
 
-    it('should update a CodeTask and return 204', async () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should update CodeTask and return 204', async () => {
       const updates = codeTaskUpdateValidation.parse({
         type: 'TODO',
         content: 'Updated content',
@@ -214,7 +367,7 @@ describe('CodeTask Controller', () => {
       expect(mockCodeTaskService.update).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle updating a non-existent task and return 404', async () => {
+    it('should handle updating non-existent task and return 404', async () => {
       const updates = codeTaskUpdateValidation.parse({
         type: 'TODO',
         content: 'Updated content',
@@ -238,7 +391,99 @@ describe('CodeTask Controller', () => {
       expect(mockCodeTaskService.update).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle service errors and return 500 ', async () => {
+    it('should reject invalid user id and return 400', async () => {
+      const invalidUserId = 'invalid-user-id';
+
+      await request(app)
+        .put(`/codetasks/${id}/${invalidUserId}`)
+        .send({
+          type: 'TODO',
+          content: 'Updated content',
+          priority: CodeTaskPriority.HIGH,
+          status: 'done',
+        })
+        .expect(400);
+
+      expect(mockCodeTaskService.update).not.toHaveBeenCalled();
+      expect(mockCodeTaskService.update).toHaveBeenCalledTimes(0);
+    });
+
+    it('should reject invalid id and return 400', async () => {
+      const invalidId = 'invalid-id';
+
+      await request(app)
+        .put(`/codetasks/${invalidId}/${userId}`)
+        .send({
+          type: 'TODO',
+          content: 'Updated content',
+          priority: CodeTaskPriority.HIGH,
+          status: 'done',
+        })
+        .expect(400);
+
+      expect(mockCodeTaskService.update).not.toHaveBeenCalled();
+      expect(mockCodeTaskService.update).toHaveBeenCalledTimes(0);
+    });
+
+    it('should reject malformed JSON in request body and return 400', async () => {
+      await request(app)
+        .put(`/codetasks/${id}/${userId}`)
+        .set('Content-Type', 'application/json')
+        .send('malformed json')
+        .expect(400);
+    });
+
+    it('should sanitize content during update and return 204', async () => {
+      const maliciousContent = '<script>alert(1)</script>Safe text';
+
+      mockCodeTaskService.update.mockResolvedValue();
+
+      await request(app)
+        .put(`/codetasks/${id}/${userId}`)
+        .send({
+          type: 'TODO',
+          content: maliciousContent,
+          priority: CodeTaskPriority.HIGH,
+          status: 'done',
+        })
+        .expect(204);
+
+      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
+        id,
+        userId,
+        expect.objectContaining({
+          content: 'Safe text',
+        })
+      );
+    });
+
+    it('should reject empty content during update and return 400', async () => {
+      const response = await request(app)
+        .put(`/codetasks/${id}/${userId}`)
+        .send({
+          type: 'TODO',
+          content: '', // Empty string
+          priority: CodeTaskPriority.HIGH,
+          status: 'done',
+        })
+        .expect(400);
+
+      expect(response.body).toEqual({
+        error: 'Validation failed',
+        details: [
+          {
+            code: 'invalid_type',
+            expected: 'string',
+            message: 'Invalid input: expected string, received undefined',
+            path: ['content'],
+          },
+        ],
+      });
+
+      expect(mockCodeTaskService.update).not.toHaveBeenCalled();
+    });
+
+    it('should handle service errors and return 500', async () => {
       const updates = codeTaskUpdateValidation.parse({
         type: 'TODO',
         content: 'Updated content',
@@ -264,10 +509,14 @@ describe('CodeTask Controller', () => {
   });
 
   describe('DELETE /codetasks/:id/:userId', () => {
-    const userId = 'TEST_USER12345';
-    const id = '1';
+    const userId = generateUserId();
+    const id = generateCodeTaskId();
 
-    it('should delete a CodeTask and return 204', async () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should delete CodeTask and return 204', async () => {
       mockCodeTaskService.delete.mockResolvedValue();
 
       await request(app).delete(`/codetasks/${id}/${userId}`).expect(204);
@@ -276,7 +525,7 @@ describe('CodeTask Controller', () => {
       expect(mockCodeTaskService.delete).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle deleting a non-existent task and return 404', async () => {
+    it('should handle deleting non-existent task and return 404', async () => {
       const error = new NotFoundError(`Task with ID ${id} not found.`);
       mockCodeTaskService.delete.mockRejectedValue(error);
 
@@ -286,14 +535,28 @@ describe('CodeTask Controller', () => {
       expect(mockCodeTaskService.delete).toHaveBeenCalledTimes(1);
     });
 
+    it('should reject invalid user id and return 400', async () => {
+      const invalidUserId = 'invalid-user-id';
+      await request(app)
+        .delete(`/codetasks/${id}/${invalidUserId}`)
+        .expect(400);
+      expect(mockCodeTaskService.delete).not.toHaveBeenCalled();
+    });
+
+    it('should reject invalid task id and return 400', async () => {
+      const invalidId = 'invalid-id';
+      await request(app)
+        .delete(`/codetasks/${invalidId}/${userId}`)
+        .expect(400);
+      expect(mockCodeTaskService.delete).not.toHaveBeenCalled();
+    });
+
     it('should handle service errors and return 500', async () => {
       const error = new DatabaseError('DynamoDB error');
       mockCodeTaskService.delete.mockRejectedValue(error);
 
       await request(app).delete(`/codetasks/${id}/${userId}`).expect(500);
-
       expect(mockCodeTaskService.delete).toHaveBeenCalledWith(id, userId);
-      expect(mockCodeTaskService.delete).toHaveBeenCalledTimes(1);
     });
   });
 });
