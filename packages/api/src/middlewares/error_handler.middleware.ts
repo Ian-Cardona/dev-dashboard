@@ -1,14 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
 import z from 'zod';
-import { DatabaseError, NotFoundError } from '../services/codetask.service';
+import { DatabaseError, NotFoundError } from '../utils/errors.utils';
 
-// TODO: Improve the error handler middleware
 export const errorHandlerMiddleware = (
   error: unknown,
   _req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  if (
+    error instanceof Error &&
+    error.message.includes('request entity too large')
+  ) {
+    return res.status(413).json({ error: 'Payload Too Large' });
+  }
+
   if (error instanceof SyntaxError && 'body' in error) {
     return res.status(400).json({ error: 'Invalid JSON' });
   }

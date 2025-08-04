@@ -1,10 +1,12 @@
 import {
+  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
   QueryCommand,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { RefreshToken, User } from '../types/user.type';
+import { User } from '../types/user.type';
 import { USER_TABLE } from '../constants/tables';
 
 export interface IUserModel {
@@ -22,17 +24,6 @@ export interface IUserModel {
   deactivateUser(userId: string): Promise<void>;
 }
 
-export interface IRefreshTokenModel {
-  create(refreshToken: RefreshToken): Promise<RefreshToken>;
-  findByUserAndToken(
-    userId: string,
-    tokenId: string
-  ): Promise<RefreshToken | null>;
-  deleteToken(userId: string, tokenId: string): Promise<void>;
-  deleteAllUserTokens(userId: string): Promise<void>;
-  deleteExpiredTokens(): Promise<number>;
-}
-
 export const UserModel = (docClient: DynamoDBDocumentClient) => {
   return {
     async create(user: User): Promise<User> {
@@ -40,6 +31,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
         new PutCommand({
           TableName: USER_TABLE,
           Item: user,
+          ConditionExpression: 'attribute_not_exists(userId)',
         })
       );
       return user;
@@ -52,6 +44,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
           Key: { userId },
         })
       );
+
       return result.Item as User | null;
     },
 
@@ -59,18 +52,132 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
       const result = await docClient.send(
         new QueryCommand({
           TableName: USER_TABLE,
+          IndexName: 'EmailIndex',
           KeyConditionExpression: 'email = :email',
           ExpressionAttributeValues: { ':email': email },
         })
       );
 
-      if (!result.Items || !Array.isArray(result.Items)) {
+      if (!result.Items || result.Items.length === 0) {
         return null;
       }
 
       return result.Items[0] as User;
     },
 
-    // TODO: Add all other methods
+    async update(
+      userId: string,
+      updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
+    ): Promise<User> {
+      const updateExpressions: string[] = [];
+      const attributeNames: Record<string, string> = {};
+      const attributeValues: Record<string, unknown> = {};
+
+      updateExpressions.push('#updatedAt = :updatedAt');
+      attributeNames['#updatedAt'] = 'updatedAt';
+      attributeValues[':updatedAt'] = new Date().toISOString();
+
+      if (updates.firstName !== undefined) {
+        updateExpressions.push('#firstName = :firstName');
+        attributeNames['#firstName'] = 'firstName';
+        attributeValues[':firstName'] = updates.firstName;
+      }
+
+      if (updates.lastName !== undefined) {
+        updateExpressions.push('#lastName = :lastName');
+        attributeNames['#lastName'] = 'lastName';
+        attributeValues[':lastName'] = updates.lastName;
+      }
+
+      if (updates.isActive !== undefined) {
+        updateExpressions.push('#isActive = :isActive');
+        attributeNames['#isActive'] = 'isActive';
+        attributeValues[':isActive'] = updates.isActive;
+      }
+
+      const result = await docClient.send(
+        new UpdateCommand({
+          TableName: USER_TABLE,
+          Key: { userId },
+          UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+          ExpressionAttributeNames: attributeNames,
+          ExpressionAttributeValues: attributeValues,
+          ConditionExpression: 'attribute_exists(userId)',
+          ReturnValues: 'ALL_NEW',
+        })
+      );
+
+      return result.Attributes as User;
+    },
+
+    async delete(userId: string): Promise<void> {
+      await docClient.send(
+        new DeleteCommand({
+          TableName: USER_TABLE,
+          Key: { userId },
+          ConditionExpression: 'attribute_exists(userId)',
+        })
+      );
+    },
+
+    async updateLastLogin(userId: string, timestamp: string): Promise<void> {
+      await docClient.send(
+        new UpdateCommand({
+          TableName: USER_TABLE,
+          Key: { userId },
+          UpdateExpression:
+            'SET #lastLoginAt = :lastLoginAt, #updatedAt = :updatedAt',
+          ExpressionAttributeNames: {
+            '#lastLoginAt': 'lastLoginAt',
+            '#updatedAt': 'updatedAt',
+          },
+          ExpressionAttributeValues: {
+            ':lastLoginAt': timestamp,
+            ':updatedAt': new Date().toISOString(),
+          },
+          ConditionExpression: 'attribute_exists(userId)',
+        })
+      );
+    },
+
+    async updatePassword(userId: string, passwordHash: string): Promise<void> {
+      await docClient.send(
+        new UpdateCommand({
+          TableName: USER_TABLE,
+          Key: { userId },
+          UpdateExpression:
+            'SET #passwordHash = :passwordHash, #updatedAt = :updatedAt',
+          ExpressionAttributeNames: {
+            '#passwordHash': 'passwordHash',
+            '#updatedAt': 'updatedAt',
+          },
+          ExpressionAttributeValues: {
+            ':passwordHash': passwordHash,
+            ':updatedAt': new Date().toISOString(),
+          },
+          ConditionExpression: 'attribute_exists(userId)',
+        })
+      );
+    },
+
+    async deactivateUser(userId: string): Promise<void> {
+      await docClient.send(
+        new UpdateCommand({
+          TableName: USER_TABLE,
+          Key: { userId },
+          UpdateExpression:
+            'SET #isActive = :isActive, #updatedAt = :updatedAt',
+          ExpressionAttributeNames: {
+            '#isActive': 'isActive',
+            '#updatedAt': 'updatedAt',
+          },
+          ExpressionAttributeValues: {
+            ':isActive': false,
+            ':updatedAt': new Date().toISOString(),
+          },
+          ConditionExpression: 'attribute_exists(userId)',
+        })
+      );
+    },
   };
 };
