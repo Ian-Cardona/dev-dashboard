@@ -46,8 +46,7 @@ export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
     async update(id: string, userId: string, updates: Partial<CodeTask>) {
       const updateExpression: string[] = [];
       const expressionAttributeNames: Record<string, string> = {};
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const expressionAttributeValues: Record<string, any> = {};
+      const expressionAttributeValues: Record<string, unknown> = {};
 
       Object.keys(updates).forEach(key => {
         const attrNamePlaceholder = `#${key}`;

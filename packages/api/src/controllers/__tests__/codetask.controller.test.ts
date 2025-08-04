@@ -1,13 +1,9 @@
 import express, { Express } from 'express';
 import request from 'supertest';
 import { describe, it, vi, beforeEach, expect, MockedFunction } from 'vitest';
-import { CodeTaskController } from '../codetask.controller';
 import { errorHandlerMiddleware } from '../../middlewares/error_handler.middleware';
-import {
-  DatabaseError,
-  ICodeTaskService,
-  NotFoundError,
-} from '../../services/codetask.service';
+import { ICodeTaskService } from '../../services/codetask.service';
+import { DatabaseError, NotFoundError } from '../../utils/errors.utils';
 import {
   CodeTask,
   CodeTaskPriority,
@@ -15,6 +11,7 @@ import {
 } from '../../types/codetask.type';
 import { codeTaskUpdateValidation } from '../../validations/codetask.validation';
 import { generateCodeTaskId, generateUserId } from '../../utils/uuid.utils';
+import { CodeTaskController } from '../codetask.controller';
 
 const mockCodeTaskService = {
   create: vi.fn() as MockedFunction<ICodeTaskService['create']>,

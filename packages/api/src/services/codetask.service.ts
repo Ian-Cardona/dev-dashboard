@@ -5,26 +5,13 @@ import {
   PredefinedCodeTask,
 } from '../types/codetask.type';
 import { ICodeTaskModel } from '../models/codetask.model';
-import { ENV } from '../config/env_variables';
+import { logger } from '../middlewares/logger.middleware';
 import { generateCodeTaskId } from '../utils/uuid.utils';
 import {
   ConditionalCheckFailedException,
   DynamoDBServiceException,
 } from '@aws-sdk/client-dynamodb';
-
-export class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NotFoundError';
-  }
-}
-
-export class DatabaseError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'DatabaseError';
-  }
-}
+import { DatabaseError, NotFoundError } from '../utils/errors.utils';
 
 export interface ICodeTaskService {
   create(data: Omit<CodeTask, 'id' | 'syncedAt'>): Promise<CodeTask>;
@@ -52,66 +39,91 @@ export const CodeTaskService = (
     syncedAt: new Date().toISOString(),
   });
 
+  async function handleServiceCall<T>(
+    fn: () => Promise<T>,
+    context: object,
+    errorMessage: string,
+    errorClass = DatabaseError
+  ): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error(errorMessage, {
+          error: error.message,
+          stack: error.stack,
+          ...context,
+        });
+      }
+
+      throw new errorClass(errorMessage);
+    }
+  }
+
   return {
     async create(data: Omit<CodeTask, 'id' | 'syncedAt'>): Promise<CodeTask> {
-      try {
-        let taskWithIds: CodeTask;
+      return handleServiceCall(
+        async () => {
+          let taskWithIds: CodeTask;
 
-        if (data.type === 'OTHER') {
-          taskWithIds = createOtherTask(
-            data as Omit<OtherCodeTask, 'id' | 'syncedAt'>
-          );
-        } else {
-          taskWithIds = createPredefinedTask(
-            data as Omit<PredefinedCodeTask, 'id' | 'syncedAt'>
-          );
-        }
+          if (data.type === 'OTHER') {
+            taskWithIds = createOtherTask(
+              data as Omit<OtherCodeTask, 'id' | 'syncedAt'>
+            );
+          } else {
+            taskWithIds = createPredefinedTask(
+              data as Omit<PredefinedCodeTask, 'id' | 'syncedAt'>
+            );
+          }
 
-        return await codeTaskModel.create(taskWithIds);
-      } catch (error) {
-        // TODO: Implement better dev logging
-        if (ENV.NODE_ENV === 'development') {
-          console.error('Service Error: Failed to create code task.', error);
-        }
-
-        throw new DatabaseError('Could not create the task.');
-      }
+          return await codeTaskModel.create(taskWithIds);
+        },
+        { data },
+        'Service Error: Failed to create code task',
+        DatabaseError
+      );
     },
 
     async findByUserId(userId: string): Promise<CodeTasksInfo> {
-      try {
-        const data = await codeTaskModel.findByUserId(userId);
+      return handleServiceCall(
+        async () => {
+          const data = await codeTaskModel.findByUserId(userId);
 
-        return {
-          userId,
-          data,
-          meta: {
-            totalCount: data.length,
-            lastScanAt: new Date().toISOString(),
-            scannedFiles: 0,
-          },
-        };
-      } catch (error) {
-        // TODO: Implement better dev logging
-        if (ENV.NODE_ENV === 'development') {
-          console.error('Service Error: Failed to retrieve tasks.', error);
-        }
-
-        throw new DatabaseError('Could not retrieve tasks.');
-      }
+          return {
+            userId,
+            data,
+            meta: {
+              totalCount: data.length,
+              lastScanAt: new Date().toISOString(),
+              scannedFiles: 0,
+            },
+          };
+        },
+        { userId },
+        'Could not retrieve tasks.',
+        DatabaseError
+      );
     },
 
     async update(id: string, userId: string, updates: Partial<CodeTask>) {
       try {
         await codeTaskModel.update(id, userId, updates);
       } catch (error) {
+        if (error instanceof Error) {
+          logger.error('Service Error: Failed to update task', {
+            error: error.message,
+            stack: error.stack,
+            id,
+            userId,
+            updates,
+          });
+        }
+
         if (error instanceof ConditionalCheckFailedException) {
-          console.warn(`Update failed for task ${id}: Not found`);
           throw new NotFoundError(`Task with ID ${id} not found.`);
         }
 
         if (error instanceof DynamoDBServiceException) {
-          console.error(`DynamoDB error updating ${id}:`, error.name);
           throw new DatabaseError(`Database update failed: ${error.message}`);
         }
 
@@ -123,16 +135,17 @@ export const CodeTaskService = (
       try {
         await codeTaskModel.delete(id, userId);
       } catch (error) {
-        if (
-          error instanceof Error &&
-          error.name === 'ConditionalCheckFailedException'
-        ) {
-          console.warn(`Attempted to delete a non-existent task: ${id}`);
-          throw new NotFoundError(`Task with ID ${id} not found.`);
+        if (error instanceof Error) {
+          logger.error('Service Error: Failed to delete task', {
+            error: error.message,
+            stack: error.stack,
+            id,
+            userId,
+          });
         }
 
-        if (ENV.NODE_ENV === 'development') {
-          console.error(`Service Error: Failed to delete task ${id}.`, error);
+        if (error instanceof ConditionalCheckFailedException) {
+          throw new NotFoundError(`Task with ID ${id} not found.`);
         }
 
         throw new DatabaseError('Could not delete the task.');

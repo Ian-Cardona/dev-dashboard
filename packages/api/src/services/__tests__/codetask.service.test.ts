@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CodeTaskService, DatabaseError } from '../codetask.service';
+import { CodeTaskService } from '../codetask.service';
+import { DatabaseError } from '../../utils/errors.utils';
 import { CodeTaskPriority, CodeTask } from '../../types/codetask.type';
 
 const mockCodeTaskModel = {
