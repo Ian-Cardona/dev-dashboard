@@ -42,17 +42,18 @@ export const userValidation = z.object({
   isActive: z.boolean(),
 });
 
-export const refreshTokenValidation = z.object({
-  userId: z.uuidv4(),
-  tokenId: z.uuidv4(),
-  refreshToken: z.jwt(),
-  expiresAt: z.iso.datetime(),
-  createdAt: z.iso.datetime(),
+export const userCreateValidation = userValidation.omit({
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLoginAt: true,
+  isActive: true,
 });
 
-export const jwtPayloadValidation = z.object({
-  userId: z.uuidv4(),
-  email: z.email(),
-  iat: z.number().positive(),
-  exp: z.number().positive(),
+export const userUpdateValidation = userValidation.omit({
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLoginAt: true,
+  isActive: true,
 });
