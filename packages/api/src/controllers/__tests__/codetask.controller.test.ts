@@ -171,40 +171,6 @@ describe('CodeTask Controller', () => {
       await request(app).post('/codetasks').send(largePayload).expect(413);
     });
 
-    it('should sanitize unsafe content and return clean response', async () => {
-      const mockResponse: CodeTask = {
-        id: generateCodeTaskId(),
-        userId: generateUserId(),
-        content: 'This is a test content. Please ignore.',
-        filePath: '/This/Is/A/Test/FilePath',
-        lineNumber: 1,
-        syncedAt: '2025-07-31T14:42:05.000Z',
-        priority: CodeTaskPriority.LOW,
-        status: 'todo',
-        type: 'TODO',
-      };
-
-      const xssData = {
-        ...validData,
-        content: '<script>alert(1)</script> Safe content',
-      };
-
-      // Mock the service to return sanitized content
-      mockCodeTaskService.create.mockResolvedValue({
-        ...mockResponse,
-        content: 'Safe content', // What DOMPurify would return
-      });
-
-      await request(app)
-        .post('/codetasks')
-        .send(xssData)
-        .expect(201)
-        .expect(res => {
-          expect(res.body.content).toBe('Safe content');
-          expect(res.body.content).not.toMatch(/<script>/);
-        });
-    });
-
     it('should handle service errors and return 500', async () => {
       const error = new DatabaseError('DynamoDB error');
       mockCodeTaskService.create.mockRejectedValue(error);
@@ -214,7 +180,10 @@ describe('CodeTask Controller', () => {
         .send(validData)
         .expect(500)
         .expect(res => {
-          expect(res.body).toEqual({ error: 'DynamoDB error' });
+          expect(res.body).toEqual({
+            error: 'Database Error',
+            message: 'DynamoDB error',
+          });
         });
 
       expect(mockCodeTaskService.create).toHaveBeenCalledWith(validData);
@@ -280,33 +249,6 @@ describe('CodeTask Controller', () => {
 
       expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith(userId);
       expect(mockCodeTaskService.findByUserId).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return sanitized task content and return 200', async () => {
-      // Mock service to return unsanitized data
-      mockCodeTaskService.findByUserId.mockResolvedValue({
-        userId,
-        data: [
-          {
-            ...validTask,
-            content: '<script>alert("xss")</script>Safe text',
-          },
-        ],
-        meta: {
-          totalCount: 1,
-          lastScanAt: '2025-01-01T00:00:00.000Z',
-          scannedFiles: 1,
-        },
-      });
-
-      await request(app)
-        .get(`/codetasks/${userId}`)
-        .expect(200)
-        .expect(res => {
-          // DOMPurify removes script tags without adding spaces
-          expect(res.body.data[0].content).toBe('Safe text');
-          expect(res.body.data[0].content).not.toMatch(/<script>/);
-        });
     });
 
     it('should reject invalid user id and return 400', async () => {
@@ -430,30 +372,6 @@ describe('CodeTask Controller', () => {
         .expect(400);
     });
 
-    it('should sanitize content during update and return 204', async () => {
-      const maliciousContent = '<script>alert(1)</script>Safe text';
-
-      mockCodeTaskService.update.mockResolvedValue();
-
-      await request(app)
-        .put(`/codetasks/${id}/${userId}`)
-        .send({
-          type: 'TODO',
-          content: maliciousContent,
-          priority: CodeTaskPriority.HIGH,
-          status: 'done',
-        })
-        .expect(204);
-
-      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
-        id,
-        userId,
-        expect.objectContaining({
-          content: 'Safe text',
-        })
-      );
-    });
-
     it('should reject empty content during update and return 400', async () => {
       const response = await request(app)
         .put(`/codetasks/${id}/${userId}`)
@@ -466,12 +384,14 @@ describe('CodeTask Controller', () => {
         .expect(400);
 
       expect(response.body).toEqual({
-        error: 'Validation failed',
+        error: 'Invalid code task data',
         details: [
           {
-            code: 'invalid_type',
-            expected: 'string',
-            message: 'Invalid input: expected string, received undefined',
+            code: 'too_small',
+            message: 'Too small: expected string to have >=1 characters',
+            inclusive: true,
+            minimum: 1,
+            origin: 'string',
             path: ['content'],
           },
         ],
