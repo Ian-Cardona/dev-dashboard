@@ -34,6 +34,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
           ConditionExpression: 'attribute_not_exists(userId)',
         })
       );
+
       return user;
     },
 
@@ -45,7 +46,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      return result.Item as User | null;
+      return result.Item ? (result.Item as User) : null;
     },
 
     async findByEmail(email: string): Promise<User | null> {
@@ -58,11 +59,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!result.Items || result.Items.length === 0) {
-        return null;
-      }
-
-      return result.Items[0] as User;
+      return (result.Items?.[0] as User) ?? null;
     },
 
     async update(
