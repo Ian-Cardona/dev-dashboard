@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { CodeTaskPriority } from '../types/codetask.type';
-import { CODETASK_VALIDATION } from '../constants/validations';
+import { VALIDATION_CONSTANTS } from '../constants/validations';
 
 // For existing
 const codeTaskBaseFields = {
@@ -8,16 +8,16 @@ const codeTaskBaseFields = {
   userId: z.uuidv4(),
   content: z
     .string()
-    .min(CODETASK_VALIDATION.CONTENT.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.CONTENT.MAX_LENGTH),
+    .min(VALIDATION_CONSTANTS.CODETASK.CONTENT.MIN_LENGTH)
+    .max(VALIDATION_CONSTANTS.CODETASK.CONTENT.MAX_LENGTH),
   filePath: z
     .string()
-    .max(CODETASK_VALIDATION.FILE_PATH.MAX_LENGTH)
-    .regex(CODETASK_VALIDATION.FILE_PATH.PATTERN),
+    .max(VALIDATION_CONSTANTS.CODETASK.FILE_PATH.MAX_LENGTH)
+    .regex(VALIDATION_CONSTANTS.CODETASK.FILE_PATH.PATTERN),
   lineNumber: z
     .number()
-    .min(CODETASK_VALIDATION.LINE_NUMBER.MIN)
-    .max(CODETASK_VALIDATION.LINE_NUMBER.MAX),
+    .min(VALIDATION_CONSTANTS.CODETASK.LINE_NUMBER.MIN)
+    .max(VALIDATION_CONSTANTS.CODETASK.LINE_NUMBER.MAX),
   syncedAt: z.iso.datetime(),
   priority: z.enum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
@@ -37,9 +37,9 @@ const otherCodeTaskFields = z.object({
   type: z.literal('OTHER'),
   customTag: z
     .string()
-    .min(CODETASK_VALIDATION.CUSTOM_TAG.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.CUSTOM_TAG.MAX_LENGTH)
-    .regex(CODETASK_VALIDATION.CUSTOM_TAG.PATTERN),
+    .min(VALIDATION_CONSTANTS.CODETASK.CUSTOM_TAG.MIN_LENGTH)
+    .max(VALIDATION_CONSTANTS.CODETASK.CUSTOM_TAG.MAX_LENGTH)
+    .regex(VALIDATION_CONSTANTS.CODETASK.CUSTOM_TAG.PATTERN),
 });
 
 const otherCodeTaskSchema = z.object({
@@ -57,16 +57,16 @@ const creatableFields = {
   userId: z.uuidv4(),
   content: z
     .string()
-    .min(CODETASK_VALIDATION.CONTENT.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.CONTENT.MAX_LENGTH),
+    .min(VALIDATION_CONSTANTS.CODETASK.CONTENT.MIN_LENGTH)
+    .max(VALIDATION_CONSTANTS.CODETASK.CONTENT.MAX_LENGTH),
   filePath: z
     .string()
-    .max(CODETASK_VALIDATION.FILE_PATH.MAX_LENGTH)
-    .regex(CODETASK_VALIDATION.FILE_PATH.PATTERN),
+    .max(VALIDATION_CONSTANTS.CODETASK.FILE_PATH.MAX_LENGTH)
+    .regex(VALIDATION_CONSTANTS.CODETASK.FILE_PATH.PATTERN),
   lineNumber: z
     .number()
-    .min(CODETASK_VALIDATION.LINE_NUMBER.MIN)
-    .max(CODETASK_VALIDATION.LINE_NUMBER.MAX),
+    .min(VALIDATION_CONSTANTS.CODETASK.LINE_NUMBER.MIN)
+    .max(VALIDATION_CONSTANTS.CODETASK.LINE_NUMBER.MAX),
   priority: z.enum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
 };
@@ -90,8 +90,8 @@ export const codeTaskCreateValidation = z.discriminatedUnion('type', [
 const updatableFields = {
   content: z
     .string()
-    .min(CODETASK_VALIDATION.CONTENT.MIN_LENGTH)
-    .max(CODETASK_VALIDATION.CONTENT.MAX_LENGTH),
+    .min(VALIDATION_CONSTANTS.CODETASK.CONTENT.MIN_LENGTH)
+    .max(VALIDATION_CONSTANTS.CODETASK.CONTENT.MAX_LENGTH),
   priority: z.enum(CodeTaskPriority),
   status: z.enum(['todo', 'in-progress', 'done']),
 };
@@ -114,13 +114,13 @@ export const codeTaskUpdateValidation = z.discriminatedUnion('type', [
 export const metaValidation = z.object({
   totalCount: z
     .number()
-    .min(CODETASK_VALIDATION.META.MIN_COUNT)
-    .max(CODETASK_VALIDATION.META.MAX_COUNT),
+    .min(VALIDATION_CONSTANTS.CODETASK.META.MIN_COUNT)
+    .max(VALIDATION_CONSTANTS.CODETASK.META.MAX_COUNT),
   lastScanAt: z.iso.datetime(),
   scannedFiles: z
     .number()
-    .min(CODETASK_VALIDATION.META.MIN_COUNT)
-    .max(CODETASK_VALIDATION.META.MAX_COUNT),
+    .min(VALIDATION_CONSTANTS.CODETASK.META.MIN_COUNT)
+    .max(VALIDATION_CONSTANTS.CODETASK.META.MAX_COUNT),
 });
 
 export const codeTasksResponseValidation = z.object({
