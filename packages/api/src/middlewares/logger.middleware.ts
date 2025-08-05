@@ -1,5 +1,5 @@
-import winston from 'winston';
 import { Request, Response, NextFunction } from 'express';
+import winston from 'winston';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -33,6 +33,5 @@ export const loggerMiddleware = (
     ip: req.ip,
     userAgent: req.get('User-Agent'),
   });
-
   next();
 };
