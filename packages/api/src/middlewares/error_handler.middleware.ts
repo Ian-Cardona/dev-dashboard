@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { DatabaseError, NotFoundError } from '../utils/errors.utils';
+import {
+  ConflictError,
+  DatabaseError,
+  NotFoundError,
+} from '../utils/errors.utils';
 import { sendError } from '../utils/api.utils';
-
 export const errorHandlerMiddleware = (
   error: unknown,
   req: Request,
@@ -39,17 +42,12 @@ export const errorHandlerMiddleware = (
     return sendError(res, 'Not Found', error.message, 404);
   }
 
-  if (error instanceof DatabaseError) {
-    return sendError(res, 'Database Error', error.message, 500);
+  if (error instanceof ConflictError) {
+    return sendError(res, 'Conflict', error.message, 409);
   }
 
-  if (process.env.NODE_ENV === 'production') {
-    return sendError(
-      res,
-      'Internal Server Error',
-      'An unexpected error occurred',
-      500
-    );
+  if (error instanceof DatabaseError) {
+    return sendError(res, 'Database Error', error.message, 500);
   }
 
   return sendError(

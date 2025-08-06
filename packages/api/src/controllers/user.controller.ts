@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { IUserService } from '../services/user.service';
-import { v4 as uuidv4 } from 'uuid';
 import {
   userCreateValidation,
   userUpdateValidation,
 } from '../validations/user.validation';
 import z from 'zod';
+import { CreateUserResponse } from '../types/user.type';
 
 export const UserController = (userService: IUserService) => {
   const validateId = (id: string) => z.uuidv4().parse(id);
@@ -29,14 +29,11 @@ export const UserController = (userService: IUserService) => {
     async createUser(req: Request, res: Response, next: NextFunction) {
       try {
         const validatedData = userCreateValidation.parse(req.body);
-        const result = await userService.create({
-          ...validatedData,
-          userId: uuidv4(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          isActive: true,
-        });
-        res.status(201).json(result);
+        const result = await userService.create(validatedData);
+
+        const { passwordHash, ...safeResult }: CreateUserResponse = result;
+
+        res.status(201).json(safeResult);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid user data');
       }
@@ -46,6 +43,9 @@ export const UserController = (userService: IUserService) => {
       try {
         const userId = validateId(req.params.userId);
         const result = await userService.findById(userId);
+        if (result === null) {
+          return res.status(404).json({ error: 'User not found' });
+        }
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid user ID format');
@@ -56,6 +56,9 @@ export const UserController = (userService: IUserService) => {
       try {
         const email = z.email().parse(req.params.email);
         const result = await userService.findByEmail(email);
+        if (result === null) {
+          return res.status(404).json({ error: 'User not found' });
+        }
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid email format');
