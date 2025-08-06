@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateUserId } from '../../utils/uuid.utils';
+import { generateUUID } from '../../utils/uuid.utils';
 import { VALIDATION_CONSTANTS } from '../../constants/validations';
 import {
   userValidation,
@@ -7,62 +7,46 @@ import {
   userUpdateValidation,
 } from '../user.validation';
 
-describe('User Validation (Base Schema)', () => {
-  it('should successfully validate a complete and correct user object', () => {
-    const validUserData = {
-      userId: generateUserId(),
-      email: 'test@example.com',
-      passwordHash:
-        '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
-      firstName: 'John',
-      lastName: 'Doe',
-      createdAt: '2025-07-31T14:42:05.000Z',
-      updatedAt: '2025-07-31T14:42:05.000Z',
-      lastLoginAt: '2025-08-01T10:00:00.000Z',
-      isActive: true,
-    };
-    expect(userValidation.parse(validUserData)).toEqual(validUserData);
-  });
+describe('User Validation', () => {
+  const validUserData = {
+    userId: generateUUID(),
+    email: 'test@example.com',
+    passwordHash:
+      '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    firstName: 'John',
+    lastName: 'Doe',
+    createdAt: '2025-07-31T14:42:05.000Z',
+    updatedAt: '2025-07-31T14:42:05.000Z',
+    lastLoginAt: '2025-08-01T10:00:00.000Z',
+    isActive: true,
+  };
+  const baseData = {
+    userId: generateUUID(),
+    email: 'test@example.com',
+    passwordHash: 'a'.repeat(
+      VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
+    ),
+    createdAt: '2025-07-31T14:42:05.000Z',
+    updatedAt: '2025-07-31T14:42:05.000Z',
+    isActive: true,
+  };
 
-  // For each required field, test invalid values.
-  it.each([
-    ['userId', { userId: 'not-a-uuid' }],
-    ['email', { email: 'invalid-email' }],
-    ['passwordHash', { passwordHash: 'short' }],
-    ['createdAt', { createdAt: 'not-a-date' }],
-    ['updatedAt', { updatedAt: 'not-a-date' }],
-    ['isActive', { isActive: 'not-a-boolean' }],
-  ])('should throw an error for an invalid `%s`', (field, invalidData) => {
-    const baseData = {
-      userId: generateUserId(),
-      email: 'test@example.com',
-      passwordHash: 'a'.repeat(
-        VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
-      ),
-      createdAt: '2025-07-31T14:42:05.000Z',
-      updatedAt: '2025-07-31T14:42:05.000Z',
-      isActive: true,
-    };
-    const testData = { ...baseData, ...invalidData };
-    expect(() => userValidation.parse(testData)).toThrow();
-  });
+  describe('Base Schema', () => {
+    it('should successfully validate a complete and correct user object', () => {
+      expect(userValidation.parse(validUserData)).toEqual(validUserData);
+    });
 
-  // For each optional field, test invalid values.
-  it.each([
-    [
-      'firstName',
-      'a'.repeat(VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH + 1),
-    ],
-    [
-      'lastName',
-      'a'.repeat(VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH + 1),
-    ],
-    ['lastLoginAt', 'not-a-date'],
-  ])(
-    'should throw an error for an invalid optional field: `%s`',
-    (field, value) => {
+    // For each required field, test invalid values.
+    it.each([
+      ['userId', { userId: 'not-a-uuid' }],
+      ['email', { email: 'invalid-email' }],
+      ['passwordHash', { passwordHash: 'short' }],
+      ['createdAt', { createdAt: 'not-a-date' }],
+      ['updatedAt', { updatedAt: 'not-a-date' }],
+      ['isActive', { isActive: 'not-a-boolean' }],
+    ])('should throw an error for an invalid `%s`', (field, invalidData) => {
       const baseData = {
-        userId: generateUserId(),
+        userId: generateUUID(),
         email: 'test@example.com',
         passwordHash: 'a'.repeat(
           VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
@@ -71,23 +55,31 @@ describe('User Validation (Base Schema)', () => {
         updatedAt: '2025-07-31T14:42:05.000Z',
         isActive: true,
       };
-      const testData = { ...baseData, [field]: value };
+      const testData = { ...baseData, ...invalidData };
       expect(() => userValidation.parse(testData)).toThrow();
-    }
-  );
+    });
+
+    // For each optional field, test invalid values.
+    it.each([
+      [
+        'firstName',
+        'a'.repeat(VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH + 1),
+      ],
+      [
+        'lastName',
+        'a'.repeat(VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH + 1),
+      ],
+      ['lastLoginAt', 'not-a-date'],
+    ])(
+      'should throw an error for an invalid optional field: `%s`',
+      (field, value) => {
+        const testData = { ...baseData, [field]: value };
+        expect(() => userValidation.parse(testData)).toThrow();
+      }
+    );
+  });
 
   describe('Edge Cases', () => {
-    const baseData = {
-      userId: generateUserId(),
-      email: 'test@example.com',
-      passwordHash: 'a'.repeat(
-        VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
-      ),
-      createdAt: '2025-07-31T14:42:05.000Z',
-      updatedAt: '2025-07-31T14:42:05.000Z',
-      isActive: true,
-    };
-
     it('should reject empty strings for required fields', () => {
       expect(() => userValidation.parse({ ...baseData, email: '' })).toThrow();
     });
@@ -140,7 +132,7 @@ describe('User Create Validation', () => {
       passwordHash: 'a'.repeat(
         VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
       ),
-      userId: generateUserId(),
+      userId: generateUUID(),
       isActive: true,
     };
 
@@ -174,7 +166,7 @@ describe('User Update Validation', () => {
   it('should strip fields that are not allowed during an update', () => {
     const updateDataWithExcluded = {
       firstName: 'Updated',
-      userId: generateUserId(),
+      userId: generateUUID(),
       createdAt: '2025-01-01T00:00:00.000Z',
     };
 

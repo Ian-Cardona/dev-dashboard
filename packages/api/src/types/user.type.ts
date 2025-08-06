@@ -9,3 +9,5 @@ export interface User {
   lastLoginAt?: string;
   isActive: boolean;
 }
+
+export type CreateUserResponse = Omit<User, 'passwordHash'>;

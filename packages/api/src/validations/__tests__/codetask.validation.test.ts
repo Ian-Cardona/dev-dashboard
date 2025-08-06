@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateCodeTaskId, generateUserId } from '../../utils/uuid.utils';
+import { generateUUID } from '../../utils/uuid.utils';
 import { CodeTaskPriority } from '../../types/codetask.type';
 import { VALIDATION_CONSTANTS } from '../../constants/validations';
 import {
@@ -8,103 +8,94 @@ import {
   codeTaskUpdateValidation,
 } from '../codetask.validation';
 
-describe('CodeTask Validation (Base Schema)', () => {
-  it('should successfully validate a complete predefined code task', () => {
-    const validPredefinedData = {
-      id: generateCodeTaskId(),
-      userId: generateUserId(),
-      content: 'This is a test content. Please ignore.',
-      filePath: '/This/Is/A/Test/FilePath',
-      lineNumber: 1,
-      syncedAt: '2025-07-31T14:42:05.000Z',
-      priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'TODO',
-    };
+describe('CodeTask Validation', () => {
+  const validPredefinedData = {
+    id: generateUUID(),
+    userId: generateUUID(),
+    content: 'This is a test content. Please ignore.',
+    filePath: '/This/Is/A/Test/FilePath',
+    lineNumber: 1,
+    syncedAt: '2025-07-31T14:42:05.000Z',
+    priority: CodeTaskPriority.LOW,
+    status: 'todo',
+    type: 'TODO',
+  };
 
-    expect(codeTaskValidation.parse(validPredefinedData)).toEqual(
-      validPredefinedData
-    );
-  });
+  const validOtherData = {
+    id: generateUUID(),
+    userId: generateUUID(),
+    content: 'This is a test content. Please ignore.',
+    filePath: '/This/Is/A/Test/FilePath',
+    lineNumber: 1,
+    syncedAt: '2025-07-31T14:42:05.000Z',
+    priority: CodeTaskPriority.LOW,
+    status: 'todo',
+    type: 'OTHER',
+    customTag: 'TEST_TAG',
+  };
 
-  it('should successfully validate a complete OTHER type code task', () => {
-    const validOtherData = {
-      id: generateCodeTaskId(),
-      userId: generateUserId(),
-      content: 'This is a test content. Please ignore.',
-      filePath: '/This/Is/A/Test/FilePath',
-      lineNumber: 1,
-      syncedAt: '2025-07-31T14:42:05.000Z',
-      priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'OTHER',
-      customTag: 'TEST_TAG',
-    };
+  const baseData = {
+    id: generateUUID(),
+    userId: generateUUID(),
+    content: 'Test content',
+    filePath: '/test/path',
+    lineNumber: 1,
+    syncedAt: '2025-07-31T14:42:05.000Z',
+    priority: CodeTaskPriority.LOW,
+    status: 'todo',
+    type: 'TODO',
+  };
 
-    expect(codeTaskValidation.parse(validOtherData)).toEqual(validOtherData);
-  });
+  describe('Base Schema', () => {
+    it('should successfully validate a complete predefined code task', () => {
+      expect(codeTaskValidation.parse(validPredefinedData)).toEqual(
+        validPredefinedData
+      );
+    });
 
-  // Test invalid values for required fields
-  it.each([
-    ['id', { id: 'not-a-uuid' }],
-    ['userId', { userId: 'not-a-uuid' }],
-    ['content', { content: '' }],
-    [
-      'content',
-      {
-        content: 'a'.repeat(
-          VALIDATION_CONSTANTS.CODETASK.CONTENT.MAX_LENGTH + 1
-        ),
-      },
-    ],
-    ['filePath', { filePath: '' }],
-    [
-      'filePath',
-      {
-        filePath: 'a'.repeat(
-          VALIDATION_CONSTANTS.CODETASK.FILE_PATH.MAX_LENGTH + 1
-        ),
-      },
-    ],
-    ['lineNumber', { lineNumber: 0 }],
-    [
-      'lineNumber',
-      { lineNumber: VALIDATION_CONSTANTS.CODETASK.LINE_NUMBER.MAX + 1 },
-    ],
-    ['lineNumber', { lineNumber: '1' }],
-    ['syncedAt', { syncedAt: 'invalid-date' }],
-    ['priority', { priority: 'INVALID_PRIORITY' }],
-    ['status', { status: 'invalid_status' }],
-    ['type', { type: 'INVALID_TYPE' }],
-  ])('should throw an error for invalid `%s`', (field, invalidData) => {
-    const baseData = {
-      id: generateCodeTaskId(),
-      userId: generateUserId(),
-      content: 'Test content',
-      filePath: '/test/path',
-      lineNumber: 1,
-      syncedAt: '2025-07-31T14:42:05.000Z',
-      priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'TODO',
-    };
-    const testData = { ...baseData, ...invalidData };
-    expect(() => codeTaskValidation.parse(testData)).toThrow();
+    it('should successfully validate a complete OTHER type code task', () => {
+      expect(codeTaskValidation.parse(validOtherData)).toEqual(validOtherData);
+    });
+
+    // Test invalid values for required fields
+    it.each([
+      ['id', { id: 'not-a-uuid' }],
+      ['userId', { userId: 'not-a-uuid' }],
+      ['content', { content: '' }],
+      [
+        'content',
+        {
+          content: 'a'.repeat(
+            VALIDATION_CONSTANTS.CODETASK.CONTENT.MAX_LENGTH + 1
+          ),
+        },
+      ],
+      ['filePath', { filePath: '' }],
+      [
+        'filePath',
+        {
+          filePath: 'a'.repeat(
+            VALIDATION_CONSTANTS.CODETASK.FILE_PATH.MAX_LENGTH + 1
+          ),
+        },
+      ],
+      ['lineNumber', { lineNumber: 0 }],
+      [
+        'lineNumber',
+        { lineNumber: VALIDATION_CONSTANTS.CODETASK.LINE_NUMBER.MAX + 1 },
+      ],
+      ['lineNumber', { lineNumber: '1' }],
+      ['syncedAt', { syncedAt: 'invalid-date' }],
+      ['priority', { priority: 'INVALID_PRIORITY' }],
+      ['status', { status: 'invalid_status' }],
+      ['type', { type: 'INVALID_TYPE' }],
+    ])('should throw an error for invalid `%s`', (field, invalidData) => {
+      const testData = { ...baseData, ...invalidData };
+      expect(() => codeTaskValidation.parse(testData)).toThrow();
+    });
   });
 
   describe('Edge Cases', () => {
-    const baseData = {
-      id: generateCodeTaskId(),
-      userId: generateUserId(),
-      content: 'Test content',
-      filePath: '/test/path',
-      lineNumber: 1,
-      syncedAt: '2025-07-31T14:42:05.000Z',
-      priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'TODO',
-    };
-
     it('should reject OTHER type without customTag', () => {
       const testData = { ...baseData, type: 'OTHER' };
       expect(() => codeTaskValidation.parse(testData)).toThrow();
@@ -155,7 +146,7 @@ describe('CodeTask Validation (Base Schema)', () => {
 describe('CodeTask Create Validation', () => {
   it('should validate a correct creation object for predefined type', () => {
     const createData = {
-      userId: generateUserId(),
+      userId: generateUUID(),
       content: 'Test content for creation',
       filePath: '/test/create/path',
       lineNumber: 5,
@@ -169,7 +160,7 @@ describe('CodeTask Create Validation', () => {
 
   it('should validate a correct creation object for OTHER type', () => {
     const createData = {
-      userId: generateUserId(),
+      userId: generateUUID(),
       content: 'Test content for creation',
       filePath: '/test/create/path',
       lineNumber: 5,
@@ -184,14 +175,14 @@ describe('CodeTask Create Validation', () => {
 
   it('should strip fields that are not allowed during creation', () => {
     const createDataWithExcluded = {
-      userId: generateUserId(),
+      userId: generateUUID(),
       content: 'Test content',
       filePath: '/test/path',
       lineNumber: 1,
       priority: CodeTaskPriority.LOW,
       status: 'todo',
       type: 'TODO',
-      id: generateCodeTaskId(),
+      id: generateUUID(),
       syncedAt: '2025-07-31T14:42:05.000Z',
     };
 
@@ -233,8 +224,8 @@ describe('CodeTask Update Validation', () => {
       priority: CodeTaskPriority.HIGH,
       status: 'in-progress',
       type: 'TODO',
-      id: generateCodeTaskId(),
-      userId: generateUserId(),
+      id: generateUUID(),
+      userId: generateUUID(),
       filePath: '/should/be/removed',
       lineNumber: 999,
       syncedAt: '2025-07-31T14:42:05.000Z',
