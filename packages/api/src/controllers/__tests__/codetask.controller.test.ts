@@ -10,7 +10,7 @@ import {
   CodeTasksInfo,
 } from '../../types/codetask.type';
 import { codeTaskUpdateValidation } from '../../validations/codetask.validation';
-import { generateCodeTaskId, generateUserId } from '../../utils/uuid.utils';
+import { generateUUID } from '../../utils/uuid.utils';
 import { CodeTaskController } from '../codetask.controller';
 
 const mockCodeTaskService = {
@@ -53,7 +53,7 @@ describe('CodeTask Controller', () => {
 
   describe('POST /codetasks', () => {
     const validData = {
-      userId: generateUserId(),
+      userId: generateUUID(),
       content: 'This is a test content. Please ignore.',
       filePath: '/This/Is/A/Test/FilePath',
       lineNumber: 1,
@@ -68,8 +68,8 @@ describe('CodeTask Controller', () => {
 
     it('should create new CodeTask and return 201', async () => {
       const mockResponse: CodeTask = {
-        id: generateCodeTaskId(),
-        userId: generateUserId(),
+        id: generateUUID(),
+        userId: generateUUID(),
         content: 'This is a test content. Please ignore.',
         filePath: '/This/Is/A/Test/FilePath',
         lineNumber: 1,
@@ -192,9 +192,9 @@ describe('CodeTask Controller', () => {
   });
 
   describe('GET /codetasks/:userId', () => {
-    const userId = generateUserId();
+    const userId = generateUUID();
     const validTask: CodeTask = {
-      id: generateCodeTaskId(),
+      id: generateUUID(),
       userId,
       content: 'Test content',
       filePath: '/path/to/file',
@@ -276,8 +276,8 @@ describe('CodeTask Controller', () => {
   });
 
   describe('PUT /codetasks/:id/:userId', () => {
-    const userId = generateUserId();
-    const id = generateCodeTaskId();
+    const userId = generateUUID();
+    const id = generateUUID();
 
     beforeEach(() => {
       vi.clearAllMocks();
@@ -426,8 +426,8 @@ describe('CodeTask Controller', () => {
   });
 
   describe('DELETE /codetasks/:id/:userId', () => {
-    const userId = generateUserId();
-    const id = generateCodeTaskId();
+    const userId = generateUUID();
+    const id = generateUUID();
 
     beforeEach(() => {
       vi.clearAllMocks();

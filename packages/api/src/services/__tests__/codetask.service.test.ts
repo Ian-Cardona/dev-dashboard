@@ -2,12 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CodeTaskService } from '../codetask.service';
 import { DatabaseError } from '../../utils/errors.utils';
 import { CodeTaskPriority, CodeTask } from '../../types/codetask.type';
+import { ICodeTaskModel } from '../../models/codetask.model';
+import { MockedFunction } from 'vitest';
 
 const mockCodeTaskModel = {
-  create: vi.fn(),
-  findByUserId: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
+  create: vi.fn() as MockedFunction<ICodeTaskModel['create']>,
+  findByUserId: vi.fn() as MockedFunction<ICodeTaskModel['findByUserId']>,
+  update: vi.fn() as MockedFunction<ICodeTaskModel['update']>,
+  delete: vi.fn() as MockedFunction<ICodeTaskModel['delete']>,
 };
 
 const codeTaskService = CodeTaskService(mockCodeTaskModel);
@@ -35,7 +37,7 @@ describe('CodeTask Service', () => {
     };
 
     it('should successfully create a new CodeTask and return it', async () => {
-      const expectedResult = {
+      const expectedResult: CodeTask = {
         id: expect.any(String),
         userId: '550e8400-e29b-41d4-a716-446655440001',
         content: 'This is a test content. Please ignore.',
@@ -130,7 +132,7 @@ describe('CodeTask Service', () => {
     });
 
     it('should handle model find failure', async () => {
-      const error = new DatabaseError('Could not retrieve tasks.');
+      const error = new DatabaseError('Could not retrieve tasks');
 
       mockCodeTaskModel.findByUserId.mockRejectedValue(error);
 
