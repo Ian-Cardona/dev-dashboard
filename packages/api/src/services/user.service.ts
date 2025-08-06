@@ -1,14 +1,17 @@
-import {
-  ConditionalCheckFailedException,
-  DynamoDBServiceException,
-} from '@aws-sdk/client-dynamodb';
 import { logger } from '../middlewares/logger.middleware';
 import { IUserModel } from '../models/user.model';
 import { User } from '../types/user.type';
-import { DatabaseError } from '../utils/errors.utils';
+import {
+  ConflictError,
+  DatabaseError,
+  NotFoundError,
+} from '../utils/errors.utils';
+import { generateUUID } from '../utils/uuid.utils';
 
 export interface IUserService {
-  create(user: User): Promise<User>;
+  create(
+    user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
+  ): Promise<User>;
   findById(userId: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   update(
@@ -23,112 +26,154 @@ export interface IUserService {
 }
 
 export const UserService = (userModel: IUserModel): IUserService => {
-  async function handleServiceCall<T>(
-    fn: () => Promise<T>,
-    context: object,
-    errorMessage: string,
-    errorClass = DatabaseError
-  ): Promise<T> {
-    try {
-      return await fn();
-    } catch (error) {
-      if (error instanceof Error) {
-        logger.error(errorMessage, {
-          error: error.message,
-          stack: error.stack,
-          ...context,
-        });
-      }
-
-      throw new errorClass(errorMessage);
-    }
-  }
+  const createUser = (
+    user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
+  ): User => ({
+    ...user,
+    userId: generateUUID(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    isActive: true,
+  });
 
   return {
-    async create(user: User): Promise<User> {
+    async create(
+      user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
+    ): Promise<User> {
       try {
-        const result = await userModel.create(user);
-        return result;
+        const result = createUser(user);
+        return await userModel.create(result);
       } catch (error) {
-        if (error instanceof ConditionalCheckFailedException) {
-          throw new DatabaseError(`User ${user.userId} already exists`);
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          throw new ConflictError(`User ${user.email} already exists`);
         }
-        if (error instanceof DynamoDBServiceException) {
-          logger.error('Database create failed', {
-            error: error.message,
-            userId: user.userId,
-          });
-          throw new DatabaseError('Failed to create user');
-        }
-
-        throw new DatabaseError('Unexpected creation error');
+        logger.error('User creation failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          user,
+        });
+        throw new DatabaseError('Failed to create user');
       }
     },
 
     async findById(userId: string): Promise<User | null> {
-      return handleServiceCall(
-        async () => await userModel.findById(userId),
-        { userId },
-        'Could not find the user.',
-        DatabaseError
-      );
+      try {
+        return await userModel.findById(userId);
+      } catch (error) {
+        logger.error('User lookup failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+        });
+        throw new DatabaseError('Could not find the user');
+      }
     },
 
     async findByEmail(email: string): Promise<User | null> {
-      return handleServiceCall(
-        async () => await userModel.findByEmail(email),
-        { email },
-        'Could not find the user.',
-        DatabaseError
-      );
+      try {
+        return await userModel.findByEmail(email);
+      } catch (error) {
+        logger.error('User lookup by email failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          email,
+        });
+        throw new DatabaseError('Could not find the user');
+      }
     },
 
     async update(
       userId: string,
       updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
     ): Promise<User> {
-      return handleServiceCall(
-        async () => await userModel.update(userId, updates),
-        { userId, updates },
-        'Could not update the user.',
-        DatabaseError
-      );
+      try {
+        return await userModel.update(userId, updates);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          throw new NotFoundError(`User ${userId} not found`);
+        }
+        logger.error('User update failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+        });
+        throw new DatabaseError('Could not update the user');
+      }
     },
 
     async delete(userId: string): Promise<void> {
-      return handleServiceCall(
-        async () => await userModel.delete(userId),
-        { userId },
-        'Could not delete the user.',
-        DatabaseError
-      );
+      try {
+        await userModel.delete(userId);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          // attribute_exists(userId) failed = user not found
+          throw new NotFoundError(`User ${userId} not found`);
+        }
+        logger.error('User deletion failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+        });
+        throw new DatabaseError('Could not delete the user');
+      }
     },
 
     async updateLastLogin(userId: string, timestamp: string): Promise<void> {
-      return handleServiceCall(
-        async () => await userModel.updateLastLogin(userId, timestamp),
-        { userId, timestamp },
-        'Could not update the user last login.',
-        DatabaseError
-      );
+      try {
+        await userModel.updateLastLogin(userId, timestamp);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          throw new NotFoundError(`User ${userId} not found`);
+        }
+        logger.error('Last login update failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+        });
+        throw new DatabaseError('Could not update the user last login');
+      }
     },
 
     async updatePassword(userId: string, passwordHash: string): Promise<void> {
-      return handleServiceCall(
-        async () => await userModel.updatePassword(userId, passwordHash),
-        { userId },
-        'Could not update the user password.',
-        DatabaseError
-      );
+      try {
+        await userModel.updatePassword(userId, passwordHash);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          throw new NotFoundError(`User ${userId} not found`);
+        }
+        logger.error('Password update failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+        });
+        throw new DatabaseError('Could not update the user password');
+      }
     },
 
     async deactivateUser(userId: string): Promise<void> {
-      return handleServiceCall(
-        async () => await userModel.deactivateUser(userId),
-        { userId },
-        'Could not deactivate the user.',
-        DatabaseError
-      );
+      try {
+        await userModel.deactivateUser(userId);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          throw new NotFoundError(`User ${userId} not found`);
+        }
+        logger.error('User deactivation failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+        });
+        throw new DatabaseError('Could not deactivate the user');
+      }
     },
   };
 };

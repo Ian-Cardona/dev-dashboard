@@ -2,12 +2,12 @@ import {
   DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
-  PutCommand,
   QueryCommand,
+  TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { User } from '../types/user.type';
-import { USER_TABLE } from '../constants/tables';
+import { EMAIL_TABLE, USER_TABLE } from '../constants/tables';
 
 export interface IUserModel {
   create(user: User): Promise<User>;
@@ -18,7 +18,6 @@ export interface IUserModel {
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
   ): Promise<User>;
   delete(userId: string): Promise<void>;
-
   updateLastLogin(userId: string, timestamp: string): Promise<void>;
   updatePassword(userId: string, passwordHash: string): Promise<void>;
   deactivateUser(userId: string): Promise<void>;
@@ -28,14 +27,27 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
   return {
     async create(user: User): Promise<User> {
       await docClient.send(
-        new PutCommand({
-          TableName: USER_TABLE,
-          Item: user,
-          ConditionExpression: 'attribute_not_exists(userId)',
+        new TransactWriteCommand({
+          TransactItems: [
+            {
+              Put: {
+                TableName: USER_TABLE,
+                Item: user,
+                ConditionExpression: 'attribute_not_exists(userId)',
+              },
+            },
+            {
+              Put: {
+                TableName: EMAIL_TABLE,
+                Item: { email: user.email, userId: user.userId },
+                ConditionExpression: 'attribute_not_exists(email)',
+              },
+            },
+          ],
         })
       );
 
-      return user;
+      return user as User;
     },
 
     async findById(userId: string): Promise<User | null> {
