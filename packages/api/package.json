@@ -16,11 +16,13 @@
     "@aws-sdk/client-dynamodb": "^3.848.0",
     "@aws-sdk/lib-dynamodb": "^3.850.0",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "uuid": "^11.1.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/supertest": "^6.0.3",
     "@types/uuid": "^10.0.0",
     "aws-sdk-client-mock": "^4.1.0",

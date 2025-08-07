@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   DynamoDBDocumentClient,
   GetCommand,
@@ -5,6 +6,9 @@ import {
   ScanCommand,
   DeleteCommand,
   QueryCommand,
+  BatchWriteCommand,
+  ScanCommandOutput,
+  QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { RefreshToken } from '../types/refreshToken.type';
 import { REFRESH_TOKEN_TABLE } from '../constants/tables';
@@ -21,8 +25,17 @@ export interface IRefreshTokenModel {
 }
 
 export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
+  const chunkArray = <T>(array: T[], size: number): T[][] => {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+  };
+
   return {
     async create(refreshToken: RefreshToken): Promise<RefreshToken> {
+      // Check both keys not exists to prevent overwrites (assumes composite key)
       await docClient.send(
         new PutCommand({
           TableName: REFRESH_TOKEN_TABLE,
@@ -40,12 +53,12 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     ): Promise<RefreshToken | null> {
       const result = await docClient.send(
         new GetCommand({
-          TableName: REFRESH_TOKEN_TABLE,
+          TableName: REFRESH_TOKEN_TABLE, // use constant, not string literal
           Key: { userId, tokenId },
         })
       );
 
-      return result.Item as RefreshToken | null;
+      return result.Item ? (result.Item as RefreshToken) : null;
     },
 
     async deleteToken(userId: string, tokenId: string): Promise<void> {
@@ -60,59 +73,86 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     },
 
     async deleteAllUserTokens(userId: string): Promise<void> {
-      const queryResult = await docClient.send(
-        new QueryCommand({
-          TableName: REFRESH_TOKEN_TABLE,
-          KeyConditionExpression: 'userId = :userId',
-          ExpressionAttributeValues: { ':userId': userId },
-          ProjectionExpression: 'userId, tokenId',
-        })
-      );
+      let ExclusiveStartKey: Record<string, any> | undefined = undefined;
 
-      if (!queryResult.Items || queryResult.Items.length === 0) {
-        return;
-      }
-
-      // Delete each token individually (DynamoDB doesn't support batch delete across partition keys)
-      const deletePromises = queryResult.Items.map(item =>
-        docClient.send(
-          new DeleteCommand({
+      do {
+        const queryResult: QueryCommandOutput = await docClient.send(
+          new QueryCommand({
             TableName: REFRESH_TOKEN_TABLE,
-            Key: { userId: item.userId, tokenId: item.tokenId },
+            KeyConditionExpression: 'userId = :userId',
+            ExpressionAttributeValues: { ':userId': userId },
+            ProjectionExpression: 'userId, tokenId',
+            ExclusiveStartKey,
           })
-        )
-      );
+        );
 
-      await Promise.all(deletePromises);
+        if (!queryResult.Items || queryResult.Items.length === 0) {
+          break;
+        }
+
+        const chunks = chunkArray(queryResult.Items, 25);
+
+        for (const chunk of chunks) {
+          const deleteRequests = chunk.map(item => ({
+            DeleteRequest: {
+              Key: { userId: item.userId, tokenId: item.tokenId },
+            },
+          }));
+
+          const batchWriteParams = {
+            RequestItems: {
+              [REFRESH_TOKEN_TABLE]: deleteRequests,
+            },
+          };
+
+          await docClient.send(new BatchWriteCommand(batchWriteParams));
+        }
+        ExclusiveStartKey = queryResult.LastEvaluatedKey;
+      } while (ExclusiveStartKey);
     },
 
     async deleteExpiredTokens(): Promise<number> {
+      let ExclusiveStartKey: Record<string, any> | undefined = undefined;
       const now = new Date().toISOString();
+      let totalDeleted = 0;
 
-      const scanResult = await docClient.send(
-        new ScanCommand({
-          TableName: REFRESH_TOKEN_TABLE,
-          FilterExpression: 'expiresAt < :now',
-          ExpressionAttributeValues: { ':now': now },
-          ProjectionExpression: 'userId, tokenId',
-        })
-      );
-
-      if (!scanResult.Items || scanResult.Items.length === 0) {
-        return 0;
-      }
-
-      const deletePromises = scanResult.Items.map(item =>
-        docClient.send(
-          new DeleteCommand({
+      do {
+        const scanResult: ScanCommandOutput = await docClient.send(
+          new ScanCommand({
             TableName: REFRESH_TOKEN_TABLE,
-            Key: { userId: item.userId, tokenId: item.tokenId },
+            FilterExpression: 'expiresAt < :now',
+            ExpressionAttributeValues: { ':now': now },
+            ProjectionExpression: 'userId, tokenId',
+            ExclusiveStartKey,
           })
-        )
-      );
+        );
 
-      await Promise.all(deletePromises);
-      return scanResult.Items.length;
+        if (!scanResult.Items || scanResult.Items.length === 0) {
+          break;
+        }
+
+        const chunks = chunkArray(scanResult.Items, 25);
+
+        for (const chunk of chunks) {
+          const deleteRequests = chunk.map(item => ({
+            DeleteRequest: {
+              Key: { userId: item.userId, tokenId: item.tokenId },
+            },
+          }));
+
+          const batchWriteParams = {
+            RequestItems: {
+              [REFRESH_TOKEN_TABLE]: deleteRequests,
+            },
+          };
+
+          await docClient.send(new BatchWriteCommand(batchWriteParams));
+          totalDeleted += chunk.length;
+        }
+        ExclusiveStartKey = scanResult.LastEvaluatedKey;
+      } while (ExclusiveStartKey);
+
+      return totalDeleted;
     },
   };
 };

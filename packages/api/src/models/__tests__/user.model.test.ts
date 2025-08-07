@@ -16,22 +16,26 @@ import { UserModel } from '../user.model';
 import { VALIDATION_CONSTANTS } from '../../constants/validations';
 import { User } from '../../types/user.type';
 
-const mockUser: User = {
-  userId: 'TEST_USER12345',
-  email: 'test@example.com',
-  passwordHash: 'a'.repeat(VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH),
-  createdAt: '2025-07-31T14:42:05.000Z',
-  updatedAt: '2025-07-31T14:42:05.000Z',
-  isActive: true,
-};
-
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
 export const userModel = UserModel(
   ddbMock as unknown as DynamoDBDocumentClient
 );
+
 describe('User Model', () => {
+  let mockUser: User;
+
   beforeEach(() => {
+    mockUser = {
+      userId: 'TEST_USER12345',
+      email: 'test@example.com',
+      passwordHash: 'a'.repeat(
+        VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
+      ),
+      createdAt: '2025-07-31T14:42:05.000Z',
+      updatedAt: '2025-07-31T14:42:05.000Z',
+      isActive: true,
+    };
     ddbMock.reset();
   });
 
