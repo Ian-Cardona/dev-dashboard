@@ -5,7 +5,6 @@ import {
   userUpdateValidation,
 } from '../validations/user.validation';
 import z from 'zod';
-import { CreateUserResponse } from '../types/user.type';
 
 export const UserController = (userService: IUserService) => {
   const validateId = (id: string) => z.uuidv4().parse(id);
@@ -31,7 +30,8 @@ export const UserController = (userService: IUserService) => {
         const validatedData = userCreateValidation.parse(req.body);
         const result = await userService.create(validatedData);
 
-        const { passwordHash, ...safeResult }: CreateUserResponse = result;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...safeResult } = result;
 
         res.status(201).json(safeResult);
       } catch (error) {
