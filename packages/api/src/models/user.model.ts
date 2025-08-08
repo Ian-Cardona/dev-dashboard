@@ -18,9 +18,9 @@ export interface IUserModel {
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
   ): Promise<User>;
   delete(userId: string): Promise<void>;
-  updateLastLogin(userId: string, timestamp: string): Promise<void>;
-  updatePassword(userId: string, passwordHash: string): Promise<void>;
-  deactivateUser(userId: string): Promise<void>;
+  updateLastLogin(userId: string, timestamp: string): Promise<User>;
+  updatePassword(userId: string, passwordHash: string): Promise<User>;
+  deactivateUser(userId: string): Promise<User>;
 }
 
 export const UserModel = (docClient: DynamoDBDocumentClient) => {
@@ -129,8 +129,8 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
       );
     },
 
-    async updateLastLogin(userId: string, timestamp: string): Promise<void> {
-      await docClient.send(
+    async updateLastLogin(userId: string, timestamp: string): Promise<User> {
+      const result = await docClient.send(
         new UpdateCommand({
           TableName: USER_TABLE,
           Key: { userId },
@@ -145,12 +145,15 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
             ':updatedAt': new Date().toISOString(),
           },
           ConditionExpression: 'attribute_exists(userId)',
+          ReturnValues: 'ALL_NEW',
         })
       );
+
+      return result.Attributes as User;
     },
 
-    async updatePassword(userId: string, passwordHash: string): Promise<void> {
-      await docClient.send(
+    async updatePassword(userId: string, passwordHash: string): Promise<User> {
+      const result = await docClient.send(
         new UpdateCommand({
           TableName: USER_TABLE,
           Key: { userId },
@@ -165,12 +168,15 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
             ':updatedAt': new Date().toISOString(),
           },
           ConditionExpression: 'attribute_exists(userId)',
+          ReturnValues: 'ALL_NEW',
         })
       );
+
+      return result.Attributes as User;
     },
 
-    async deactivateUser(userId: string): Promise<void> {
-      await docClient.send(
+    async deactivateUser(userId: string): Promise<User> {
+      const result = await docClient.send(
         new UpdateCommand({
           TableName: USER_TABLE,
           Key: { userId },
@@ -185,8 +191,11 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
             ':updatedAt': new Date().toISOString(),
           },
           ConditionExpression: 'attribute_exists(userId)',
+          ReturnValues: 'ALL_NEW',
         })
       );
+
+      return result.Attributes as User;
     },
   };
 };

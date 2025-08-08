@@ -29,36 +29,26 @@ export const UserController = (userService: IUserService) => {
       try {
         const validatedData = userCreateValidation.parse(req.body);
         const result = await userService.create(validatedData);
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { passwordHash, ...safeResult } = result;
-
-        res.status(201).json(safeResult);
+        res.status(201).json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid user data');
       }
     },
 
-    async findUserById(req: Request, res: Response, next: NextFunction) {
+    async getUserById(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = validateId(req.params.userId);
         const result = await userService.findById(userId);
-        if (result === null) {
-          return res.status(404).json({ error: 'User not found' });
-        }
-        res.json(result);
+        res.json(result); // Service already handles NotFoundError
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid user ID');
       }
     },
 
-    async findUserByEmail(req: Request, res: Response, next: NextFunction) {
+    async getUserByEmail(req: Request, res: Response, next: NextFunction) {
       try {
-        const email = z.email().parse(req.params.email);
+        const email = z.email().parse(req.query.email);
         const result = await userService.findByEmail(email);
-        if (result === null) {
-          return res.status(404).json({ error: 'User not found' });
-        }
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid email format');
@@ -82,25 +72,39 @@ export const UserController = (userService: IUserService) => {
         await userService.delete(userId);
         res.status(204).end();
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid user ID');
       }
     },
 
     async updateLastLogin(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = validateId(req.params.userId);
-        const timestamp = z.string().parse(req.body.timestamp);
-        await userService.updateLastLogin(userId, timestamp);
-        res.status(204).end();
+        const { lastLogin } = z
+          .object({
+            lastLogin: z.iso.datetime(),
+          })
+          .parse(req.body);
+
+        const result = await userService.updateLastLogin(userId, lastLogin);
+        res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid date format');
       }
     },
 
     async updatePassword(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = validateId(req.params.userId);
-        const passwordHash = z.string().parse(req.body.passwordHash);
+        const updates = userUpdateValidation
+          .pick({ passwordHash: true })
+          .parse(req.body);
+
+        if (!updates.passwordHash) {
+          throw new Error('Missing passwordHash');
+        }
+
+        const passwordHash = updates.passwordHash;
+
         await userService.updatePassword(userId, passwordHash);
         res.status(204).end();
       } catch (error) {
