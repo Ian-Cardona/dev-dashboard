@@ -10,4 +10,4 @@ export interface User {
   isActive: boolean;
 }
 
-export type CreateUserResponse = Omit<User, 'passwordHash'>;
+export type SafeUser = Omit<User, 'passwordHash'>;

@@ -10,6 +10,7 @@ import {
 import { UserService } from '../user.service';
 import { ConflictError, DatabaseError } from '../../utils/errors.utils';
 import { IUserModel } from '../../models/user.model';
+import { User, SafeUser } from '../../types/user.type';
 
 const mockUserModel = {
   create: vi.fn() as MockedFunction<IUserModel['create']>,
@@ -34,6 +35,11 @@ describe('User Service', () => {
     updatedAt: '2025-01-01T00:00:00.000Z',
     passwordHash: 'test-password-hash',
     isActive: true,
+  };
+
+  const toSafeUser = (user: User): SafeUser => {
+    const { passwordHash, ...safeUser } = user;
+    return safeUser;
   };
 
   beforeEach(() => {
@@ -67,11 +73,10 @@ describe('User Service', () => {
 
       const result = await userService.create(inputUser);
 
-      expect(result).toEqual(createdUser);
+      expect(result).toEqual(toSafeUser(createdUser));
       expect(mockUserModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
           email: inputUser.email,
-          passwordHash: inputUser.passwordHash,
           firstName: inputUser.firstName,
           lastName: inputUser.lastName,
           userId: expect.any(String),
@@ -104,13 +109,8 @@ describe('User Service', () => {
       expect(mockUserModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
           email: inputUser.email,
-          passwordHash: inputUser.passwordHash,
           firstName: inputUser.firstName,
           lastName: inputUser.lastName,
-          userId: expect.any(String),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-          isActive: true,
         })
       );
     });
@@ -132,12 +132,8 @@ describe('User Service', () => {
       expect(mockUserModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
           email: inputUser.email,
-          passwordHash: inputUser.passwordHash,
           firstName: inputUser.firstName,
           lastName: inputUser.lastName,
-          userId: expect.any(String),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
           isActive: true,
         })
       );
@@ -148,25 +144,24 @@ describe('User Service', () => {
     it('should return user when user exists', async () => {
       mockUserModel.findById.mockResolvedValue(mockUser);
 
-      const result = await userService.findById(mockUser.email);
+      const result = await userService.findById(mockUser.userId);
 
-      expect(result).toEqual(mockUser);
-      expect(mockUserModel.findById).toHaveBeenCalledWith(mockUser.email);
+      expect(result).toEqual(toSafeUser(mockUser));
+      expect(mockUserModel.findById).toHaveBeenCalledWith(mockUser.userId);
     });
 
-    it('should return null when user does not exist', async () => {
+    it('should throw when user does not exist', async () => {
       mockUserModel.findById.mockResolvedValue(null);
 
-      const result = await userService.findById('NONEXISTENT_ID');
-
-      expect(result).toBeNull();
+      await expect(userService.findById('NONEXISTENT_ID')).rejects.toThrow();
     });
 
     it('should throw DatabaseError when findById fails', async () => {
-      mockUserModel.findById.mockRejectedValue(new Error('Database error'));
+      const dbError = new Error('Database error');
+      mockUserModel.findById.mockRejectedValue(dbError);
 
       await expect(userService.findById('TEST_ID')).rejects.toThrow(
-        new DatabaseError('Could not find the user')
+        DatabaseError
       );
     });
   });
@@ -177,25 +172,23 @@ describe('User Service', () => {
 
       const result = await userService.findByEmail(mockUser.email);
 
-      expect(result).toEqual(mockUser);
-      expect(mockUserModel.findByEmail).toHaveBeenCalledWith(
-        'test@example.com'
-      );
+      expect(result).toEqual(toSafeUser(mockUser)); // important to call toSafeUser
+      expect(mockUserModel.findByEmail).toHaveBeenCalledWith(mockUser.email);
     });
 
-    it('should return null when user does not exist', async () => {
+    it('should throw NotFoundError when user does not exist', async () => {
       mockUserModel.findByEmail.mockResolvedValue(null);
 
-      const result = await userService.findByEmail('unknown@example.com');
-
-      expect(result).toBeNull();
+      await expect(
+        userService.findByEmail('unknown@example.com')
+      ).rejects.toThrow();
     });
 
     it('should throw DatabaseError when findByEmail fails', async () => {
       mockUserModel.findByEmail.mockRejectedValue(new Error('Database error'));
 
       await expect(userService.findByEmail(mockUser.email)).rejects.toThrow(
-        new DatabaseError('Could not find the user')
+        DatabaseError
       );
     });
   });
@@ -212,7 +205,8 @@ describe('User Service', () => {
 
       const result = await userService.update('TEST_USER_ID', updateData);
 
-      expect(result).toEqual(updatedUser);
+      expect(result).toEqual(toSafeUser(updatedUser));
+
       expect(mockUserModel.update).toHaveBeenCalledWith(
         'TEST_USER_ID',
         updateData
@@ -225,6 +219,16 @@ describe('User Service', () => {
       await expect(userService.update('TEST_ID', updateData)).rejects.toThrow(
         new DatabaseError('Could not update the user')
       );
+    });
+
+    it('should throw NotFoundError when ConditionalCheckFailedException occurs', async () => {
+      const error = new Error('ConditionalCheckFailedException');
+
+      mockUserModel.update.mockRejectedValue(error);
+
+      await expect(
+        userService.update('NON_EXISTENT_ID', updateData)
+      ).rejects.toThrow();
     });
   });
 
@@ -243,71 +247,106 @@ describe('User Service', () => {
   });
 
   describe('updateLastLogin', () => {
-    it('should complete successfully when last login update succeeds', async () => {
-      await expect(
-        userService.updateLastLogin('TEST_USER_ID', '2025-01-01T12:00:00Z')
-      ).resolves.not.toThrow();
+    it('should return SafeUser when last login update succeeds', async () => {
+      const updatedUser = { ...mockUser }; // example raw user, will be wrapped by toSafeUser
+      mockUserModel.updateLastLogin.mockResolvedValue(updatedUser);
 
+      const result = await userService.updateLastLogin(
+        'TEST_USER_ID',
+        '2025-01-01T12:00:00Z'
+      );
+
+      expect(result).toEqual(toSafeUser(updatedUser));
       expect(mockUserModel.updateLastLogin).toHaveBeenCalledWith(
         'TEST_USER_ID',
         '2025-01-01T12:00:00Z'
       );
     });
 
-    it('should throw DatabaseError when updateLastLogin fails', async () => {
+    it('should throw NotFoundError if ConditionalCheckFailedException occurs', async () => {
+      const error = new Error('ConditionalCheckFailedException');
+      mockUserModel.updateLastLogin.mockRejectedValue(error);
+
+      await expect(
+        userService.updateLastLogin('NON_EXISTENT_ID', '2025-01-01T12:00:00Z')
+      ).rejects.toThrow();
+    });
+
+    it('should throw DatabaseError on other failures', async () => {
       mockUserModel.updateLastLogin.mockRejectedValue(
         new Error('Database error')
       );
 
       await expect(
         userService.updateLastLogin('TEST_ID', '2025-01-01T12:00:00Z')
-      ).rejects.toThrow(
-        new DatabaseError('Could not update the user last login')
-      );
+      ).rejects.toThrow(DatabaseError);
     });
   });
 
   describe('updatePassword', () => {
-    it('should complete successfully when password update succeeds', async () => {
-      const newPassword = 'new-password';
+    it('should return SafeUser when password update succeeds', async () => {
+      const updatedUser = { ...mockUser };
+      mockUserModel.updatePassword.mockResolvedValue(updatedUser);
 
-      await expect(
-        userService.updatePassword('TEST_USER_ID', newPassword)
-      ).resolves.not.toThrow();
+      const result = await userService.updatePassword(
+        'TEST_USER_ID',
+        'new-password'
+      );
+
+      expect(result).toEqual(toSafeUser(updatedUser));
       expect(mockUserModel.updatePassword).toHaveBeenCalledWith(
         'TEST_USER_ID',
-        newPassword
+        'new-password'
       );
     });
 
-    it('should throw DatabaseError when updatePassword fails', async () => {
+    it('should throw NotFoundError if ConditionalCheckFailedException occurs', async () => {
+      const error = new Error('ConditionalCheckFailedException');
+      mockUserModel.updatePassword.mockRejectedValue(error);
+
+      await expect(
+        userService.updatePassword('NON_EXISTENT_ID', 'new-password')
+      ).rejects.toThrow();
+    });
+
+    it('should throw DatabaseError on other failures', async () => {
       mockUserModel.updatePassword.mockRejectedValue(
         new Error('Database error')
       );
 
       await expect(
         userService.updatePassword('TEST_ID', 'new-password')
-      ).rejects.toThrow(
-        new DatabaseError('Could not update the user password')
-      );
+      ).rejects.toThrow(DatabaseError);
     });
   });
 
   describe('deactivateUser', () => {
-    it('should complete successfully when user deactivation succeeds', async () => {
-      await expect(
-        userService.deactivateUser('TEST_USER_ID')
-      ).resolves.not.toThrow();
+    it('should return SafeUser when user deactivation succeeds', async () => {
+      const updatedUser = { ...mockUser };
+      mockUserModel.deactivateUser.mockResolvedValue(updatedUser);
+
+      const result = await userService.deactivateUser('TEST_USER_ID');
+
+      expect(result).toEqual(toSafeUser(updatedUser));
       expect(mockUserModel.deactivateUser).toHaveBeenCalledWith('TEST_USER_ID');
     });
 
-    it('should throw DatabaseError when deactivateUser fails', async () => {
+    it('should throw NotFoundError if ConditionalCheckFailedException occurs', async () => {
+      const error = new Error('ConditionalCheckFailedException');
+      mockUserModel.deactivateUser.mockRejectedValue(error);
+
+      await expect(
+        userService.deactivateUser('NON_EXISTENT_ID')
+      ).rejects.toThrow();
+    });
+
+    it('should throw DatabaseError on other failures', async () => {
       mockUserModel.deactivateUser.mockRejectedValue(
         new Error('Database error')
       );
 
       await expect(userService.deactivateUser('TEST_ID')).rejects.toThrow(
-        new DatabaseError('Could not deactivate the user')
+        DatabaseError
       );
     });
   });

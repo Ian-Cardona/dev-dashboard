@@ -1,6 +1,6 @@
 import { logger } from '../middlewares/logger.middleware';
 import { IUserModel } from '../models/user.model';
-import { User } from '../types/user.type';
+import { SafeUser, User } from '../types/user.type';
 import {
   ConflictError,
   DatabaseError,
@@ -11,21 +11,26 @@ import { generateUUID } from '../utils/uuid.utils';
 export interface IUserService {
   create(
     user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
-  ): Promise<User>;
-  findById(userId: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
+  ): Promise<SafeUser>;
+  findById(userId: string): Promise<SafeUser | null>;
+  findByEmail(email: string): Promise<SafeUser | null>;
   update(
     userId: string,
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
-  ): Promise<User>;
+  ): Promise<SafeUser>;
   delete(userId: string): Promise<void>;
 
-  updateLastLogin(userId: string, timestamp: string): Promise<void>;
-  updatePassword(userId: string, passwordHash: string): Promise<void>;
-  deactivateUser(userId: string): Promise<void>;
+  updateLastLogin(userId: string, timestamp: string): Promise<SafeUser>;
+  updatePassword(userId: string, passwordHash: string): Promise<SafeUser>;
+  deactivateUser(userId: string): Promise<SafeUser>;
 }
 
 export const UserService = (userModel: IUserModel): IUserService => {
+  const toSafeUser = (user: User): SafeUser => {
+    const { passwordHash, ...safeUser } = user;
+    return safeUser;
+  };
+
   const createUser = (
     user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
   ): User => ({
@@ -39,10 +44,11 @@ export const UserService = (userModel: IUserModel): IUserService => {
   return {
     async create(
       user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
-    ): Promise<User> {
+    ): Promise<SafeUser> {
       try {
-        const result = createUser(user);
-        return await userModel.create(result);
+        const fullUser = createUser(user);
+        const result = await userModel.create(fullUser);
+        return toSafeUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -52,16 +58,23 @@ export const UserService = (userModel: IUserModel): IUserService => {
         }
         logger.error('User creation failed', {
           error: error instanceof Error ? error.message : 'Unknown error',
-          user,
+          email: user.email,
         });
         throw new DatabaseError('Failed to create user');
       }
     },
 
-    async findById(userId: string): Promise<User | null> {
+    async findById(userId: string): Promise<SafeUser> {
       try {
-        return await userModel.findById(userId);
+        const user = await userModel.findById(userId);
+        if (!user) {
+          throw new NotFoundError('User not found');
+        }
+        return toSafeUser(user);
       } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
         logger.error('User lookup failed', {
           error: error instanceof Error ? error.message : 'Unknown error',
           userId,
@@ -70,10 +83,17 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async findByEmail(email: string): Promise<User | null> {
+    async findByEmail(email: string): Promise<SafeUser> {
       try {
-        return await userModel.findByEmail(email);
+        const user = await userModel.findByEmail(email);
+        if (!user) {
+          throw new NotFoundError('User not found');
+        }
+        return toSafeUser(user);
       } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
         logger.error('User lookup by email failed', {
           error: error instanceof Error ? error.message : 'Unknown error',
           email,
@@ -84,10 +104,13 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
     async update(
       userId: string,
-      updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
-    ): Promise<User> {
+      updates: Partial<
+        Omit<User, 'userId' | 'email' | 'createdAt' | 'passwordHash'>
+      >
+    ): Promise<SafeUser> {
       try {
-        return await userModel.update(userId, updates);
+        const result = await userModel.update(userId, updates);
+        return toSafeUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -111,7 +134,6 @@ export const UserService = (userModel: IUserModel): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          // attribute_exists(userId) failed = user not found
           throw new NotFoundError(`User ${userId} not found`);
         }
         logger.error('User deletion failed', {
@@ -122,9 +144,13 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async updateLastLogin(userId: string, timestamp: string): Promise<void> {
+    async updateLastLogin(
+      userId: string,
+      timestamp: string
+    ): Promise<SafeUser> {
       try {
-        await userModel.updateLastLogin(userId, timestamp);
+        const result = await userModel.updateLastLogin(userId, timestamp);
+        return toSafeUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -140,9 +166,13 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async updatePassword(userId: string, passwordHash: string): Promise<void> {
+    async updatePassword(
+      userId: string,
+      passwordHash: string
+    ): Promise<SafeUser> {
       try {
-        await userModel.updatePassword(userId, passwordHash);
+        const result = await userModel.updatePassword(userId, passwordHash);
+        return toSafeUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -158,9 +188,10 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async deactivateUser(userId: string): Promise<void> {
+    async deactivateUser(userId: string): Promise<SafeUser> {
       try {
-        await userModel.deactivateUser(userId);
+        const result = await userModel.deactivateUser(userId);
+        return toSafeUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
