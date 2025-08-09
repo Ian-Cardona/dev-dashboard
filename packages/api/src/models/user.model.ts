@@ -7,7 +7,10 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { User } from '../types/user.type';
-import { EMAIL_TABLE, USER_TABLE } from '../constants/tables';
+import { ENV } from '../config/env_variables';
+
+const USER_TABLE = ENV.USER_TABLE;
+const EMAIL_TABLE = ENV.EMAIL_TABLE;
 
 export interface IUserModel {
   create(user: User): Promise<User>;

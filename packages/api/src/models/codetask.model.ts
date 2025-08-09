@@ -6,7 +6,9 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { CodeTask } from '../types/codetask.type';
-import { CODE_TASK_TABLE } from '../constants/tables';
+import { ENV } from '../config/env_variables';
+
+const CODE_TASK_TABLE = ENV.CODE_TASK_TABLE;
 
 export interface ICodeTaskModel {
   create(data: CodeTask): Promise<CodeTask>;

@@ -11,7 +11,9 @@ import {
   QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { RefreshToken } from '../types/refreshToken.type';
-import { REFRESH_TOKEN_TABLE } from '../constants/tables';
+import { ENV } from '../config/env_variables';
+
+const REFRESH_TOKEN_TABLE = ENV.REFRESH_TOKEN_TABLE;
 
 export interface IRefreshTokenModel {
   create(refreshToken: RefreshToken): Promise<RefreshToken>;
