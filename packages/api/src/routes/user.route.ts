@@ -12,8 +12,8 @@ const userServiceInstance = UserService(userRepositoryInstance);
 const userControllerInstance = UserController(userServiceInstance);
 
 router.post('/', userControllerInstance.createUser);
-router.get('/', userControllerInstance.findUserByEmail);
-router.get('/:userId', userControllerInstance.findUserById);
+router.get('/', userControllerInstance.getUserByEmail);
+router.get('/:userId', userControllerInstance.getUserById);
 router.patch('/:userId', userControllerInstance.updateUser);
 router.delete('/:userId', userControllerInstance.deleteUser);
 router.patch('/:userId/last-login', userControllerInstance.updateLastLogin);

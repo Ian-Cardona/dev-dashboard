@@ -11,7 +11,9 @@ import {
   QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 import { RefreshToken } from '../types/refreshToken.type';
-import { REFRESH_TOKEN_TABLE } from '../constants/tables';
+import { ENV } from '../config/env_variables';
+
+const REFRESH_TOKEN_TABLE = ENV.REFRESH_TOKEN_TABLE;
 
 export interface IRefreshTokenModel {
   create(refreshToken: RefreshToken): Promise<RefreshToken>;
@@ -53,7 +55,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     ): Promise<RefreshToken | null> {
       const result = await docClient.send(
         new GetCommand({
-          TableName: REFRESH_TOKEN_TABLE, // use constant, not string literal
+          TableName: REFRESH_TOKEN_TABLE,
           Key: { userId, tokenId },
         })
       );

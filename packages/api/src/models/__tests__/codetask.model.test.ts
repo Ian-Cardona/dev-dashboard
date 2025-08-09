@@ -13,7 +13,9 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { CodeTask, CodeTaskPriority } from '../../types/codetask.type';
 import { CodeTaskModel } from '../codetask.model';
-import { CODE_TASK_TABLE } from '../../constants/tables';
+import { ENV } from '../../config/env_variables';
+
+const CODE_TASK_TABLE = ENV.CODE_TASK_TABLE;
 
 const mockTask: CodeTask = {
   id: '1',
