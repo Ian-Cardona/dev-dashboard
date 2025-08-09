@@ -53,7 +53,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     ): Promise<RefreshToken | null> {
       const result = await docClient.send(
         new GetCommand({
-          TableName: REFRESH_TOKEN_TABLE, // use constant, not string literal
+          TableName: REFRESH_TOKEN_TABLE,
           Key: { userId, tokenId },
         })
       );
