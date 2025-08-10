@@ -4,7 +4,8 @@ import { toHaveReceivedCommandWith } from 'aws-sdk-client-mock-vitest';
 expect.extend({ toHaveReceivedCommandWith });
 
 import { RefreshToken } from '../../types/refreshToken.type';
-import { generateUUID, generateJWT } from '../../utils/uuid.utils';
+import { generateUUID } from '../../utils/uuid.utils';
+import { generateJWT } from '../../utils/jwt.utils';
 import { RefreshTokenModel } from '../refreshToken.model';
 import {
   BatchWriteCommand,
