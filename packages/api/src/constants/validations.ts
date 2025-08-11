@@ -19,6 +19,23 @@ export const VALIDATION_CONSTANTS = {
       MESSAGE:
         'Last name must be 1-50 characters and contain only letters, spaces, hyphens, apostrophes, and periods',
     },
+    PASSWORD: {
+      MIN_LENGTH: 8,
+      MAX_LENGTH: 72,
+      PATTERN:
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).+$/,
+      MESSAGE:
+        'Password must be 8-72 characters, include upper and lower case letters, numbers, and special characters',
+    },
+    EMAIL: {
+      MAX_LENGTH: 254,
+      MESSAGE: 'Invalid email address format',
+    },
+    REFRESH_TOKEN: {
+      MIN_LENGTH: 32,
+      MAX_LENGTH: 512,
+      MESSAGE: 'Invalid refresh token format',
+    },
   },
   CODETASK: {
     CONTENT: {
