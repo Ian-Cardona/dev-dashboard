@@ -6,13 +6,13 @@ import { generateUUID } from '../utils/uuid.utils';
 
 export interface IRefreshTokenService {
   create(
-    refreshToken: Omit<RefreshToken, 'tokenId' | 'createdAt'>
+    refreshToken: Omit<RefreshToken, 'refreshTokenId' | 'createdAt'>
   ): Promise<RefreshToken>;
   findByUserAndToken(
     userId: string,
-    tokenId: string
+    refreshTokenId: string
   ): Promise<RefreshToken | null>;
-  deleteToken(userId: string, tokenId: string): Promise<void>;
+  deleteToken(userId: string, refreshTokenId: string): Promise<void>;
   deleteAllUserTokens(userId: string): Promise<void>;
   deleteExpiredTokens(): Promise<number>;
 }
@@ -22,11 +22,11 @@ export const RefreshTokenService = (
 ): IRefreshTokenService => {
   return {
     async create(
-      refreshToken: Omit<RefreshToken, 'tokenId' | 'createdAt'>
+      refreshToken: Omit<RefreshToken, 'refreshTokenId' | 'createdAt'>
     ): Promise<RefreshToken> {
       const tokenToStore: RefreshToken = {
         ...refreshToken,
-        tokenId: generateUUID(),
+        refreshTokenId: generateUUID(),
         createdAt: new Date().toISOString(),
       };
       try {
@@ -38,7 +38,7 @@ export const RefreshTokenService = (
           error.message.includes('ConditionalCheckFailedException')
         ) {
           throw new ConflictError(
-            `Refresh token ${tokenToStore.tokenId} already exists`
+            `Refresh token ${tokenToStore.refreshTokenId} already exists`
           );
         }
         logger.error('Refresh token creation failed', {
@@ -51,33 +51,36 @@ export const RefreshTokenService = (
 
     async findByUserAndToken(
       userId: string,
-      tokenId: string
+      refreshTokenId: string
     ): Promise<RefreshToken | null> {
       try {
-        return await refreshTokenModel.findByUserAndToken(userId, tokenId);
+        return await refreshTokenModel.findByUserAndToken(
+          userId,
+          refreshTokenId
+        );
       } catch (error) {
         if (error instanceof Error) {
           logger.error('Service Error: Failed to retrieve refresh token', {
             error: error.message,
             stack: error.stack,
             userId,
-            tokenId,
+            refreshTokenId,
           });
         }
         throw new DatabaseError('Failed to find refresh token');
       }
     },
 
-    async deleteToken(userId: string, tokenId: string): Promise<void> {
+    async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
       try {
-        await refreshTokenModel.deleteToken(userId, tokenId);
+        await refreshTokenModel.deleteToken(userId, refreshTokenId);
       } catch (error) {
         if (error instanceof Error) {
           logger.error('Service Error: Failed to delete refresh token', {
             error: error.message,
             stack: error.stack,
             userId,
-            tokenId,
+            refreshTokenId,
           });
         }
         throw new DatabaseError('Failed to delete refresh token');
