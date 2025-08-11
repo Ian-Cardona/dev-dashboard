@@ -161,14 +161,16 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
           TableName: USER_TABLE,
           Key: { userId },
           UpdateExpression:
-            'SET #passwordHash = :passwordHash, #updatedAt = :updatedAt',
+            'SET #passwordHash = :passwordHash, #updatedAt = :updatedAt, #passwordUpdatedAt = :passwordUpdatedAt',
           ExpressionAttributeNames: {
             '#passwordHash': 'passwordHash',
             '#updatedAt': 'updatedAt',
+            '#passwordUpdatedAt': 'passwordUpdatedAt',
           },
           ExpressionAttributeValues: {
             ':passwordHash': passwordHash,
             ':updatedAt': new Date().toISOString(),
+            ':passwordUpdatedAt': new Date().toISOString(),
           },
           ConditionExpression: 'attribute_exists(userId)',
           ReturnValues: 'ALL_NEW',
@@ -184,20 +186,21 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
           TableName: USER_TABLE,
           Key: { userId },
           UpdateExpression:
-            'SET #isActive = :isActive, #updatedAt = :updatedAt',
+            'SET #isActive = :isActive, #updatedAt = :updatedAt, #lastLoginAt = :lastLoginAt',
           ExpressionAttributeNames: {
             '#isActive': 'isActive',
             '#updatedAt': 'updatedAt',
+            '#lastLoginAt': 'lastLoginAt',
           },
           ExpressionAttributeValues: {
             ':isActive': false,
             ':updatedAt': new Date().toISOString(),
+            ':lastLoginAt': null,
           },
           ConditionExpression: 'attribute_exists(userId)',
           ReturnValues: 'ALL_NEW',
         })
       );
-
       return result.Attributes as User;
     },
   };
