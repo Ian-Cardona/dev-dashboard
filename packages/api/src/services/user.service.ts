@@ -1,6 +1,6 @@
 import { logger } from '../middlewares/logger.middleware';
 import { IUserModel } from '../models/user.model';
-import { SafeUser, User } from '../types/user.type';
+import { ResponseUser, User } from '../types/user.type';
 import {
   ConflictError,
   DatabaseError,
@@ -11,24 +11,23 @@ import { generateUUID } from '../utils/uuid.utils';
 export interface IUserService {
   create(
     user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
-  ): Promise<SafeUser>;
-  findById(userId: string): Promise<SafeUser | null>;
-  findByEmail(email: string): Promise<SafeUser | null>;
+  ): Promise<ResponseUser>;
+  findById(userId: string): Promise<ResponseUser | null>;
+  findByEmail(email: string): Promise<ResponseUser | null>;
   update(
     userId: string,
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
-  ): Promise<SafeUser>;
+  ): Promise<ResponseUser>;
   delete(userId: string): Promise<void>;
-
-  updateLastLogin(userId: string, timestamp: string): Promise<SafeUser>;
-  updatePassword(userId: string, passwordHash: string): Promise<SafeUser>;
-  deactivateUser(userId: string): Promise<SafeUser>;
+  updateLastLogin(userId: string, timestamp: string): Promise<ResponseUser>;
+  updatePassword(userId: string, passwordHash: string): Promise<ResponseUser>;
+  deactivateUser(userId: string): Promise<ResponseUser>;
 }
 
 export const UserService = (userModel: IUserModel): IUserService => {
-  const toSafeUser = (user: User): SafeUser => {
-    const { passwordHash, ...safeUser } = user;
-    return safeUser;
+  const toResponseUser = (user: User): ResponseUser => {
+    const { passwordHash, ...ResponseUser } = user;
+    return ResponseUser;
   };
 
   const createUser = (
@@ -44,11 +43,11 @@ export const UserService = (userModel: IUserModel): IUserService => {
   return {
     async create(
       user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
-    ): Promise<SafeUser> {
+    ): Promise<ResponseUser> {
       try {
         const fullUser = createUser(user);
         const result = await userModel.create(fullUser);
-        return toSafeUser(result);
+        return toResponseUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -64,13 +63,13 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async findById(userId: string): Promise<SafeUser> {
+    async findById(userId: string): Promise<ResponseUser> {
       try {
         const user = await userModel.findById(userId);
         if (!user) {
           throw new NotFoundError('User not found');
         }
-        return toSafeUser(user);
+        return toResponseUser(user);
       } catch (error) {
         if (error instanceof NotFoundError) {
           throw error;
@@ -83,13 +82,13 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async findByEmail(email: string): Promise<SafeUser> {
+    async findByEmail(email: string): Promise<ResponseUser> {
       try {
         const user = await userModel.findByEmail(email);
         if (!user) {
           throw new NotFoundError('User not found');
         }
-        return toSafeUser(user);
+        return toResponseUser(user);
       } catch (error) {
         if (error instanceof NotFoundError) {
           throw error;
@@ -107,10 +106,10 @@ export const UserService = (userModel: IUserModel): IUserService => {
       updates: Partial<
         Omit<User, 'userId' | 'email' | 'createdAt' | 'passwordHash'>
       >
-    ): Promise<SafeUser> {
+    ): Promise<ResponseUser> {
       try {
         const result = await userModel.update(userId, updates);
-        return toSafeUser(result);
+        return toResponseUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -147,10 +146,10 @@ export const UserService = (userModel: IUserModel): IUserService => {
     async updateLastLogin(
       userId: string,
       timestamp: string
-    ): Promise<SafeUser> {
+    ): Promise<ResponseUser> {
       try {
         const result = await userModel.updateLastLogin(userId, timestamp);
-        return toSafeUser(result);
+        return toResponseUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -169,10 +168,10 @@ export const UserService = (userModel: IUserModel): IUserService => {
     async updatePassword(
       userId: string,
       passwordHash: string
-    ): Promise<SafeUser> {
+    ): Promise<ResponseUser> {
       try {
         const result = await userModel.updatePassword(userId, passwordHash);
-        return toSafeUser(result);
+        return toResponseUser(result);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -188,10 +187,10 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async deactivateUser(userId: string): Promise<SafeUser> {
+    async deactivateUser(userId: string): Promise<ResponseUser> {
       try {
         const result = await userModel.deactivateUser(userId);
-        return toSafeUser(result);
+        return toResponseUser(result);
       } catch (error) {
         if (
           error instanceof Error &&

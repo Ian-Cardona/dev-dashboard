@@ -2,12 +2,21 @@ export interface User {
   userId: string;
   email: string;
   passwordHash: string;
+  isActive: boolean;
+  emailVerified: boolean;
   firstName?: string;
   lastName?: string;
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
-  isActive: boolean;
+  passwordUpdatedAt?: string;
 }
 
-export type SafeUser = Omit<User, 'passwordHash'>;
+export type ResponseUser = Omit<
+  User,
+  | 'passwordHash'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'lastLoginAt'
+  | 'passwordUpdatedAt'
+>;

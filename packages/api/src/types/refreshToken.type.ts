@@ -1,7 +1,8 @@
 export interface RefreshToken {
   userId: string;
-  tokenId: string;
-  refreshToken: string;
+  refreshTokenId: string;
+  refreshTokenHash: string;
   expiresAt: string;
   createdAt: string;
+  revoked: boolean;
 }

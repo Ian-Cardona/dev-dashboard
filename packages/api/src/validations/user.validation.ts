@@ -62,3 +62,11 @@ export const userUpdateValidation = userValidation
     isActive: true,
   })
   .partial();
+
+export const userResponseValidation = userValidation.omit({
+  passwordHash: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLoginAt: true,
+  passwordUpdatedAt: true,
+});

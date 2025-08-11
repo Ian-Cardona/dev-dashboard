@@ -10,12 +10,15 @@ export const ENV = {
     process.env.AWS_SECRET_ACCESS_KEY || 'aws_secret_access_key',
   // JWT
   JWT_SECRET: process.env.JWT_SECRET || 'you-will-never-guess',
-  JWT_EXPIRES_IN_SECONDS: process.env.JWT_EXPIRES_IN_SECONDS || '900',
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '15m',
   // Bcrypt
-  BCRYPT_SALT_ROUNDS: process.env.BCRYPT_SALT_ROUNDS || 12,
+  BCRYPT_SALT_ROUNDS_PW: process.env.BCRYPT_SALT_ROUNDS_PW || 12,
+  BCRYPT_SALT_ROUNDS_RT: process.env.BCRYPT_SALT_ROUNDS_RT || 10,
   // Tables
   CODE_TASK_TABLE: process.env.CODE_TASK_TABLE || 'CodeTask',
   USER_TABLE: process.env.USER_TABLE || 'User',
   EMAIL_TABLE: process.env.EMAIL_TABLE || 'Email',
   REFRESH_TOKEN_TABLE: process.env.REFRESH_TOKEN_TABLE || 'RefreshToken',
+  // Audience
+  CLIENT_APP_NAME: process.env.CLIENT_APP_NAME || 'DevDashboardUI',
 };
