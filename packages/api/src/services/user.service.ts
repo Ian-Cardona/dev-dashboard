@@ -7,6 +7,8 @@ import {
   NotFoundError,
 } from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
+import bcrypt from 'bcryptjs';
+import { ENV } from '../config/env_variables';
 
 export interface IUserService {
   create(
@@ -24,6 +26,7 @@ export interface IUserService {
   deactivateUser(userId: string): Promise<ResponseUser>;
 }
 
+// TODO: Fix service implementations
 export const UserService = (userModel: IUserModel): IUserService => {
   const toResponseUser = (user: User): ResponseUser => {
     const { passwordHash, ...ResponseUser } = user;

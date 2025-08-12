@@ -2,10 +2,11 @@ import z from 'zod';
 import { VALIDATION_CONSTANTS } from '../constants/validations';
 
 export const userValidation = z.object({
-  userId: z.uuidv4(),
-  email: z.email(),
+  userId: z.uuid({ message: 'Invalid UUID' }),
+
+  email: z.email({ message: 'Invalid email address' }),
   passwordHash: z
-    .string()
+    .string({ message: 'Invalid password hash' })
     .trim()
     .min(
       VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH,
@@ -16,7 +17,7 @@ export const userValidation = z.object({
       VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MESSAGE
     ),
   firstName: z
-    .string()
+    .string({ message: 'Invalid first name' })
     .trim()
     .min(
       VALIDATION_CONSTANTS.USER.FIRST_NAME.MIN_LENGTH,
@@ -28,7 +29,7 @@ export const userValidation = z.object({
     )
     .optional(),
   lastName: z
-    .string()
+    .string({ message: 'Invalid last name' })
     .trim()
     .min(
       VALIDATION_CONSTANTS.USER.LAST_NAME.MIN_LENGTH,
@@ -39,10 +40,12 @@ export const userValidation = z.object({
       VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
     )
     .optional(),
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
-  lastLoginAt: z.iso.datetime().optional(),
-  isActive: z.boolean(),
+  createdAt: z.iso.datetime({ message: 'Invalid ISO datetime' }),
+  updatedAt: z.iso.datetime({ message: 'Invalid ISO datetime' }),
+  lastLoginAt: z.iso.datetime({ message: 'Invalid ISO datetime' }).optional(),
+  passwordUpdatedAt: z.iso.datetime({ message: 'Invalid ISO datetime' }),
+  isActive: z.boolean({ message: 'Invalid boolean' }),
+  emailVerified: z.boolean({ message: 'Invalid boolean' }),
 });
 
 export const userCreateValidation = userValidation.omit({
@@ -51,19 +54,20 @@ export const userCreateValidation = userValidation.omit({
   updatedAt: true,
   lastLoginAt: true,
   isActive: true,
+  passwordUpdatedAt: true,
+  emailVerified: true,
 });
 
-export const userUpdateValidation = userValidation
-  .omit({
-    userId: true,
-    createdAt: true,
-    updatedAt: true,
-    lastLoginAt: true,
-    isActive: true,
-  })
-  .partial();
+export const userUpdateValidation = userValidation.omit({
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLoginAt: true,
+  isActive: true,
+  emailVerified: true,
+});
 
-export const userResponseValidation = userValidation.omit({
+export const responseUserValidation = userValidation.omit({
   passwordHash: true,
   createdAt: true,
   updatedAt: true,

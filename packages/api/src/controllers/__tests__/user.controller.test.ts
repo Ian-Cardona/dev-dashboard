@@ -281,6 +281,8 @@ describe('User Controller', () => {
         passwordHash: '1'.repeat(
           VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
         ),
+        emailVerified: false,
+        passwordUpdatedAt: new Date().toISOString(),
       };
 
       const { passwordHash, ...rest } = validData;
@@ -291,6 +293,8 @@ describe('User Controller', () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         isActive: true,
+        emailVerified: false,
+        passwordUpdatedAt: new Date().toISOString(),
       };
 
       mockUserService.update.mockResolvedValue(expectedResult);
@@ -336,6 +340,8 @@ describe('User Controller', () => {
           passwordHash: '1'.repeat(
             VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
           ),
+          emailVerified: false,
+          passwordUpdatedAt: new Date().toISOString(),
         });
 
       expect(response.status).toBe(404);
@@ -355,6 +361,8 @@ describe('User Controller', () => {
           passwordHash: '1'.repeat(
             VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
           ),
+          emailVerified: false,
+          passwordUpdatedAt: new Date().toISOString(),
         });
 
       expect(response.status).toBe(500);
