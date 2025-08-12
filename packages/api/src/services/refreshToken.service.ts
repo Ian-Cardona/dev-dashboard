@@ -6,7 +6,10 @@ import { generateUUID } from '../utils/uuid.utils';
 
 export interface IRefreshTokenService {
   create(
-    refreshToken: Omit<RefreshToken, 'refreshTokenId' | 'createdAt'>
+    refreshToken: Omit<
+      RefreshToken,
+      'refreshTokenId' | 'refreshTokenHash' | 'createdAt'
+    >
   ): Promise<RefreshToken>;
   findByUserAndToken(
     userId: string,
@@ -17,17 +20,23 @@ export interface IRefreshTokenService {
   deleteExpiredTokens(): Promise<number>;
 }
 
+// TODO: Fix service implementations
 export const RefreshTokenService = (
   refreshTokenModel: IRefreshTokenModel
 ): IRefreshTokenService => {
   return {
     async create(
-      refreshToken: Omit<RefreshToken, 'refreshTokenId' | 'createdAt'>
+      refreshToken: Omit<
+        RefreshToken,
+        'refreshTokenId' | 'refreshTokenHash' | 'createdAt'
+      >
     ): Promise<RefreshToken> {
       const tokenToStore: RefreshToken = {
         ...refreshToken,
         refreshTokenId: generateUUID(),
+        refreshTokenHash: generateUUID(),
         createdAt: new Date().toISOString(),
+        revoked: false,
       };
       try {
         const result = refreshTokenModel.create(tokenToStore);

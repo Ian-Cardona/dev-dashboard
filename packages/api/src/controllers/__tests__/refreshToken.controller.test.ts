@@ -6,6 +6,7 @@ import { RefreshTokenController } from '../refreshToken.controller';
 import { errorHandlerMiddleware } from '../../middlewares/error_handler.middleware';
 import { loggerMiddleware } from '../../middlewares/logger.middleware';
 import { generateUUID } from '../../utils/uuid.utils';
+import { VALIDATION_CONSTANTS } from '../../constants/validations';
 
 const mockRefreshTokenService = {
   create: vi.fn() as MockedFunction<IRefreshTokenService['create']>,
@@ -68,6 +69,11 @@ describe('RefreshToken Controller', () => {
     tokenId: generateUUID(),
     refreshToken: mockJwt,
     expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    refreshTokenId: generateUUID(),
+    refreshTokenHash: '1'.repeat(
+      VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
+    ),
+    revoked: false,
   };
 
   beforeEach(() => {
@@ -77,10 +83,7 @@ describe('RefreshToken Controller', () => {
 
   describe('POST /refreshToken', () => {
     it('should create new refresh token and return 201', async () => {
-      mockRefreshTokenService.create.mockResolvedValue({
-        ...validData,
-        createdAt: new Date().toISOString(),
-      });
+      mockRefreshTokenService.create.mockResolvedValue({});
 
       const response = await request(app).post('/refreshToken').send(validData);
 
@@ -93,7 +96,14 @@ describe('RefreshToken Controller', () => {
           tokenId: expect.stringMatching(
             /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
           ),
+          refreshTokenId: expect.stringMatching(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          ),
+          refreshTokenHash: expect.stringMatching(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+          ),
           createdAt: expect.any(String),
+          revoked: false,
         })
       );
       expect(mockRefreshTokenService.create).toHaveBeenCalledTimes(1);

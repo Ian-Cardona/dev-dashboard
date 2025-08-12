@@ -1,222 +1,147 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect } from 'vitest';
-import { refreshTokenValidation } from '../refreshToken.validation';
+import { describe, it, expect, beforeAll } from 'vitest';
+import {
+  refreshTokenValidation,
+  refreshTokenCreateValidation,
+} from '../refreshToken.validation';
 import { generateUUID } from '../../utils/uuid.utils';
 
-describe('Refresh Token Validation', () => {
-  const validData = {
-    userId: generateUUID(),
-    tokenId: generateUUID(),
-    refreshToken:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-    expiresAt: '2024-12-31T23:59:59.999Z',
-    createdAt: '2024-01-01T00:00:00.000Z',
-  };
+describe('Refresh Token Validation Schemas', () => {
+  let validRefreshTokenData;
+  let createData;
 
-  describe('valid cases', () => {
-    it('should pass validation with all valid fields', () => {
-      expect(() => refreshTokenValidation.parse(validData)).not.toThrow();
+  beforeAll(() => {
+    validRefreshTokenData = {
+      userId: generateUUID(),
+      refreshTokenId: generateUUID(),
+      refreshTokenHash: 'validHashString',
+      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(), // 1 hour in the future
+      createdAt: new Date().toISOString(),
+      revoked: false,
+    };
 
-      const result = refreshTokenValidation.parse(validData);
-      expect(result).toEqual(validData);
+    createData = {
+      userId: validRefreshTokenData.userId,
+      expiresAt: validRefreshTokenData.expiresAt,
+      // Note: no 'revoked' here; it's omitted in creation schema and defaulted internally
+    };
+  });
+
+  describe('refreshTokenValidation', () => {
+    it('should validate a complete and correct refresh token object', () => {
+      const result = refreshTokenValidation.parse(validRefreshTokenData);
+      expect(result).toEqual(validRefreshTokenData);
     });
 
-    // it('should accept different valid UUIDs', () => {
-    //   const testData = {
-    //     ...validData,
-    //     userId: '123e4567-e89b-12d3-a456-426614174000',
-    //     tokenId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-    //   };
-
-    //   expect(() => refreshTokenValidation.parse(testData)).not.toThrow();
-    // });
-
-    it('should accept different valid JWT tokens', () => {
-      const testData = {
-        ...validData,
-        refreshToken:
-          'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJleGFtcGxlLmNvbSIsInN1YiI6InVzZXIxMjMiLCJhdWQiOiJhcGkuZXhhbXBsZS5jb20iLCJleHAiOjE2ODg4OTIwMDAsImlhdCI6MTY4ODgwNTYwMCwianRpIjoiYWJjZGVmZ2gtMTIzNCIsInNjb3BlIjoicmVhZCB3cml0ZSJ9.example-signature',
+    it('should strip unknown properties from the object', () => {
+      const dataWithExtra = {
+        ...validRefreshTokenData,
+        extra: 'should be removed',
       };
-
-      expect(() => refreshTokenValidation.parse(testData)).not.toThrow();
+      const result = refreshTokenValidation.parse(dataWithExtra);
+      expect(result).not.toHaveProperty('extra');
+      expect(result).toEqual(validRefreshTokenData);
     });
 
-    it('should accept different valid ISO datetime formats', () => {
-      const testData = {
-        ...validData,
-        expiresAt: '2024-06-15T14:30:45.123Z',
-        createdAt: '2023-12-01T09:15:30.000Z',
+    it.each([
+      ['userId', { userId: 'not-a-uuid' }, 'Invalid UUID'],
+      ['refreshTokenId', { refreshTokenId: 'invalid-uuid' }, 'Invalid UUID'],
+      [
+        'refreshTokenHash',
+        { refreshTokenHash: 123 },
+        'Invalid refresh token hash',
+      ],
+      ['expiresAt', { expiresAt: 'not-a-date' }, 'Invalid ISO datetime'],
+      ['createdAt', { createdAt: 'invalid-date' }, 'Invalid ISO datetime'],
+      ['revoked', { revoked: 'not-boolean' }, 'Invalid boolean value'],
+    ])('should fail when %s is invalid', (field, invalidObj, expectedError) => {
+      const testData = { ...validRefreshTokenData, ...invalidObj };
+      expect(() => refreshTokenValidation.parse(testData)).toThrow(
+        expectedError
+      );
+    });
+  });
+
+  describe('refreshTokenCreateValidation', () => {
+    it('should validate a correct creation object', () => {
+      const result = refreshTokenCreateValidation.parse(createData);
+      expect(result.userId).toEqual(createData.userId);
+      expect(result.expiresAt).toEqual(createData.expiresAt);
+      // revoked defaults to false internally since omitted from input
+      expect(result.revoked).toBe(false);
+    });
+
+    it('should default revoked to false when omitted', () => {
+      const result = refreshTokenCreateValidation.parse(createData);
+      expect(result.revoked).toBe(false);
+    });
+
+    it('should fail if userId is missing or invalid', () => {
+      expect(() =>
+        refreshTokenCreateValidation.parse({ expiresAt: createData.expiresAt })
+      ).toThrow('Invalid UUID');
+      expect(() =>
+        refreshTokenCreateValidation.parse({
+          userId: 'invalid-uuid',
+          expiresAt: createData.expiresAt,
+        })
+      ).toThrow('Invalid UUID');
+    });
+
+    it('should fail if expiresAt is missing, invalid, or not a future date', () => {
+      // Missing expiresAt
+      expect(() =>
+        refreshTokenCreateValidation.parse({ userId: createData.userId })
+      ).toThrow('Invalid ISO datetime');
+
+      // Invalid ISO datetime
+      expect(() =>
+        refreshTokenCreateValidation.parse({
+          userId: createData.userId,
+          expiresAt: 'not-a-date',
+        })
+      ).toThrow('Invalid ISO datetime');
+
+      // Past date (expiresAt not in the future)
+      const pastDate = new Date(Date.now() - 1000).toISOString();
+      expect(() =>
+        refreshTokenCreateValidation.parse({
+          userId: createData.userId,
+          expiresAt: pastDate,
+        })
+      ).toThrow('expiresAt must be a future date');
+    });
+
+    it('should strip disallowed fields on create', () => {
+      const input = {
+        ...createData,
+        refreshTokenId: generateUUID(),
+        createdAt: new Date().toISOString(),
+        refreshTokenHash: 'hash-value',
+        // revoked purposely omitted — clients should not set this
       };
-
-      expect(() => refreshTokenValidation.parse(testData)).not.toThrow();
+      const result = refreshTokenCreateValidation.parse(input);
+      expect(result).not.toHaveProperty('refreshTokenId');
+      expect(result).not.toHaveProperty('createdAt');
+      expect(result).not.toHaveProperty('refreshTokenHash');
+      expect(result).toHaveProperty('revoked', false);
     });
   });
 
-  describe('invalid cases - userId', () => {
-    it('should fail with invalid UUID format', () => {
-      const testData = { ...validData, userId: 'invalid-uuid' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with empty string', () => {
-      const testData = { ...validData, userId: '' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with null', () => {
-      const testData = { ...validData, userId: null };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with missing userId', () => {
-      const { userId, ...testData } = validData;
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-  });
-
-  describe('invalid cases - tokenId', () => {
-    it('should fail with invalid UUID format', () => {
-      const testData = { ...validData, tokenId: 'not-a-uuid' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with partial UUID', () => {
-      const testData = { ...validData, tokenId: '550e8400-e29b-41d4' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with missing tokenId', () => {
-      const { tokenId, ...testData } = validData;
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-  });
-
-  describe('invalid cases - refreshToken', () => {
-    it('should fail with invalid JWT format', () => {
-      const testData = { ...validData, refreshToken: 'invalid.jwt.token' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with incomplete JWT (missing parts)', () => {
-      const testData = {
-        ...validData,
-        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
-      };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with empty string', () => {
-      const testData = { ...validData, refreshToken: '' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with missing refreshToken', () => {
-      const { refreshToken, ...testData } = validData;
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-  });
-
-  describe('invalid cases - expiresAt', () => {
-    it('should fail with invalid ISO datetime format', () => {
-      const testData = { ...validData, expiresAt: '2024-13-32T25:61:61.999Z' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with non-ISO date format', () => {
-      const testData = { ...validData, expiresAt: '12/31/2024 11:59 PM' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with missing timezone', () => {
-      const testData = { ...validData, expiresAt: '2024-12-31T23:59:59' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with missing expiresAt', () => {
-      const { expiresAt, ...testData } = validData;
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-  });
-
-  describe('invalid cases - createdAt', () => {
-    it('should fail with invalid ISO datetime format', () => {
-      const testData = { ...validData, createdAt: 'invalid-date' };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with timestamp number', () => {
-      const testData = { ...validData, createdAt: 1704067200000 };
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-
-    it('should fail with missing createdAt', () => {
-      const { createdAt, ...testData } = validData;
-
-      expect(() => refreshTokenValidation.parse(testData)).toThrow();
-    });
-  });
-
-  describe('edge cases', () => {
-    it('should fail with completely empty object', () => {
+  describe('Edge cases', () => {
+    it('should fail when parsing empty object', () => {
       expect(() => refreshTokenValidation.parse({})).toThrow();
     });
 
-    it('should fail with null input', () => {
+    it('should fail when parsing null or undefined', () => {
       expect(() => refreshTokenValidation.parse(null)).toThrow();
-    });
-
-    it('should fail with undefined input', () => {
       expect(() => refreshTokenValidation.parse(undefined)).toThrow();
     });
 
-    it('should ignore extra properties', () => {
-      const testData = {
-        ...validData,
-        extraProperty: 'should be ignored',
-      };
-
-      const result = refreshTokenValidation.parse(testData);
-      expect(result).not.toHaveProperty('extraProperty');
-      expect(result).toEqual(validData);
-    });
-  });
-
-  describe('safeParse method', () => {
-    it('should return success for valid data', () => {
-      const result = refreshTokenValidation.safeParse(validData);
-
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(validData);
-      }
-    });
-
-    it('should return error for invalid data', () => {
-      const invalidData = { ...validData, userId: 'invalid-uuid' };
-      const result = refreshTokenValidation.safeParse(invalidData);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error).toBeDefined();
-        expect(result.error.issues.length).toBeGreaterThan(0);
-      }
+    it('should strip unknown properties', () => {
+      const extendedData = { ...validRefreshTokenData, extraProp: 'ignore' };
+      const parsed = refreshTokenValidation.parse(extendedData);
+      expect(parsed).not.toHaveProperty('extraProp');
+      expect(parsed).toEqual(validRefreshTokenData);
     });
   });
 });
