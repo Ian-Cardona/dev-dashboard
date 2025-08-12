@@ -63,7 +63,6 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
 
     async deleteCodeTask(req: Request, res: Response, next: NextFunction) {
       try {
-        // TODO: Refactor this to use user validation
         const userId = z.uuidv4().parse(req.params.userId);
         const id = z.uuidv4().parse(req.params.id);
 
