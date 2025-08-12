@@ -1,6 +1,4 @@
 import { logger } from '../middlewares/logger.middleware';
-import { IRefreshTokenModel } from '../models/refreshToken.model';
-import { IUserModel } from '../models/user.model';
 import { ResponseUser } from '../types/user.type';
 import {
   ConflictError,
@@ -9,10 +7,12 @@ import {
   UnauthorizedError,
 } from '../utils/errors.utils';
 import { generateJWT, verifyJWT } from '../utils/jwt.utils';
-import bcrypt from 'bcryptjs';
 import { generateSecureRefreshToken, generateUUID } from '../utils/uuid.utils';
+import bcrypt from 'bcryptjs';
 import { ENV } from '../config/env_variables';
 import { AuthRefreshResponse, AuthSuccessResponse } from '../types/auth.type';
+import { IUserService } from './user.service';
+import { IRefreshTokenService } from './refreshToken.service';
 
 export interface IAuthService {
   register(
@@ -30,9 +30,10 @@ export interface IAuthService {
   verifyAccessToken(token: string): Promise<ResponseUser>;
 }
 
+// TODO: Fix service implementations
 export const AuthService = (
-  userModel: IUserModel,
-  refreshTokenModel: IRefreshTokenModel
+  userService: IUserService,
+  refreshTokenService: IRefreshTokenService
 ): IAuthService => {
   return {
     async register(
@@ -42,7 +43,7 @@ export const AuthService = (
       lastName: string
     ): Promise<AuthSuccessResponse> {
       try {
-        const existingUser = await userModel.findByEmail(email);
+        const existingUser = await userService.findByEmail(email);
         if (existingUser) {
           throw new ConflictError('User already exists');
         }
@@ -52,16 +53,12 @@ export const AuthService = (
         );
         const hashedPassword = await bcrypt.hash(password, saltPassword);
 
-        const newUser = await userModel.create({
-          userId: generateUUID(),
+        const newUser = await userService.create({
           email,
           passwordHash: hashedPassword,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          isActive: true,
-          emailVerified: false,
           firstName,
           lastName,
+          emailVerified: false,
         });
 
         const accessTokenPayload = {
@@ -85,7 +82,7 @@ export const AuthService = (
 
         refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + 7);
 
-        await refreshTokenModel.create({
+        await refreshTokenService.create({
           userId: newUser.userId,
           refreshTokenId,
           refreshTokenHash,
