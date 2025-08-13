@@ -1,7 +1,12 @@
 import jwt, { JwtPayload, SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { ENV } from '../config/env_variables';
 
-export const generateJWT = (payload: object): string => {
+export interface AuthTokenPayload extends JwtPayload {
+  userId: string;
+  email: string;
+}
+
+export const generateJWT = (payload: AuthTokenPayload): string => {
   if (!ENV.JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in environment variables');
   }
@@ -16,9 +21,7 @@ export const generateJWT = (payload: object): string => {
   return jwt.sign(payload, ENV.JWT_SECRET, signOptions);
 };
 
-export const verifyJWT = <T extends JwtPayload = JwtPayload>(
-  token: string
-): T => {
+export const verifyJWT = (token: string): AuthTokenPayload => {
   if (!ENV.JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in environment variables');
   }
@@ -29,5 +32,5 @@ export const verifyJWT = <T extends JwtPayload = JwtPayload>(
     audience: ENV.CLIENT_APP_NAME,
   };
 
-  return jwt.verify(token, ENV.JWT_SECRET, verifyOptions) as T;
+  return jwt.verify(token, ENV.JWT_SECRET, verifyOptions) as AuthTokenPayload;
 };
