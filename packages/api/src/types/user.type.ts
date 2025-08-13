@@ -2,12 +2,14 @@ export interface User {
   userId: string;
   email: string;
   passwordHash: string;
-  isActive: boolean;
-  emailVerified: boolean;
+
   firstName?: string;
   lastName?: string;
+
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+
   lastLoginAt?: string;
   passwordUpdatedAt?: string;
 }

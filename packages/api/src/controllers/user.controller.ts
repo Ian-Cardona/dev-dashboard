@@ -1,14 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
 import { IUserService } from '../services/user.service';
 import {
+  emailValidation,
+  isoDateTimeValidation,
+  passwordUpdateValidation,
   userCreateValidation,
+  userIdValidation,
   userUpdateValidation,
 } from '../validations/user.validation';
 import z from 'zod';
 
 export const UserController = (userService: IUserService) => {
-  const validateId = (id: string) => z.uuidv4().parse(id);
-
   const handleValidationError = (
     error: unknown,
     res: Response,
@@ -31,94 +33,84 @@ export const UserController = (userService: IUserService) => {
         const result = await userService.create(validatedData);
         res.status(201).json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user data');
+        handleValidationError(error, res, next, 'User creation failed');
       }
     },
 
     async getUserById(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = validateId(req.params.userId);
+        const userId = userIdValidation.parse(req.params.userId);
         const result = await userService.findById(userId);
-        res.json(result); // Service already handles NotFoundError
+        res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID');
+        handleValidationError(error, res, next, 'User lookup failed');
       }
     },
 
     async getUserByEmail(req: Request, res: Response, next: NextFunction) {
       try {
-        const email = z.email().parse(req.query.email);
-        const result = await userService.findByEmail(email);
+        const email = emailValidation.parse(req.query.email);
+        const result = await userService.findByEmailForPublic(email);
         res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid email format');
+        handleValidationError(error, res, next, 'User lookup by email failed');
       }
     },
 
     async updateUser(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = validateId(req.params.userId);
+        const userId = userIdValidation.parse(req.params.userId);
         const updates = userUpdateValidation.parse(req.body);
         const result = await userService.update(userId, updates);
         res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user data');
+        handleValidationError(error, res, next, 'User update failed');
       }
     },
 
     async deleteUser(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = validateId(req.params.userId);
+        const userId = userIdValidation.parse(req.params.userId);
         await userService.delete(userId);
         res.status(204).end();
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID');
+        handleValidationError(error, res, next, 'User deletion failed');
       }
     },
 
     async updateLastLogin(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = validateId(req.params.userId);
-        const { lastLogin } = z
-          .object({
-            lastLogin: z.iso.datetime(),
-          })
-          .parse(req.body);
+        const userId = userIdValidation.parse(req.params.userId);
+        const lastLogin = isoDateTimeValidation.parse(req.body.lastLogin);
 
         const result = await userService.updateLastLogin(userId, lastLogin);
         res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid date format');
+        handleValidationError(error, res, next, 'Last login update failed');
       }
     },
 
+    // TODO: Either add the auth checking here or connect this to the auth controller
     async updatePassword(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = validateId(req.params.userId);
-        const updates = userUpdateValidation
-          .pick({ passwordHash: true })
-          .parse(req.body);
+        const userId = userIdValidation.parse(req.params.userId);
+        const validatedData = passwordUpdateValidation.parse(req.body);
 
-        if (!updates.passwordHash) {
-          throw new Error('Missing passwordHash');
-        }
-
-        const passwordHash = updates.passwordHash;
-
-        await userService.updatePassword(userId, passwordHash);
+        await userService.updatePassword(userId, validatedData.newPassword);
         res.status(204).end();
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Password update failed');
       }
     },
 
+    // TODO: Either add the auth checking here or connect this to the auth controller
     async deactivateUser(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = validateId(req.params.userId);
+        const userId = z.uuidv4().parse(req.params.userId);
         await userService.deactivateUser(userId);
         res.status(204).end();
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'User deactivation failed');
       }
     },
   };
