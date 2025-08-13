@@ -2,45 +2,55 @@ import { logger } from '../middlewares/logger.middleware';
 import { IRefreshTokenModel } from '../models/refreshToken.model';
 import { RefreshToken } from '../types/refreshToken.type';
 import { ConflictError, DatabaseError } from '../utils/errors.utils';
-import { generateUUID } from '../utils/uuid.utils';
+import { generateSecureRefreshToken, generateUUID } from '../utils/uuid.utils';
+import { ENV } from '../config/env_variables';
+import bcrypt from 'bcryptjs';
 
 export interface IRefreshTokenService {
   create(
-    refreshToken: Omit<
-      RefreshToken,
-      'refreshTokenId' | 'refreshTokenHash' | 'createdAt'
-    >
-  ): Promise<RefreshToken>;
-  findByUserAndToken(
+    userId: string
+  ): Promise<{ refreshToken: string; refreshTokenRecord: RefreshToken }>;
+  findByUserAndMatch(
     userId: string,
-    refreshTokenId: string
+    refreshTokenPlain: string
   ): Promise<RefreshToken | null>;
   deleteToken(userId: string, refreshTokenId: string): Promise<void>;
   deleteAllUserTokens(userId: string): Promise<void>;
   deleteExpiredTokens(): Promise<number>;
 }
 
-// TODO: Fix service implementations
 export const RefreshTokenService = (
   refreshTokenModel: IRefreshTokenModel
 ): IRefreshTokenService => {
   return {
     async create(
-      refreshToken: Omit<
-        RefreshToken,
-        'refreshTokenId' | 'refreshTokenHash' | 'createdAt'
-      >
-    ): Promise<RefreshToken> {
+      userId: string
+    ): Promise<{ refreshToken: string; refreshTokenRecord: RefreshToken }> {
+      const refreshTokenPlain = generateSecureRefreshToken();
+
+      const salt = await bcrypt.genSalt(Number(ENV.BCRYPT_SALT_ROUNDS_RT));
+      const refreshTokenHash = await bcrypt.hash(refreshTokenPlain, salt);
+
+      const expiresAt = new Date();
+      expiresAt.setDate(
+        expiresAt.getDate() + Number(ENV.REFRESH_TOKEN_EXPIRES_IN)
+      );
+
       const tokenToStore: RefreshToken = {
-        ...refreshToken,
+        userId,
         refreshTokenId: generateUUID(),
-        refreshTokenHash: generateUUID(),
+        refreshTokenHash,
+        expiresAt: expiresAt.toISOString(),
         createdAt: new Date().toISOString(),
         revoked: false,
       };
+
       try {
-        const result = refreshTokenModel.create(tokenToStore);
-        return await result;
+        const createdToken = await refreshTokenModel.create(tokenToStore);
+        return {
+          refreshToken: refreshTokenPlain,
+          refreshTokenRecord: createdToken,
+        };
       } catch (error) {
         if (
           error instanceof Error &&
@@ -58,24 +68,33 @@ export const RefreshTokenService = (
       }
     },
 
-    async findByUserAndToken(
+    async findByUserAndMatch(
       userId: string,
-      refreshTokenId: string
+      refreshTokenPlain: string
     ): Promise<RefreshToken | null> {
       try {
-        return await refreshTokenModel.findByUserAndToken(
-          userId,
-          refreshTokenId
-        );
-      } catch (error) {
-        if (error instanceof Error) {
-          logger.error('Service Error: Failed to retrieve refresh token', {
-            error: error.message,
-            stack: error.stack,
-            userId,
-            refreshTokenId,
-          });
+        const refreshTokensFromDB =
+          await refreshTokenModel.findByUserId(userId);
+
+        if (!refreshTokensFromDB || refreshTokensFromDB.length === 0)
+          return null;
+
+        for (const token of refreshTokensFromDB) {
+          if (
+            !token.revoked &&
+            new Date(token.expiresAt).getTime() > Date.now() &&
+            (await bcrypt.compare(refreshTokenPlain, token.refreshTokenHash))
+          ) {
+            return token;
+          }
         }
+
+        return null;
+      } catch (error) {
+        logger.error('Service Error: Failed to retrieve refresh token', {
+          error: error instanceof Error ? error.message : error,
+          userId,
+        });
         throw new DatabaseError('Failed to find refresh token');
       }
     },
@@ -111,6 +130,7 @@ export const RefreshTokenService = (
       }
     },
 
+    // TODO: Create a Lambda/ Scheduled Job/ TTL for deletion of expired tokens
     async deleteExpiredTokens(): Promise<number> {
       try {
         return await refreshTokenModel.deleteExpiredTokens();

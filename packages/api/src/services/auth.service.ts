@@ -6,21 +6,18 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from '../utils/errors.utils';
-import { generateJWT, verifyJWT } from '../utils/jwt.utils';
-import { generateSecureRefreshToken, generateUUID } from '../utils/uuid.utils';
+import { AuthTokenPayload, generateJWT, verifyJWT } from '../utils/jwt.utils';
 import bcrypt from 'bcryptjs';
-import { ENV } from '../config/env_variables';
-import { AuthRefreshResponse, AuthSuccessResponse } from '../types/auth.type';
+import {
+  AuthRefreshResponse,
+  AuthRegisterRequest,
+  AuthSuccessResponse,
+} from '../types/auth.type';
 import { IUserService } from './user.service';
 import { IRefreshTokenService } from './refreshToken.service';
 
 export interface IAuthService {
-  register(
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string
-  ): Promise<AuthSuccessResponse>;
+  register(user: AuthRegisterRequest): Promise<AuthSuccessResponse>;
   login(email: string, password: string): Promise<AuthSuccessResponse>;
   refreshAccessToken(
     userId: string,
@@ -30,80 +27,39 @@ export interface IAuthService {
   verifyAccessToken(token: string): Promise<ResponseUser>;
 }
 
-// TODO: Fix service implementations
 export const AuthService = (
   userService: IUserService,
   refreshTokenService: IRefreshTokenService
 ): IAuthService => {
   return {
-    async register(
-      email: string,
-      password: string,
-      firstName: string,
-      lastName: string
-    ): Promise<AuthSuccessResponse> {
+    async register(user: AuthRegisterRequest): Promise<AuthSuccessResponse> {
       try {
-        const existingUser = await userService.findByEmail(email);
+        const existingUser = await userService.findByEmailForPublic(user.email);
         if (existingUser) {
           throw new ConflictError('User already exists');
         }
 
-        const saltPassword = await bcrypt.genSalt(
-          Number(ENV.BCRYPT_SALT_ROUNDS_PW)
-        );
-        const hashedPassword = await bcrypt.hash(password, saltPassword);
-
-        const newUser = await userService.create({
-          email,
-          passwordHash: hashedPassword,
-          firstName,
-          lastName,
-          emailVerified: false,
+        const newUser: ResponseUser = await userService.create({
+          email: user.email,
+          password: user.password,
+          firstName: user.firstName,
+          lastName: user.lastName,
         });
 
-        const accessTokenPayload = {
+        const accessTokenPayload: AuthTokenPayload = {
           userId: newUser.userId,
           email: newUser.email,
         };
-        const accessToken = generateJWT(accessTokenPayload);
+        const newAccessToken = generateJWT(accessTokenPayload);
 
-        const refreshTokenId = generateUUID();
-
-        const saltRefreshToken = await bcrypt.genSalt(
-          Number(ENV.BCRYPT_SALT_ROUNDS_RT)
+        const newRefreshToken = await refreshTokenService.create(
+          newUser.userId
         );
-        const refreshToken = generateSecureRefreshToken();
-        const refreshTokenHash = await bcrypt.hash(
-          refreshToken,
-          saltRefreshToken
-        );
-
-        const refreshTokenExpiry = new Date();
-
-        refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + 7);
-
-        await refreshTokenService.create({
-          userId: newUser.userId,
-          refreshTokenId,
-          refreshTokenHash,
-          expiresAt: refreshTokenExpiry.toISOString(),
-          createdAt: new Date().toISOString(),
-          revoked: false,
-        });
-
-        const responseUser: ResponseUser = {
-          userId: newUser.userId,
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          isActive: newUser.isActive,
-          emailVerified: newUser.emailVerified,
-        };
 
         return {
-          accessToken,
-          refreshToken,
-          user: responseUser,
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken.refreshToken,
+          user: newUser,
         };
       } catch (error) {
         const safeError =
@@ -114,9 +70,7 @@ export const AuthService = (
         logger.error('User registration error', {
           error: safeError.message,
           stack: safeError.stack,
-          email,
-          firstName,
-          lastName,
+          email: user.email,
         });
 
         throw safeError;
@@ -125,7 +79,7 @@ export const AuthService = (
 
     async login(email: string, password: string): Promise<AuthSuccessResponse> {
       try {
-        const user = await userModel.findByEmail(email);
+        const user = await userService.findByEmailForAuth(email);
 
         if (!user) {
           throw new UnauthorizedError('Invalid email or password');
@@ -139,39 +93,17 @@ export const AuthService = (
         if (!passwordMatches) {
           throw new UnauthorizedError('Invalid email or password');
         }
-
         if (!user.isActive) {
           throw new UnauthorizedError('User account is inactive');
         }
 
-        const accessTokenPayload = {
+        const accessTokenPayload: AuthTokenPayload = {
           userId: user.userId,
           email: user.email,
         };
-        const accessToken = generateJWT(accessTokenPayload);
+        const newAccessToken = generateJWT(accessTokenPayload);
 
-        const refreshTokenId = generateUUID();
-
-        const refreshToken = generateSecureRefreshToken();
-        const saltRefreshToken = await bcrypt.genSalt(
-          Number(ENV.BCRYPT_SALT_ROUNDS_RT)
-        );
-        const refreshTokenHash = await bcrypt.hash(
-          refreshToken,
-          saltRefreshToken
-        );
-
-        const refreshTokenExpiry = new Date();
-        refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + 7);
-
-        await refreshTokenModel.create({
-          userId: user.userId,
-          refreshTokenId,
-          refreshTokenHash,
-          expiresAt: refreshTokenExpiry.toISOString(),
-          createdAt: new Date().toISOString(),
-          revoked: false,
-        });
+        const newRefreshToken = await refreshTokenService.create(user.userId);
 
         const responseUser: ResponseUser = {
           userId: user.userId,
@@ -179,12 +111,11 @@ export const AuthService = (
           firstName: user.firstName,
           lastName: user.lastName,
           isActive: user.isActive,
-          emailVerified: user.emailVerified,
         };
 
         return {
-          accessToken,
-          refreshToken,
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken.refreshToken,
           user: responseUser,
         };
       } catch (error) {
@@ -204,73 +135,48 @@ export const AuthService = (
 
     async refreshAccessToken(
       userId: string,
-      providedRefreshToken: string
+      refreshToken: string
     ): Promise<AuthRefreshResponse> {
       try {
-        const storedToken = await refreshTokenModel.findByUserAndToken(
+        const matchedToken = await refreshTokenService.findByUserAndMatch(
           userId,
-          providedRefreshToken
+          refreshToken
         );
-        if (!storedToken) {
-          throw new UnauthorizedError('Invalid session. Please login again.');
-        }
-
-        let matchedTokenRecord = null;
-        for (const record of storedToken.refreshTokenHash) {
-          const isMatch = await bcrypt.compare(providedRefreshToken, record);
-          if (isMatch) {
-            matchedTokenRecord = record;
-            break;
-          }
-        }
 
         if (
-          !matchedTokenRecord ||
-          storedToken.revoked ||
-          new Date() > new Date(storedToken.expiresAt)
+          !matchedToken ||
+          matchedToken.revoked ||
+          Date.now() > new Date(matchedToken.expiresAt).getTime()
         ) {
           logger.warn('Potential session hijacking attempt', {
-            error: 'Invalid session. Please login again.',
             userId,
           });
-          await refreshTokenModel.deleteAllUserTokens(userId);
+          await refreshTokenService.deleteAllUserTokens(userId);
           throw new UnauthorizedError('Invalid session. Please login again.');
         }
 
-        await refreshTokenModel.deleteToken(userId, storedToken.refreshTokenId);
+        await refreshTokenService.deleteToken(
+          userId,
+          matchedToken.refreshTokenId
+        );
 
-        const user = await userModel.findById(storedToken.userId);
+        const user = await userService.findById(matchedToken.userId);
         if (!user) {
           throw new UnauthorizedError('Invalid user account.');
         }
 
-        const accessToken = generateJWT({
+        const newAccessTokenPayload: AuthTokenPayload = {
           userId: user.userId,
           email: user.email,
-        });
-        const newRefreshToken = generateSecureRefreshToken();
-        const saltRefreshToken = await bcrypt.genSalt(
-          Number(ENV.BCRYPT_SALT_ROUNDS_RT)
-        );
-        const newRefreshTokenHash = await bcrypt.hash(
-          newRefreshToken,
-          saltRefreshToken
-        );
+        };
+        const newAccessToken = generateJWT(newAccessTokenPayload);
 
-        const newRefreshTokenExpiry = new Date();
+        const newRefreshToken = await refreshTokenService.create(user.userId);
 
-        newRefreshTokenExpiry.setDate(newRefreshTokenExpiry.getDate() + 7);
-
-        await refreshTokenModel.create({
-          userId: user.userId,
-          refreshTokenId: generateUUID(),
-          refreshTokenHash: newRefreshTokenHash,
-          expiresAt: newRefreshTokenExpiry.toISOString(),
-          createdAt: new Date().toISOString(),
-          revoked: false,
-        });
-
-        return { accessToken, refreshToken: newRefreshToken };
+        return {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken.refreshToken,
+        };
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           throw error;
@@ -285,11 +191,17 @@ export const AuthService = (
 
     async logout(userId: string, refreshToken: string): Promise<void> {
       try {
-        await refreshTokenModel.deleteToken(userId, refreshToken);
+        const matchedToken = await refreshTokenService.findByUserAndMatch(
+          userId,
+          refreshToken
+        );
+        if (!matchedToken) throw new NotFoundError('Refresh token not found');
+        await refreshTokenService.deleteToken(
+          userId,
+          matchedToken.refreshTokenId
+        );
       } catch (error) {
-        if (error instanceof NotFoundError) {
-          throw error;
-        }
+        if (error instanceof NotFoundError) throw error;
         logger.error('Failed to delete refresh token', {
           error: error instanceof Error ? error.message : 'Unknown error',
           userId,
@@ -299,19 +211,28 @@ export const AuthService = (
     },
 
     async verifyAccessToken(token: string): Promise<ResponseUser> {
+      let decodedToken: AuthTokenPayload;
+
       try {
-        const decodedToken = verifyJWT(token);
-        const user = await userModel.findById(decodedToken.userId);
-        if (!user) {
-          throw new UnauthorizedError('User not found');
-        }
-        return user;
-      } catch (error) {
-        logger.warn('Access token verification failure', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
+        decodedToken = verifyJWT(token);
+      } catch {
+        logger.warn('Invalid or expired JWT');
         throw new UnauthorizedError('Invalid or expired access token');
       }
+
+      if (!decodedToken?.userId) {
+        logger.warn('JWT payload missing required userId');
+        throw new UnauthorizedError('Invalid token payload');
+      }
+
+      const user = await userService.findById(decodedToken.userId);
+
+      if (!user) {
+        logger.warn(`User not found for ID ${decodedToken.userId}`);
+        throw new UnauthorizedError('User not found');
+      }
+
+      return user;
     },
   };
 };

@@ -9,13 +9,13 @@ import {
 import { generateUUID } from '../utils/uuid.utils';
 import bcrypt from 'bcryptjs';
 import { ENV } from '../config/env_variables';
+import { AuthRegisterRequest } from '../types/auth.type';
 
 export interface IUserService {
-  create(
-    user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
-  ): Promise<ResponseUser>;
-  findById(userId: string): Promise<ResponseUser | null>;
-  findByEmail(email: string): Promise<ResponseUser | null>;
+  create(user: AuthRegisterRequest): Promise<ResponseUser>;
+  findById(userId: string): Promise<ResponseUser>;
+  findByEmailForAuth(email: string): Promise<User>;
+  findByEmailForPublic(email: string): Promise<ResponseUser>;
   update(
     userId: string,
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
@@ -26,37 +26,35 @@ export interface IUserService {
   deactivateUser(userId: string): Promise<ResponseUser>;
 }
 
-// TODO: Fix service implementations
 export const UserService = (userModel: IUserModel): IUserService => {
-  const toResponseUser = (user: User): ResponseUser => {
-    const { passwordHash, ...ResponseUser } = user;
-    return ResponseUser;
-  };
-
-  const createUser = (
-    user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
-  ): User => ({
-    ...user,
-    userId: generateUUID(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    isActive: true,
-  });
-
   return {
-    async create(
-      user: Omit<User, 'userId' | 'createdAt' | 'updatedAt' | 'isActive'>
-    ): Promise<ResponseUser> {
+    async create(user: AuthRegisterRequest): Promise<ResponseUser> {
       try {
-        const fullUser = createUser(user);
-        const result = await userModel.create(fullUser);
-        return toResponseUser(result);
+        const { password, ...userWithoutPassword } = user;
+
+        const saltPassword = await bcrypt.genSalt(
+          Number(ENV.BCRYPT_SALT_ROUNDS_PW)
+        );
+        const hashedPassword = await bcrypt.hash(password, saltPassword);
+
+        const result = await userModel.create({
+          userId: generateUUID(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isActive: true,
+          ...userWithoutPassword,
+          passwordHash: hashedPassword,
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = result;
+        return responseUser;
       } catch (error) {
         if (
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new ConflictError(`User ${user.email} already exists`);
+          throw new ConflictError('User already exists');
         }
         logger.error('User creation failed', {
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -69,10 +67,14 @@ export const UserService = (userModel: IUserModel): IUserService => {
     async findById(userId: string): Promise<ResponseUser> {
       try {
         const user = await userModel.findById(userId);
+
         if (!user) {
           throw new NotFoundError('User not found');
         }
-        return toResponseUser(user);
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = user;
+        return responseUser;
       } catch (error) {
         if (error instanceof NotFoundError) {
           throw error;
@@ -85,13 +87,38 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async findByEmail(email: string): Promise<ResponseUser> {
+    async findByEmailForAuth(email: string): Promise<User> {
       try {
         const user = await userModel.findByEmail(email);
+
         if (!user) {
           throw new NotFoundError('User not found');
         }
-        return toResponseUser(user);
+
+        return user;
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
+        logger.error('User lookup by email failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          email,
+        });
+        throw new DatabaseError('Could not find the user');
+      }
+    },
+
+    async findByEmailForPublic(email: string): Promise<ResponseUser> {
+      try {
+        const user = await userModel.findByEmail(email);
+
+        if (!user) {
+          throw new NotFoundError('User not found');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = user;
+        return responseUser;
       } catch (error) {
         if (error instanceof NotFoundError) {
           throw error;
@@ -112,7 +139,14 @@ export const UserService = (userModel: IUserModel): IUserService => {
     ): Promise<ResponseUser> {
       try {
         const result = await userModel.update(userId, updates);
-        return toResponseUser(result);
+
+        if (!result) {
+          throw new NotFoundError('User not found');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = result;
+        return responseUser;
       } catch (error) {
         if (
           error instanceof Error &&
@@ -152,7 +186,14 @@ export const UserService = (userModel: IUserModel): IUserService => {
     ): Promise<ResponseUser> {
       try {
         const result = await userModel.updateLastLogin(userId, timestamp);
-        return toResponseUser(result);
+
+        if (!result) {
+          throw new NotFoundError('User not found');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = result;
+        return responseUser;
       } catch (error) {
         if (
           error instanceof Error &&
@@ -170,11 +211,18 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
     async updatePassword(
       userId: string,
-      passwordHash: string
+      newPasswordHash: string
     ): Promise<ResponseUser> {
       try {
-        const result = await userModel.updatePassword(userId, passwordHash);
-        return toResponseUser(result);
+        const result = await userModel.updatePassword(userId, newPasswordHash);
+
+        if (!result) {
+          throw new NotFoundError('User not found');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = result;
+        return responseUser;
       } catch (error) {
         if (
           error instanceof Error &&
@@ -193,7 +241,14 @@ export const UserService = (userModel: IUserModel): IUserService => {
     async deactivateUser(userId: string): Promise<ResponseUser> {
       try {
         const result = await userModel.deactivateUser(userId);
-        return toResponseUser(result);
+
+        if (!result) {
+          throw new NotFoundError('User not found');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = result;
+        return responseUser;
       } catch (error) {
         if (
           error instanceof Error &&
