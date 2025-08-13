@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   DynamoDBDocumentClient,
-  GetCommand,
   PutCommand,
   ScanCommand,
   DeleteCommand,
@@ -18,10 +17,7 @@ const BATCH_CHUNK_SIZE = 25;
 
 export interface IRefreshTokenModel {
   create(refreshToken: RefreshToken): Promise<RefreshToken>;
-  findByUserAndToken(
-    userId: string,
-    refreshTokenId: string
-  ): Promise<RefreshToken | null>;
+  findByUserId(userId: string): Promise<RefreshToken[] | null>;
   deleteToken(userId: string, refreshTokenId: string): Promise<void>;
   deleteAllUserTokens(userId: string): Promise<void>;
   deleteExpiredTokens(): Promise<number>;
@@ -40,7 +36,10 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
           RequestItems: {
             [REFRESH_TOKEN_TABLE]: chunk.map(item => ({
               DeleteRequest: {
-                Key: { userId: item.userId, tokenId: item.tokenId },
+                Key: {
+                  userId: item.userId,
+                  refreshTokenId: item.refreshTokenId,
+                },
               },
             })),
           },
@@ -56,23 +55,24 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
           TableName: REFRESH_TOKEN_TABLE,
           Item: refreshToken,
           ConditionExpression:
-            'attribute_not_exists(userId) AND attribute_not_exists(tokenId)',
+            'attribute_not_exists(userId) AND attribute_not_exists(refreshTokenId)',
         })
       );
       return refreshToken;
     },
 
-    async findByUserAndToken(
-      userId: string,
-      refreshTokenId: string
-    ): Promise<RefreshToken | null> {
+    async findByUserId(userId: string): Promise<RefreshToken[] | null> {
       const result = await docClient.send(
-        new GetCommand({
+        new QueryCommand({
           TableName: REFRESH_TOKEN_TABLE,
-          Key: { userId, refreshTokenId },
+          KeyConditionExpression: 'userId = :uuid',
+          ExpressionAttributeValues: {
+            ':uuid': userId,
+          },
         })
       );
-      return result.Item as RefreshToken | null;
+
+      return (result.Items as RefreshToken[]) || [];
     },
 
     async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
@@ -93,8 +93,8 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
         const queryResult: QueryCommandOutput = await docClient.send(
           new QueryCommand({
             TableName: REFRESH_TOKEN_TABLE,
-            KeyConditionExpression: 'userId = :userId',
-            ExpressionAttributeValues: { ':userId': userId },
+            KeyConditionExpression: 'userId = :uuid',
+            ExpressionAttributeValues: { ':uuid': userId },
             ProjectionExpression: 'userId, refreshTokenId',
             ExclusiveStartKey,
           })
