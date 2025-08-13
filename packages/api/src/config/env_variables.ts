@@ -11,6 +11,8 @@ export const ENV = {
   // JWT
   JWT_SECRET: process.env.JWT_SECRET || 'you-will-never-guess',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '15m',
+  // REFRESH_TOKEN
+  REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || 7,
   // Bcrypt
   BCRYPT_SALT_ROUNDS_PW: process.env.BCRYPT_SALT_ROUNDS_PW || 12,
   BCRYPT_SALT_ROUNDS_RT: process.env.BCRYPT_SALT_ROUNDS_RT || 10,

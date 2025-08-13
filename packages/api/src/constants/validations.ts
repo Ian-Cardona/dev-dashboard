@@ -1,10 +1,5 @@
 export const VALIDATION_CONSTANTS = {
   USER: {
-    PASSWORD_HASH: {
-      MIN_LENGTH: 60,
-      MAX_LENGTH: 100,
-      MESSAGE: 'Password hash must be a valid hash format',
-    },
     FIRST_NAME: {
       MIN_LENGTH: 1,
       MAX_LENGTH: 50,
@@ -21,11 +16,11 @@ export const VALIDATION_CONSTANTS = {
     },
     PASSWORD: {
       MIN_LENGTH: 8,
-      MAX_LENGTH: 72,
+      MAX_LENGTH: 128,
       PATTERN:
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).+$/,
       MESSAGE:
-        'Password must be 8-72 characters, include upper and lower case letters, numbers, and special characters',
+        'Password must be 8-128 characters, include upper and lower case letters, numbers, and special characters',
     },
     EMAIL: {
       MAX_LENGTH: 254,
