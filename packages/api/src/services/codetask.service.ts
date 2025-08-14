@@ -1,8 +1,7 @@
 import {
+  CreateCodeTask,
   CodeTask,
   CodeTasksInfo,
-  OtherCodeTask,
-  PredefinedCodeTask,
 } from '../types/codetask.type';
 import { ICodeTaskModel } from '../models/codetask.model';
 import { logger } from '../middlewares/logger.middleware';
@@ -14,48 +13,27 @@ import {
 import { DatabaseError, NotFoundError } from '../utils/errors.utils';
 
 export interface ICodeTaskService {
-  create(data: Omit<CodeTask, 'id' | 'syncedAt'>): Promise<CodeTask>;
+  create(data: CreateCodeTask): Promise<CodeTask>;
   findByUserId(userId: string): Promise<CodeTasksInfo>;
   update(id: string, userId: string, updates: Partial<CodeTask>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
 
-// TODO: Fix service implementations
 export const CodeTaskService = (
   codeTaskModel: ICodeTaskModel
 ): ICodeTaskService => {
-  const createPredefinedTask = (
-    data: Omit<PredefinedCodeTask, 'id' | 'syncedAt'>
-  ): PredefinedCodeTask => ({
-    ...data,
-    id: generateUUID(),
-    syncedAt: new Date().toISOString(),
-  });
-
-  const createOtherTask = (
-    data: Omit<OtherCodeTask, 'id' | 'syncedAt'>
-  ): OtherCodeTask => ({
-    ...data,
-    id: generateUUID(),
-    syncedAt: new Date().toISOString(),
-  });
-
   return {
-    async create(data: Omit<CodeTask, 'id' | 'syncedAt'>): Promise<CodeTask> {
+    async create(data: CreateCodeTask): Promise<CodeTask> {
       try {
-        let taskWithIds: CodeTask;
+        const newTask: CodeTask = {
+          ...data,
+          id: generateUUID(),
+          syncedAt: new Date().toISOString(),
+          priority: data.priority || 'low',
+          status: data.status || 'todo',
+        };
 
-        if (data.type === 'OTHER') {
-          taskWithIds = createOtherTask(
-            data as Omit<OtherCodeTask, 'id' | 'syncedAt'>
-          );
-        } else {
-          taskWithIds = createPredefinedTask(
-            data as Omit<PredefinedCodeTask, 'id' | 'syncedAt'>
-          );
-        }
-
-        return await codeTaskModel.create(taskWithIds);
+        return await codeTaskModel.create(newTask);
       } catch (error) {
         if (error instanceof Error) {
           logger.error('Service Error: Failed to create task', {

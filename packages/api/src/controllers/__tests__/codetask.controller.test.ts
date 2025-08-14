@@ -9,7 +9,7 @@ import {
   CodeTaskPriority,
   CodeTasksInfo,
 } from '../../types/codetask.type';
-import { codeTaskUpdateValidation } from '../../validations/codetask.validation';
+import { codeTaskUpdateValidation } from '../../schema/codetask.schema';
 import { generateUUID } from '../../utils/uuid.utils';
 import { CodeTaskController } from '../codetask.controller';
 

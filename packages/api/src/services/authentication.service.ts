@@ -6,33 +6,41 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from '../utils/errors.utils';
-import { AuthTokenPayload, generateJWT, verifyJWT } from '../utils/jwt.utils';
+import { generateJWT, verifyJWT } from '../utils/jwt.utils';
 import bcrypt from 'bcryptjs';
 import {
-  AuthRefreshResponse,
-  AuthRegisterRequest,
-  AuthSuccessResponse,
+  AuthenticationLoginRequest,
+  AuthenticationRefreshRequest,
+  AuthenticationRefreshResponse,
+  AuthenticationRegisterRequest,
+  AuthenticationSuccessResponse,
+  AuthorizationTokenPayload,
 } from '../types/auth.type';
 import { IUserService } from './user.service';
 import { IRefreshTokenService } from './refreshToken.service';
 
-export interface IAuthService {
-  register(user: AuthRegisterRequest): Promise<AuthSuccessResponse>;
-  login(email: string, password: string): Promise<AuthSuccessResponse>;
+export interface IAuthenticationService {
+  register(
+    user: AuthenticationRegisterRequest
+  ): Promise<AuthenticationSuccessResponse>;
+  login(
+    validatedData: AuthenticationLoginRequest
+  ): Promise<AuthenticationSuccessResponse>;
   refreshAccessToken(
-    userId: string,
-    refreshTokenId: string
-  ): Promise<AuthRefreshResponse>;
-  logout(userId: string, refreshToken: string): Promise<void>;
+    validatedData: AuthenticationRefreshRequest
+  ): Promise<AuthenticationRefreshResponse>;
+  logout(validatedData: AuthenticationRefreshRequest): Promise<void>;
   verifyAccessToken(token: string): Promise<ResponseUser>;
 }
 
-export const AuthService = (
+export const AuthenticationService = (
   userService: IUserService,
   refreshTokenService: IRefreshTokenService
-): IAuthService => {
+): IAuthenticationService => {
   return {
-    async register(user: AuthRegisterRequest): Promise<AuthSuccessResponse> {
+    async register(
+      user: AuthenticationRegisterRequest
+    ): Promise<AuthenticationSuccessResponse> {
       try {
         const existingUser = await userService.findByEmailForPublic(user.email);
         if (existingUser) {
@@ -46,7 +54,7 @@ export const AuthService = (
           lastName: user.lastName,
         });
 
-        const accessTokenPayload: AuthTokenPayload = {
+        const accessTokenPayload: AuthorizationTokenPayload = {
           userId: newUser.userId,
           email: newUser.email,
         };
@@ -77,16 +85,18 @@ export const AuthService = (
       }
     },
 
-    async login(email: string, password: string): Promise<AuthSuccessResponse> {
+    async login(
+      validatedData: AuthenticationLoginRequest
+    ): Promise<AuthenticationSuccessResponse> {
       try {
-        const user = await userService.findByEmailForAuth(email);
+        const user = await userService.findByEmailForAuth(validatedData.email);
 
         if (!user) {
           throw new UnauthorizedError('Invalid email or password');
         }
 
         const passwordMatches = await bcrypt.compare(
-          password,
+          validatedData.password,
           user.passwordHash
         );
 
@@ -97,7 +107,7 @@ export const AuthService = (
           throw new UnauthorizedError('User account is inactive');
         }
 
-        const accessTokenPayload: AuthTokenPayload = {
+        const accessTokenPayload: AuthorizationTokenPayload = {
           userId: user.userId,
           email: user.email,
         };
@@ -126,7 +136,7 @@ export const AuthService = (
 
         logger.warn('User login failed', {
           error: safeError.message,
-          email,
+          email: validatedData.email,
         });
 
         throw safeError;
@@ -134,13 +144,12 @@ export const AuthService = (
     },
 
     async refreshAccessToken(
-      userId: string,
-      refreshToken: string
-    ): Promise<AuthRefreshResponse> {
+      validatedData: AuthenticationRefreshRequest
+    ): Promise<AuthenticationRefreshResponse> {
       try {
         const matchedToken = await refreshTokenService.findByUserAndMatch(
-          userId,
-          refreshToken
+          validatedData.userId,
+          validatedData.refreshToken
         );
 
         if (
@@ -149,14 +158,15 @@ export const AuthService = (
           Date.now() > new Date(matchedToken.expiresAt).getTime()
         ) {
           logger.warn('Potential session hijacking attempt', {
-            userId,
+            userId: validatedData.userId,
+            refreshToken: validatedData.refreshToken,
           });
-          await refreshTokenService.deleteAllUserTokens(userId);
+          await refreshTokenService.deleteAllUserTokens(validatedData.userId);
           throw new UnauthorizedError('Invalid session. Please login again.');
         }
 
         await refreshTokenService.deleteToken(
-          userId,
+          validatedData.userId,
           matchedToken.refreshTokenId
         );
 
@@ -165,7 +175,7 @@ export const AuthService = (
           throw new UnauthorizedError('Invalid user account.');
         }
 
-        const newAccessTokenPayload: AuthTokenPayload = {
+        const newAccessTokenPayload: AuthorizationTokenPayload = {
           userId: user.userId,
           email: user.email,
         };
@@ -183,35 +193,37 @@ export const AuthService = (
         }
         logger.error('Refresh token processing error', {
           error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
+          userId: validatedData.userId,
+          refreshToken: validatedData.refreshToken,
         });
         throw new DatabaseError('Failed to process refresh token');
       }
     },
 
-    async logout(userId: string, refreshToken: string): Promise<void> {
+    async logout(validatedData: AuthenticationRefreshRequest): Promise<void> {
       try {
         const matchedToken = await refreshTokenService.findByUserAndMatch(
-          userId,
-          refreshToken
+          validatedData.userId,
+          validatedData.refreshToken
         );
         if (!matchedToken) throw new NotFoundError('Refresh token not found');
         await refreshTokenService.deleteToken(
-          userId,
+          validatedData.userId,
           matchedToken.refreshTokenId
         );
       } catch (error) {
         if (error instanceof NotFoundError) throw error;
         logger.error('Failed to delete refresh token', {
           error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
+          userId: validatedData.userId,
+          refreshToken: validatedData.refreshToken,
         });
         throw new DatabaseError('Failed to delete refresh token');
       }
     },
 
     async verifyAccessToken(token: string): Promise<ResponseUser> {
-      let decodedToken: AuthTokenPayload;
+      let decodedToken: AuthorizationTokenPayload;
 
       try {
         decodedToken = verifyJWT(token);

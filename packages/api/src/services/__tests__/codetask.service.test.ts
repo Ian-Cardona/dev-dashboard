@@ -4,6 +4,7 @@ import { DatabaseError } from '../../utils/errors.utils';
 import { CodeTaskPriority, CodeTask } from '../../types/codetask.type';
 import { ICodeTaskModel } from '../../models/codetask.model';
 import { MockedFunction } from 'vitest';
+import { CodeTaskPriorityEnum } from '../../schema/codetask.schema';
 
 const mockCodeTaskModel = {
   create: vi.fn() as MockedFunction<ICodeTaskModel['create']>,
@@ -87,7 +88,7 @@ describe('CodeTask Service', () => {
           filePath: '/This/Is/A/Test/FilePath',
           lineNumber: 1,
           syncedAt: '2025-01-01T00:00:00.000Z',
-          priority: CodeTaskPriority.LOW,
+          priority: CodeTaskPriorityEnum.LOW,
           status: 'todo',
           type: 'TODO',
         },
