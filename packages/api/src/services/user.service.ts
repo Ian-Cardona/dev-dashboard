@@ -9,10 +9,10 @@ import {
 import { generateUUID } from '../utils/uuid.utils';
 import bcrypt from 'bcryptjs';
 import { ENV } from '../config/env_variables';
-import { AuthRegisterRequest } from '../types/auth.type';
+import { AuthenticationRegisterRequest } from '../types/auth.type';
 
 export interface IUserService {
-  create(user: AuthRegisterRequest): Promise<ResponseUser>;
+  create(user: AuthenticationRegisterRequest): Promise<ResponseUser>;
   findById(userId: string): Promise<ResponseUser>;
   findByEmailForAuth(email: string): Promise<User>;
   findByEmailForPublic(email: string): Promise<ResponseUser>;
@@ -28,7 +28,7 @@ export interface IUserService {
 
 export const UserService = (userModel: IUserModel): IUserService => {
   return {
-    async create(user: AuthRegisterRequest): Promise<ResponseUser> {
+    async create(user: AuthenticationRegisterRequest): Promise<ResponseUser> {
       try {
         const { password, ...userWithoutPassword } = user;
 
@@ -44,6 +44,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
           isActive: true,
           ...userWithoutPassword,
           passwordHash: hashedPassword,
+          role: 'user',
         });
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

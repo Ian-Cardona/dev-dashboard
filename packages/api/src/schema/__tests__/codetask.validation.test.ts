@@ -6,7 +6,7 @@ import {
   codeTaskValidation,
   codeTaskCreateValidation,
   codeTaskUpdateValidation,
-} from '../codetask.validation';
+} from '../codetask.schema';
 
 describe('CodeTask Validation', () => {
   const validPredefinedData = {

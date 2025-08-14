@@ -6,7 +6,7 @@ import {
   userCreateValidation,
   userUpdateValidation,
   responseUserValidation,
-} from '../user.validation';
+} from '../user.schema';
 
 describe('User Validation Schemas', () => {
   let validUserData;

@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import {
-  codeTaskCreateValidation,
-  codeTaskUpdateValidation,
-} from '../validations/codetask.validation';
+  codeTaskCreateSchema,
+  updateCodeTaskSchema,
+} from '../schema/codetask.schema';
 import { ICodeTaskService } from '../services/codetask.service';
 import z from 'zod';
 
@@ -25,7 +25,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
   return {
     async createCodeTask(req: Request, res: Response, next: NextFunction) {
       try {
-        const validatedData = codeTaskCreateValidation.parse(req.body);
+        const validatedData = codeTaskCreateSchema.parse(req.body);
         const result = await codeTaskService.create(validatedData);
         res.status(201).json(result);
       } catch (error) {
@@ -53,7 +53,7 @@ export const CodeTaskController = (codeTaskService: ICodeTaskService) => {
         const userId = z.uuidv4().parse(req.params.userId);
         const id = z.uuidv4().parse(req.params.id);
 
-        const updates = codeTaskUpdateValidation.parse(req.body);
+        const updates = updateCodeTaskSchema.parse(req.body);
         await codeTaskService.update(id, userId, updates);
         res.status(204).end();
       } catch (error) {

@@ -1,23 +1,36 @@
 import { Router } from 'express';
 
 import { docClient } from '../config/dynamodb';
-import { UserModel } from '../models/user.model';
-import { UserService } from '../services/user.service';
+import { IUserModel, UserModel } from '../models/user.model';
+import { IUserService, UserService } from '../services/user.service';
 import { UserController } from '../controllers/user.controller';
+import { authorizationMiddleware } from '../middlewares/authorization.middleware';
 
 const router = Router();
 
-const userRepositoryInstance = UserModel(docClient);
-const userServiceInstance = UserService(userRepositoryInstance);
+const userRepositoryInstance: IUserModel = UserModel(docClient);
+const userServiceInstance: IUserService = UserService(userRepositoryInstance);
 const userControllerInstance = UserController(userServiceInstance);
 
-router.post('/', userControllerInstance.createUser);
-router.get('/', userControllerInstance.getUserByEmail);
-router.get('/:userId', userControllerInstance.getUserById);
-router.patch('/:userId', userControllerInstance.updateUser);
-router.delete('/:userId', userControllerInstance.deleteUser);
-router.patch('/:userId/last-login', userControllerInstance.updateLastLogin);
-router.patch('/:userId/password', userControllerInstance.updatePassword);
-router.patch('/:userId/deactivate', userControllerInstance.deactivateUser);
+router.get(
+  '/profile',
+  authorizationMiddleware,
+  userControllerInstance.getUserProfile
+);
+router.put(
+  '/profile',
+  authorizationMiddleware,
+  userControllerInstance.updateUserAccount
+);
+router.put(
+  '/password',
+  authorizationMiddleware,
+  userControllerInstance.updateUserPassword
+);
+router.delete(
+  '/account',
+  authorizationMiddleware,
+  userControllerInstance.deactivateUserAccount
+);
 
 export default router;

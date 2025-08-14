@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import {
   refreshTokenValidation,
   refreshTokenCreateValidation,
-} from '../refreshToken.validation';
+} from '../refreshToken.schema';
 import { generateUUID } from '../../utils/uuid.utils';
 
 describe('Refresh Token Validation Schemas', () => {

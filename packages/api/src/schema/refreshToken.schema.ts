@@ -1,6 +1,6 @@
 import z from 'zod';
 
-export const refreshTokenValidation = z.object({
+export const refreshTokenSchema = z.object({
   userId: z.uuidv4({ message: 'Invalid UUID' }),
   refreshTokenId: z.uuidv4({ message: 'Invalid UUID' }),
   refreshTokenHash: z.string({ message: 'Invalid refresh token hash' }),
@@ -9,7 +9,7 @@ export const refreshTokenValidation = z.object({
   revoked: z.boolean({ message: 'Invalid boolean value' }),
 });
 
-export const refreshTokenCreateValidation = refreshTokenValidation
+export const refreshTokenCreateSchema = refreshTokenSchema
   .omit({
     refreshTokenId: true,
     createdAt: true,
