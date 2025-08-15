@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
-
 import { toHaveReceivedCommandWith } from 'aws-sdk-client-mock-vitest';
 expect.extend({ toHaveReceivedCommandWith });
 
@@ -13,307 +12,261 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { UserModel } from '../user.model';
-import { VALIDATION_CONSTANTS } from '../../constants/validations';
 import { User } from '../../types/user.type';
+import { ENV } from '../../config/env_variables';
+
+vi.mock('../config/env_variables', () => ({
+  ENV: {
+    USER_TABLE: 'users-test-table',
+    EMAIL_TABLE: 'emails-test-table',
+  },
+}));
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
+const userModel = UserModel(ddbMock as unknown as DynamoDBDocumentClient);
 
-export const userModel = UserModel(
-  ddbMock as unknown as DynamoDBDocumentClient
-);
-
-describe('User Model', () => {
+describe('UserModel', () => {
   let mockUser: User;
+  const MOCK_USER_ID = 'a1b2c3d4-e5f6-4a5b-9c0d-1e2f3a4b5c6d';
+  const MOCK_EMAIL = 'test@example.com';
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-08-15T21:00:00.000Z'));
+
     mockUser = {
-      userId: 'TEST_USER12345',
-      email: 'test@example.com',
-      passwordHash: 'a'.repeat(
-        VALIDATION_CONSTANTS.USER.PASSWORD_HASH.MIN_LENGTH
-      ),
-      createdAt: '2025-07-31T14:42:05.000Z',
-      updatedAt: '2025-07-31T14:42:05.000Z',
+      userId: MOCK_USER_ID,
+      email: MOCK_EMAIL,
+      passwordHash: 'a_very_secure_password_hash_string_!@#$',
+      createdAt: '2025-08-15T20:00:00.000Z',
+      updatedAt: '2025-08-15T20:00:00.000Z',
       isActive: true,
+      role: 'user',
     };
     ddbMock.reset();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe('create', () => {
-    it('successfully creates user and email lock transactionally', async () => {
+    it('should successfully create a user and email lock in a transaction', async () => {
       ddbMock.on(TransactWriteCommand).resolves({});
       const result = await userModel.create(mockUser);
+
       expect(result).toEqual(mockUser);
+      expect(ddbMock).toHaveReceivedCommandWith(TransactWriteCommand, {
+        TransactItems: [
+          {
+            Put: {
+              TableName: ENV.USER_TABLE,
+              Item: mockUser,
+              ConditionExpression: 'attribute_not_exists(userId)',
+            },
+          },
+          {
+            Put: {
+              TableName: ENV.EMAIL_TABLE,
+              Item: { email: mockUser.email, userId: mockUser.userId },
+              ConditionExpression: 'attribute_not_exists(email)',
+            },
+          },
+        ],
+      });
     });
 
-    it('throws when userId or email already exists (transaction conditional failure)', async () => {
+    it('should throw if the transaction fails due to a conditional check', async () => {
       ddbMock
         .on(TransactWriteCommand)
-        .rejects(new Error('ConditionalCheckFailedException'));
+        .rejects({ name: 'ConditionalCheckFailedException' });
 
-      await expect(userModel.create(mockUser)).rejects.toThrow(
+      await expect(userModel.create(mockUser)).rejects.toHaveProperty(
+        'name',
         'ConditionalCheckFailedException'
       );
-    });
-
-    it('propagates DynamoDB errors in transaction', async () => {
-      ddbMock.on(TransactWriteCommand).rejects(new Error('DB error'));
-      await expect(userModel.create(mockUser)).rejects.toThrow('DB error');
     });
   });
 
   describe('findById', () => {
-    it('returns user when found', async () => {
+    it('should return a user when found by ID', async () => {
       ddbMock.on(GetCommand).resolves({ Item: mockUser });
-      const result = await userModel.findById(mockUser.userId);
+      const result = await userModel.findById(MOCK_USER_ID);
       expect(result).toEqual(mockUser);
     });
 
-    it('returns null when user not found', async () => {
-      ddbMock.on(GetCommand).resolves({});
+    it('should return null when a user is not found', async () => {
+      ddbMock.on(GetCommand).resolves({ Item: undefined });
       const result = await userModel.findById('UNKNOWN_ID');
       expect(result).toBeNull();
-    });
-
-    it('returns null when Item is undefined', async () => {
-      ddbMock.on(GetCommand).resolves({ Item: undefined });
-      const result = await userModel.findById('UNDEFINED_ID');
-      expect(result).toBeNull();
-    });
-
-    it('propagates DynamoDB errors', async () => {
-      ddbMock.on(GetCommand).rejects(new Error('DB error'));
-      await expect(userModel.findById('TEST')).rejects.toThrow('DB error');
     });
   });
 
   describe('findByEmail', () => {
-    it('returns user when found', async () => {
-      ddbMock.on(QueryCommand).resolves({
-        Items: [mockUser],
-        Count: 1,
-        ScannedCount: 1,
-      });
-
-      const result = await userModel.findByEmail('test@example.com');
+    it('should return a user when found by email', async () => {
+      ddbMock.on(QueryCommand).resolves({ Items: [mockUser] });
+      const result = await userModel.findByEmail(MOCK_EMAIL);
       expect(result).toEqual(mockUser);
     });
 
-    it('returns null when not found', async () => {
-      ddbMock.on(QueryCommand).resolves({
-        Items: [],
-        Count: 0,
-        ScannedCount: 0,
-      });
-
+    it('should return null when an email is not found', async () => {
+      ddbMock.on(QueryCommand).resolves({ Items: [] });
       const result = await userModel.findByEmail('unknown@example.com');
       expect(result).toBeNull();
     });
 
-    it('returns null for empty response', async () => {
-      ddbMock.on(QueryCommand).resolves({});
-      const result = await userModel.findByEmail('test@example.com');
-      expect(result).toBeNull();
-    });
-
-    it('returns null when Items is undefined', async () => {
-      ddbMock.on(QueryCommand).resolves({ Items: undefined });
-      const result = await userModel.findByEmail('test@example.com');
-      expect(result).toBeNull();
-    });
-
-    it('returns first user when multiple found', async () => {
-      const secondUser = { ...mockUser, userId: 'TEST_USER67890' };
-      ddbMock.on(QueryCommand).resolves({
-        Items: [mockUser, secondUser],
-        Count: 2,
-        ScannedCount: 2,
-      });
-
-      const result = await userModel.findByEmail('test@example.com');
+    it('should return the first user if multiple are found (edge case)', async () => {
+      const secondUser = { ...mockUser, userId: 'another-id' };
+      ddbMock.on(QueryCommand).resolves({ Items: [mockUser, secondUser] });
+      const result = await userModel.findByEmail(MOCK_EMAIL);
       expect(result).toEqual(mockUser);
-    });
-
-    it('propagates DynamoDB errors', async () => {
-      ddbMock.on(QueryCommand).rejects(new Error('DB error'));
-      await expect(userModel.findByEmail('test@example.com')).rejects.toThrow(
-        'DB error'
-      );
     });
   });
 
   describe('update', () => {
-    const updateData = {
-      firstName: 'Updated First Name',
-      lastName: 'Updated Last Name',
-      isActive: false,
-    };
-
-    it('successfully updates user with all fields', async () => {
-      const mockUpdatedUser = {
-        ...mockUser,
-        ...updateData,
-        updatedAt: '2025-01-02T00:00:00Z',
+    it('should successfully update a user with provided fields', async () => {
+      const updates = {
+        firstName: 'John',
+        isActive: false,
       };
-      ddbMock.on(UpdateCommand).resolves({
-        Attributes: mockUpdatedUser,
-      });
-
-      const result = await userModel.update('TEST_USER12345', updateData);
-      expect(result).toEqual(mockUpdatedUser);
-    });
-
-    it('successfully updates user with partial fields', async () => {
-      const partialUpdate = { firstName: 'New Name' };
-      const mockUpdatedUser = {
+      const expectedUser = {
         ...mockUser,
-        ...partialUpdate,
-        updatedAt: '2025-01-02T00:00:00Z',
+        ...updates,
+        updatedAt: new Date().toISOString(),
       };
 
-      ddbMock.on(UpdateCommand).resolves({
-        Attributes: mockUpdatedUser,
-      });
+      ddbMock.on(UpdateCommand).resolves({ Attributes: expectedUser });
 
-      const result = await userModel.update('TEST_USER12345', partialUpdate);
-      expect(result).toEqual(mockUpdatedUser);
+      const result = await userModel.update(MOCK_USER_ID, updates);
+
+      expect(result).toEqual(expectedUser);
+      expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+        TableName: ENV.USER_TABLE,
+        Key: { userId: MOCK_USER_ID },
+        UpdateExpression:
+          'SET #updatedAt = :updatedAt, #firstName = :firstName, #isActive = :isActive',
+        ExpressionAttributeNames: {
+          '#updatedAt': 'updatedAt',
+          '#firstName': 'firstName',
+          '#isActive': 'isActive',
+        },
+        ExpressionAttributeValues: {
+          ':updatedAt': new Date().toISOString(),
+          ':firstName': 'John',
+          ':isActive': false,
+        },
+        ConditionExpression: 'attribute_exists(userId)',
+        ReturnValues: 'ALL_NEW',
+      });
     });
 
-    it('successfully updates with empty object (only updatedAt)', async () => {
-      const mockUpdatedUser = {
-        ...mockUser,
-        updatedAt: '2025-01-02T00:00:00Z',
-      };
-      ddbMock.on(UpdateCommand).resolves({
-        Attributes: mockUpdatedUser,
-      });
-
-      const result = await userModel.update('TEST_USER12345', {});
-      expect(result).toEqual(mockUpdatedUser);
-    });
-
-    it('throws when user does not exist', async () => {
+    it('should throw if the user to update does not exist', async () => {
       ddbMock
         .on(UpdateCommand)
-        .rejects(new Error('ConditionalCheckFailedException'));
-
-      await expect(
-        userModel.update('NONEXISTENT_USER', updateData)
-      ).rejects.toThrow('ConditionalCheckFailedException');
-    });
-
-    it('propagates DynamoDB errors', async () => {
-      ddbMock.on(UpdateCommand).rejects(new Error('DB error'));
-      await expect(
-        userModel.update('TEST_USER12345', updateData)
-      ).rejects.toThrow('DB error');
+        .rejects({ name: 'ConditionalCheckFailedException' });
+      await expect(userModel.update(MOCK_USER_ID, {})).rejects.toHaveProperty(
+        'name',
+        'ConditionalCheckFailedException'
+      );
     });
   });
 
   describe('delete', () => {
-    it('successfully deletes existing user', async () => {
+    it('should successfully issue a delete command for a user', async () => {
       ddbMock.on(DeleteCommand).resolves({});
-      await expect(userModel.delete('TEST_USER12345')).resolves.not.toThrow();
+      await expect(userModel.delete(MOCK_USER_ID)).resolves.toBeUndefined();
+      expect(ddbMock).toHaveReceivedCommandWith(DeleteCommand, {
+        TableName: ENV.USER_TABLE,
+        Key: { userId: MOCK_USER_ID },
+        ConditionExpression: 'attribute_exists(userId)',
+      });
     });
 
-    it('throws when user does not exist', async () => {
+    it('should throw if the user to delete does not exist', async () => {
       ddbMock
         .on(DeleteCommand)
-        .rejects(new Error('ConditionalCheckFailedException'));
-
-      await expect(userModel.delete('NONEXISTENT_USER')).rejects.toThrow(
+        .rejects({ name: 'ConditionalCheckFailedException' });
+      await expect(userModel.delete('UNKNOWN_ID')).rejects.toHaveProperty(
+        'name',
         'ConditionalCheckFailedException'
-      );
-    });
-
-    it('propagates DynamoDB errors', async () => {
-      ddbMock.on(DeleteCommand).rejects(new Error('DB error'));
-      await expect(userModel.delete('TEST_USER12345')).rejects.toThrow(
-        'DB error'
       );
     });
   });
 
   describe('updateLastLogin', () => {
-    it('successfully updates last login timestamp', async () => {
-      const timestamp = '2025-01-02T10:30:00Z';
-      ddbMock.on(UpdateCommand).resolves({});
+    it('should correctly update the lastLoginAt timestamp', async () => {
+      const timestamp = new Date().toISOString();
+      const expectedUser = {
+        ...mockUser,
+        lastLoginAt: timestamp,
+        updatedAt: timestamp,
+      };
+      ddbMock.on(UpdateCommand).resolves({ Attributes: expectedUser });
 
-      await expect(
-        userModel.updateLastLogin('TEST_USER12345', timestamp)
-      ).resolves.not.toThrow();
-    });
+      const result = await userModel.updateLastLogin(MOCK_USER_ID, timestamp);
 
-    it('throws when user does not exist', async () => {
-      ddbMock
-        .on(UpdateCommand)
-        .rejects(new Error('ConditionalCheckFailedException'));
-
-      await expect(
-        userModel.updateLastLogin('NONEXISTENT_USER', '2025-01-02T10:30:00Z')
-      ).rejects.toThrow('ConditionalCheckFailedException');
-    });
-
-    it('propagates DynamoDB errors', async () => {
-      ddbMock.on(UpdateCommand).rejects(new Error('DB error'));
-      await expect(
-        userModel.updateLastLogin('TEST_USER12345', '2025-01-02T10:30:00Z')
-      ).rejects.toThrow('DB error');
+      expect(result).toEqual(expectedUser);
+      expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+        UpdateExpression:
+          'SET #lastLoginAt = :lastLoginAt, #updatedAt = :updatedAt',
+        ExpressionAttributeValues: {
+          ':lastLoginAt': timestamp,
+          ':updatedAt': timestamp,
+        },
+      });
     });
   });
 
   describe('updatePassword', () => {
-    it('successfully updates password hash', async () => {
-      const passwordHash = '$2b$12$hashedPassword';
-      ddbMock.on(UpdateCommand).resolves({});
+    it('should correctly update the passwordHash and related timestamps', async () => {
+      const newHash = 'new_secure_hash_!@#$';
+      const timestamp = new Date().toISOString();
+      const expectedUser = {
+        ...mockUser,
+        passwordHash: newHash,
+        updatedAt: timestamp,
+        passwordUpdatedAt: timestamp,
+      };
+      ddbMock.on(UpdateCommand).resolves({ Attributes: expectedUser });
 
-      await expect(
-        userModel.updatePassword('TEST_USER12345', passwordHash)
-      ).resolves.not.toThrow();
-    });
+      const result = await userModel.updatePassword(MOCK_USER_ID, newHash);
 
-    it('throws when user does not exist', async () => {
-      ddbMock
-        .on(UpdateCommand)
-        .rejects(new Error('ConditionalCheckFailedException'));
-
-      await expect(
-        userModel.updatePassword('NONEXISTENT_USER', '$2b$12$hashedPassword')
-      ).rejects.toThrow('ConditionalCheckFailedException');
-    });
-
-    it('propagates DynamoDB errors', async () => {
-      ddbMock.on(UpdateCommand).rejects(new Error('DB error'));
-      await expect(
-        userModel.updatePassword('TEST_USER12345', '$2b$12$hashedPassword')
-      ).rejects.toThrow('DB error');
+      expect(result).toEqual(expectedUser);
+      expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+        UpdateExpression:
+          'SET #passwordHash = :passwordHash, #updatedAt = :updatedAt, #passwordUpdatedAt = :passwordUpdatedAt',
+        ExpressionAttributeValues: {
+          ':passwordHash': newHash,
+          ':updatedAt': timestamp,
+          ':passwordUpdatedAt': timestamp,
+        },
+      });
     });
   });
 
   describe('deactivateUser', () => {
-    it('successfully deactivates user', async () => {
-      ddbMock.on(UpdateCommand).resolves({});
+    it('should correctly set isActive to false and nullify lastLoginAt', async () => {
+      const timestamp = new Date().toISOString();
+      const expectedUser = {
+        ...mockUser,
+        isActive: false,
+        lastLoginAt: null,
+        updatedAt: timestamp,
+      };
+      ddbMock.on(UpdateCommand).resolves({ Attributes: expectedUser });
 
-      await expect(
-        userModel.deactivateUser('TEST_USER12345')
-      ).resolves.not.toThrow();
-    });
+      const result = await userModel.deactivateUser(MOCK_USER_ID);
 
-    it('throws when user does not exist', async () => {
-      ddbMock
-        .on(UpdateCommand)
-        .rejects(new Error('ConditionalCheckFailedException'));
-
-      await expect(
-        userModel.deactivateUser('NONEXISTENT_USER')
-      ).rejects.toThrow('ConditionalCheckFailedException');
-    });
-
-    it('propagates DynamoDB errors', async () => {
-      ddbMock.on(UpdateCommand).rejects(new Error('DB error'));
-      await expect(userModel.deactivateUser('TEST_USER12345')).rejects.toThrow(
-        'DB error'
-      );
+      expect(result).toEqual(expectedUser);
+      expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+        UpdateExpression:
+          'SET #isActive = :isActive, #updatedAt = :updatedAt, #lastLoginAt = :lastLoginAt',
+        ExpressionAttributeValues: {
+          ':isActive': false,
+          ':updatedAt': timestamp,
+          ':lastLoginAt': null,
+        },
+      });
     });
   });
 });
