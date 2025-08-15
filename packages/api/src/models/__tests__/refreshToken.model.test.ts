@@ -1,194 +1,243 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { toHaveReceivedCommandWith } from 'aws-sdk-client-mock-vitest';
 expect.extend({ toHaveReceivedCommandWith });
 
-import { RefreshToken } from '../../types/refreshToken.type';
-import { generateUUID } from '../../utils/uuid.utils';
-import { generateJWT } from '../../utils/jwt.utils';
-import { RefreshTokenModel } from '../refreshToken.model';
 import {
-  BatchWriteCommand,
-  DeleteCommand,
-  DynamoDBDocumentClient,
-  GetCommand,
+  PutCommand,
   QueryCommand,
+  DeleteCommand,
+  BatchWriteCommand,
   ScanCommand,
+  DynamoDBDocumentClient,
 } from '@aws-sdk/lib-dynamodb';
-import { PutCommand } from '@aws-sdk/lib-dynamodb';
+
+import { RefreshTokenModel } from '../refreshToken.model';
+import { generateUUID } from '../../utils/uuid.utils';
+import { ENV } from '../../config/env_variables';
+
+vi.mock('../../config/env_variables', () => ({
+  ENV: {
+    REFRESH_TOKEN_TABLE: 'refresh-tokens-test-table',
+  },
+}));
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
-export const refreshTokenModel = RefreshTokenModel(
+const refreshTokenModel = RefreshTokenModel(
   ddbMock as unknown as DynamoDBDocumentClient
 );
 
-describe('RefreshToken Model', () => {
-  let mockRefreshToken: RefreshToken;
+describe('RefreshTokenModel', () => {
+  const MOCK_USER_ID = generateUUID();
+  const MOCK_TOKEN_ID = generateUUID();
+  let mockRefreshToken;
 
   beforeEach(() => {
     ddbMock.reset();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-08-15T21:00:00.000Z'));
+
     mockRefreshToken = {
-      userId: generateUUID(),
-      tokenId: generateUUID(),
-      refreshToken: generateJWT({
-        userId: generateUUID(),
-        email: 'test@example.com',
-      }),
+      userId: MOCK_USER_ID,
+      refreshTokenId: MOCK_TOKEN_ID,
+      refreshTokenHash: generateUUID(),
       expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
       createdAt: new Date().toISOString(),
+      revoked: false,
     };
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe('create', () => {
-    it('should create a new refresh token securely using PutCommand', async () => {
+    it('should successfully create a refresh token with correct conditions', async () => {
       ddbMock.on(PutCommand).resolves({});
       const result = await refreshTokenModel.create(mockRefreshToken);
+
       expect(result).toEqual(mockRefreshToken);
       expect(ddbMock).toHaveReceivedCommandWith(PutCommand, {
+        TableName: ENV.REFRESH_TOKEN_TABLE,
         Item: mockRefreshToken,
+        ConditionExpression:
+          'attribute_not_exists(userId) AND attribute_not_exists(refreshTokenId)',
       });
     });
 
-    it('should throw an error if PutCommand fails', async () => {
-      ddbMock.on(PutCommand).rejects(new Error('PutCommand failed'));
-      await expect(refreshTokenModel.create(mockRefreshToken)).rejects.toThrow(
-        'PutCommand failed'
-      );
+    it('should throw if conditional put fails due to existing token', async () => {
+      ddbMock
+        .on(PutCommand)
+        .rejects({ name: 'ConditionalCheckFailedException' });
+
+      await expect(
+        refreshTokenModel.create(mockRefreshToken)
+      ).rejects.toHaveProperty('name', 'ConditionalCheckFailedException');
     });
   });
 
-  describe('findByUserAndToken', () => {
-    it('should successfully find a refresh token by userId and tokenId and return it', async () => {
-      ddbMock.on(GetCommand).resolves({
-        Item: mockRefreshToken,
+  describe('findByUserId', () => {
+    it('should return refresh tokens array when tokens found by userId', async () => {
+      ddbMock.on(QueryCommand).resolves({ Items: [mockRefreshToken] });
+      const result = await refreshTokenModel.findByUserId(MOCK_USER_ID);
+
+      expect(result).toEqual([mockRefreshToken]);
+      expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+        TableName: ENV.REFRESH_TOKEN_TABLE,
+        KeyConditionExpression: 'userId = :uuid',
+        ExpressionAttributeValues: { ':uuid': MOCK_USER_ID },
       });
-
-      const result = await refreshTokenModel.findByUserAndToken(
-        mockRefreshToken.userId,
-        mockRefreshToken.tokenId
-      );
-
-      expect(result).toEqual(mockRefreshToken);
     });
 
-    it('should return null when no refresh token is found', async () => {
-      ddbMock.on(GetCommand).resolves({ Item: null });
-
-      const result = await refreshTokenModel.findByUserAndToken(
-        'NONEXISTENT_USER',
-        'NONEXISTENT_TOKEN'
+    it('should return empty array when no tokens found for user', async () => {
+      ddbMock.on(QueryCommand).resolves({ Items: [] });
+      const result = await refreshTokenModel.findByUserId(
+        'nonexistent-user-id'
       );
 
-      expect(result).toBeNull();
+      expect(result).toEqual([]);
     });
 
-    it('should handle DynamoDB errors gracefully', async () => {
-      ddbMock.on(GetCommand).rejects(new Error('DynamoDB error'));
+    it('should throw if query fails', async () => {
+      ddbMock.on(QueryCommand).rejects(new Error('QueryCommand failed'));
 
       await expect(
-        refreshTokenModel.findByUserAndToken(
-          mockRefreshToken.userId,
-          mockRefreshToken.tokenId
-        )
-      ).rejects.toThrow('DynamoDB error');
+        refreshTokenModel.findByUserId(MOCK_USER_ID)
+      ).rejects.toThrow('QueryCommand failed');
     });
   });
 
   describe('deleteToken', () => {
     it('should successfully delete a refresh token', async () => {
       ddbMock.on(DeleteCommand).resolves({});
+
       await expect(
-        refreshTokenModel.deleteToken(
-          mockRefreshToken.userId,
-          mockRefreshToken.tokenId
-        )
-      ).resolves.not.toThrow();
+        refreshTokenModel.deleteToken(MOCK_USER_ID, MOCK_TOKEN_ID)
+      ).resolves.toBeUndefined();
+
+      expect(ddbMock).toHaveReceivedCommandWith(DeleteCommand, {
+        TableName: ENV.REFRESH_TOKEN_TABLE,
+        Key: { userId: MOCK_USER_ID, refreshTokenId: MOCK_TOKEN_ID },
+        ConditionExpression:
+          'attribute_exists(userId) AND attribute_exists(refreshTokenId)',
+      });
     });
 
-    it('should throw an error if DeleteCommand fails', async () => {
-      ddbMock.on(DeleteCommand).rejects(new Error('DeleteCommand failed'));
+    it('should throw if trying to delete non-existing token', async () => {
+      ddbMock
+        .on(DeleteCommand)
+        .rejects({ name: 'ConditionalCheckFailedException' });
+
       await expect(
-        refreshTokenModel.deleteToken(
-          mockRefreshToken.userId,
-          mockRefreshToken.tokenId
-        )
-      ).rejects.toThrow('DeleteCommand failed');
+        refreshTokenModel.deleteToken(MOCK_USER_ID, MOCK_TOKEN_ID)
+      ).rejects.toHaveProperty('name', 'ConditionalCheckFailedException');
     });
   });
 
   describe('deleteAllUserTokens', () => {
-    it('should successfully delete all user tokens', async () => {
+    it('should delete all tokens for a user in batches', async () => {
       ddbMock.on(QueryCommand).resolves({
-        Items: [mockRefreshToken],
+        Items: [{ userId: MOCK_USER_ID, refreshTokenId: MOCK_TOKEN_ID }],
+        LastEvaluatedKey: undefined,
       });
       ddbMock.on(BatchWriteCommand).resolves({});
 
       await expect(
-        refreshTokenModel.deleteAllUserTokens(mockRefreshToken.userId)
-      ).resolves.not.toThrow();
-    });
+        refreshTokenModel.deleteAllUserTokens(MOCK_USER_ID)
+      ).resolves.toBeUndefined();
 
-    it('should return empty if no tokens are found', async () => {
-      ddbMock.on(QueryCommand).resolves({
-        Items: [],
+      expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+        TableName: ENV.REFRESH_TOKEN_TABLE,
+        KeyConditionExpression: 'userId = :uuid',
+        ExpressionAttributeValues: { ':uuid': MOCK_USER_ID },
+        ProjectionExpression: 'userId, refreshTokenId',
       });
-      await expect(
-        refreshTokenModel.deleteAllUserTokens(mockRefreshToken.userId)
-      ).resolves.not.toThrow();
+
+      expect(ddbMock).toHaveReceivedCommandWith(BatchWriteCommand, {
+        RequestItems: {
+          [ENV.REFRESH_TOKEN_TABLE]: [
+            {
+              DeleteRequest: {
+                Key: {
+                  userId: MOCK_USER_ID,
+                  refreshTokenId: MOCK_TOKEN_ID,
+                },
+              },
+            },
+          ],
+        },
+      });
     });
 
-    it('should throw an error if QueryCommand fails', async () => {
-      ddbMock.on(QueryCommand).rejects(new Error('QueryCommand failed'));
+    it('should handle no tokens found gracefully', async () => {
+      ddbMock.on(QueryCommand).resolves({ Items: [] });
+
       await expect(
-        refreshTokenModel.deleteAllUserTokens(mockRefreshToken.userId)
+        refreshTokenModel.deleteAllUserTokens(MOCK_USER_ID)
+      ).resolves.toBeUndefined();
+    });
+
+    it('should throw if query command fails', async () => {
+      ddbMock.on(QueryCommand).rejects(new Error('QueryCommand failed'));
+
+      await expect(
+        refreshTokenModel.deleteAllUserTokens(MOCK_USER_ID)
       ).rejects.toThrow('QueryCommand failed');
     });
 
-    it('should throw an error if BatchWriteCommand fails', async () => {
+    it('should throw if batch write command fails', async () => {
       ddbMock.on(QueryCommand).resolves({
-        Items: [mockRefreshToken],
+        Items: [{ userId: MOCK_USER_ID, refreshTokenId: MOCK_TOKEN_ID }],
       });
       ddbMock
         .on(BatchWriteCommand)
         .rejects(new Error('BatchWriteCommand failed'));
 
       await expect(
-        refreshTokenModel.deleteAllUserTokens(mockRefreshToken.userId)
+        refreshTokenModel.deleteAllUserTokens(MOCK_USER_ID)
       ).rejects.toThrow('BatchWriteCommand failed');
     });
   });
 
   describe('deleteExpiredTokens', () => {
-    it('should successfully delete expired tokens', async () => {
+    it('should delete expired tokens in batches and return count', async () => {
       ddbMock.on(ScanCommand).resolves({
-        Items: [mockRefreshToken],
+        Items: [{ userId: MOCK_USER_ID, refreshTokenId: MOCK_TOKEN_ID }],
+        LastEvaluatedKey: undefined,
       });
       ddbMock.on(BatchWriteCommand).resolves({});
 
-      await expect(
-        refreshTokenModel.deleteExpiredTokens()
-      ).resolves.not.toThrow();
-    });
+      const deletedCount = await refreshTokenModel.deleteExpiredTokens();
 
-    it('should return empty if no expired tokens are found', async () => {
-      ddbMock.on(ScanCommand).resolves({
-        Items: [],
+      expect(deletedCount).toBe(1);
+      expect(ddbMock).toHaveReceivedCommandWith(ScanCommand, {
+        TableName: ENV.REFRESH_TOKEN_TABLE,
+        FilterExpression: 'expiresAt < :now',
+        ExpressionAttributeValues: {
+          ':now': new Date().toISOString(),
+        },
+        ProjectionExpression: 'userId, refreshTokenId',
       });
-      await expect(
-        refreshTokenModel.deleteExpiredTokens()
-      ).resolves.not.toThrow();
     });
 
-    it('should throw an error if ScanCommand fails', async () => {
+    it('should return 0 if no expired tokens found', async () => {
+      ddbMock.on(ScanCommand).resolves({ Items: [] });
+      const deletedCount = await refreshTokenModel.deleteExpiredTokens();
+
+      expect(deletedCount).toBe(0);
+    });
+
+    it('should throw if scan command fails', async () => {
       ddbMock.on(ScanCommand).rejects(new Error('ScanCommand failed'));
+
       await expect(refreshTokenModel.deleteExpiredTokens()).rejects.toThrow(
         'ScanCommand failed'
       );
     });
 
-    it('should throw an error if BatchWriteCommand fails', async () => {
+    it('should throw if batch write command fails', async () => {
       ddbMock.on(ScanCommand).resolves({
-        Items: [mockRefreshToken],
+        Items: [{ userId: MOCK_USER_ID, refreshTokenId: MOCK_TOKEN_ID }],
       });
       ddbMock
         .on(BatchWriteCommand)

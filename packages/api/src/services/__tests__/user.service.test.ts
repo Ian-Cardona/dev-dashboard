@@ -1,16 +1,20 @@
 import {
-  afterEach,
   beforeEach,
+  afterEach,
   describe,
   expect,
   it,
-  MockedFunction,
   vi,
+  MockedFunction,
 } from 'vitest';
 import { UserService } from '../user.service';
-import { ConflictError, DatabaseError } from '../../utils/errors.utils';
 import { IUserModel } from '../../models/user.model';
-import { User, SafeUser } from '../../types/user.type';
+import {
+  ConflictError,
+  DatabaseError,
+  NotFoundError,
+} from '../../utils/errors.utils';
+import { generateUUID } from '../../utils/uuid.utils';
 
 const mockUserModel = {
   create: vi.fn() as MockedFunction<IUserModel['create']>,
@@ -25,23 +29,12 @@ const mockUserModel = {
 
 const userService = UserService(mockUserModel);
 
-describe('User Service', () => {
-  const mockUser = {
-    email: 'test@example.com',
-    userId: '22dfb3fc-a956-4add-881b-e91c3f728412',
-    firstName: 'Test',
-    lastName: 'User',
-    createdAt: '2025-01-01T00:00:00.000Z',
-    updatedAt: '2025-01-01T00:00:00.000Z',
-    passwordHash: 'test-password-hash',
-    isActive: true,
-  };
+function toSafeUser(user: any) {
+  const { passwordHash, ...safeUser } = user;
+  return safeUser;
+}
 
-  const toSafeUser = (user: User): SafeUser => {
-    const { passwordHash, ...safeUser } = user;
-    return safeUser;
-  };
-
+describe('UserService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -53,299 +46,364 @@ describe('User Service', () => {
   });
 
   describe('create', () => {
-    it('should return created user when creation succeeds', async () => {
-      const inputUser = {
-        email: mockUser.email,
-        passwordHash: mockUser.passwordHash,
-        firstName: mockUser.firstName,
-        lastName: mockUser.lastName,
-      };
+    const inputUser = {
+      email: 'test@example.com',
+      password: 'Password123!',
+      firstName: 'Test',
+      lastName: 'User',
+    };
 
-      const createdUser = {
-        ...inputUser,
-        userId: mockUser.userId,
-        createdAt: mockUser.createdAt,
-        updatedAt: mockUser.updatedAt,
+    let createdUser: any;
+
+    beforeEach(() => {
+      createdUser = {
+        userId: generateUUID(),
+        email: inputUser.email,
+        firstName: inputUser.firstName,
+        lastName: inputUser.lastName,
         isActive: true,
+        passwordHash: 'hashed_password',
       };
+    });
 
+    it('returns created user without passwordHash on success', async () => {
       mockUserModel.create.mockResolvedValue(createdUser);
 
       const result = await userService.create(inputUser);
 
       expect(result).toEqual(toSafeUser(createdUser));
-      expect(mockUserModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: inputUser.email,
-          firstName: inputUser.firstName,
-          lastName: inputUser.lastName,
-          userId: expect.any(String),
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-          isActive: true,
-        })
-      );
-    });
-
-    it('should throw DatabaseError when user already exists', async () => {
-      const conditionalError = new Error('ConditionalCheckFailedException');
-      mockUserModel.create.mockRejectedValue(conditionalError);
-
-      const inputUser = {
-        email: mockUser.email,
-        passwordHash: mockUser.passwordHash,
-        firstName: mockUser.firstName,
-        lastName: mockUser.lastName,
-      };
-
-      const expectedError = new ConflictError(
-        `User ${inputUser.email} already exists`
-      );
-
-      await expect(userService.create(inputUser)).rejects.toThrow(
-        expectedError
-      );
-
-      expect(mockUserModel.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: inputUser.email,
-          firstName: inputUser.firstName,
-          lastName: inputUser.lastName,
-        })
-      );
-    });
-
-    it('should throw DatabaseError when creation fails', async () => {
-      const expectedError = new DatabaseError('Failed to create user');
-      mockUserModel.create.mockRejectedValue(expectedError);
-
-      const inputUser = {
-        email: mockUser.email,
-        passwordHash: mockUser.passwordHash,
-        firstName: mockUser.firstName,
-        lastName: mockUser.lastName,
-      };
-
-      await expect(userService.create(inputUser)).rejects.toThrow(
-        expectedError
-      );
+      expect(result).not.toHaveProperty('passwordHash');
+      expect(mockUserModel.create).toHaveBeenCalledTimes(1);
       expect(mockUserModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
           email: inputUser.email,
           firstName: inputUser.firstName,
           lastName: inputUser.lastName,
           isActive: true,
+          passwordHash: expect.any(String),
+          role: 'user',
         })
+      );
+    });
+
+    it('throws ConflictError if user already exists (conditional failure)', async () => {
+      mockUserModel.create.mockRejectedValue(
+        new Error('ConditionalCheckFailedException')
+      );
+      await expect(userService.create(inputUser)).rejects.toThrow(
+        ConflictError
+      );
+    });
+
+    it('throws DatabaseError for other create failures', async () => {
+      mockUserModel.create.mockRejectedValue(new Error('Some DB failure'));
+      await expect(userService.create(inputUser)).rejects.toThrow(
+        DatabaseError
       );
     });
   });
 
   describe('findById', () => {
-    it('should return user when user exists', async () => {
-      mockUserModel.findById.mockResolvedValue(mockUser);
+    let user: any;
 
-      const result = await userService.findById(mockUser.userId);
-
-      expect(result).toEqual(toSafeUser(mockUser));
-      expect(mockUserModel.findById).toHaveBeenCalledWith(mockUser.userId);
+    beforeEach(() => {
+      user = {
+        userId: generateUUID(),
+        email: 'email@example.com',
+        firstName: 'First',
+        lastName: 'Last',
+        isActive: true,
+        passwordHash: 'secret',
+      };
     });
 
-    it('should throw when user does not exist', async () => {
+    it('returns user without passwordHash when found', async () => {
+      mockUserModel.findById.mockResolvedValue(user);
+
+      const result = await userService.findById(user.userId);
+
+      expect(result).toEqual(toSafeUser(user));
+      expect(result).not.toHaveProperty('passwordHash');
+      expect(mockUserModel.findById).toHaveBeenCalledWith(user.userId);
+    });
+
+    it('throws NotFoundError when user not found', async () => {
       mockUserModel.findById.mockResolvedValue(null);
 
-      await expect(userService.findById('NONEXISTENT_ID')).rejects.toThrow();
+      await expect(userService.findById('nonexistent')).rejects.toThrow(
+        NotFoundError
+      );
     });
 
-    it('should throw DatabaseError when findById fails', async () => {
-      const dbError = new Error('Database error');
-      mockUserModel.findById.mockRejectedValue(dbError);
+    it('throws DatabaseError on findById failure', async () => {
+      mockUserModel.findById.mockRejectedValue(new Error('DB error'));
 
-      await expect(userService.findById('TEST_ID')).rejects.toThrow(
+      await expect(userService.findById('someId')).rejects.toThrow(
         DatabaseError
       );
     });
   });
 
-  describe('findByEmail', () => {
-    it('should return user when user exists', async () => {
-      mockUserModel.findByEmail.mockResolvedValue(mockUser);
+  describe('findByEmailForAuth', () => {
+    let user: any;
 
-      const result = await userService.findByEmail(mockUser.email);
-
-      expect(result).toEqual(toSafeUser(mockUser)); // important to call toSafeUser
-      expect(mockUserModel.findByEmail).toHaveBeenCalledWith(mockUser.email);
+    beforeEach(() => {
+      user = {
+        userId: generateUUID(),
+        email: 'auth@example.com',
+        isActive: true,
+        passwordHash: 'verysecret',
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        firstName: 'Auth',
+        lastName: 'User',
+        lastLoginAt: new Date().toISOString(),
+        passwordUpdatedAt: new Date().toISOString(),
+      };
     });
 
-    it('should throw NotFoundError when user does not exist', async () => {
+    it('returns user with passwordHash when found', async () => {
+      mockUserModel.findByEmail.mockResolvedValue(user);
+
+      const result = await userService.findByEmailForAuth(user.email);
+
+      expect(result).toEqual(user);
+      expect(mockUserModel.findByEmail).toHaveBeenCalledWith(user.email);
+    });
+
+    it('throws NotFoundError when user not found', async () => {
       mockUserModel.findByEmail.mockResolvedValue(null);
 
       await expect(
-        userService.findByEmail('unknown@example.com')
-      ).rejects.toThrow();
+        userService.findByEmailForAuth('unknown@example.com')
+      ).rejects.toThrow(NotFoundError);
     });
 
-    it('should throw DatabaseError when findByEmail fails', async () => {
-      mockUserModel.findByEmail.mockRejectedValue(new Error('Database error'));
+    it('throws DatabaseError on findByEmail failure', async () => {
+      mockUserModel.findByEmail.mockRejectedValue(new Error('DB error'));
 
-      await expect(userService.findByEmail(mockUser.email)).rejects.toThrow(
-        DatabaseError
-      );
+      await expect(
+        userService.findByEmailForAuth('fail@example.com')
+      ).rejects.toThrow(DatabaseError);
+    });
+  });
+
+  describe('findByEmailForPublic', () => {
+    let user: any;
+
+    beforeEach(() => {
+      user = {
+        userId: generateUUID(),
+        email: 'public@example.com',
+        firstName: 'Public',
+        lastName: 'User',
+        isActive: true,
+        passwordHash: 'hidden',
+      };
+    });
+
+    it('returns user without passwordHash when found', async () => {
+      mockUserModel.findByEmail.mockResolvedValue(user);
+
+      const result = await userService.findByEmailForPublic(user.email);
+
+      expect(result).toEqual(toSafeUser(user));
+      expect(result).not.toHaveProperty('passwordHash');
+      expect(mockUserModel.findByEmail).toHaveBeenCalledWith(user.email);
+    });
+
+    it('throws NotFoundError when user not found', async () => {
+      mockUserModel.findByEmail.mockResolvedValue(null);
+
+      await expect(
+        userService.findByEmailForPublic('unknown@example.com')
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it('throws DatabaseError on findByEmail failure', async () => {
+      mockUserModel.findByEmail.mockRejectedValue(new Error('DB error'));
+
+      await expect(
+        userService.findByEmailForPublic('fail@example.com')
+      ).rejects.toThrow(DatabaseError);
     });
   });
 
   describe('update', () => {
-    const updateData = {
-      firstName: 'Updated Name',
-      isActive: false,
-    };
+    const updates = { firstName: 'Updated', isActive: false };
+    let existingUser: any;
 
-    it('should return updated user when update succeeds', async () => {
-      const updatedUser = { ...mockUser, ...updateData };
+    beforeEach(() => {
+      existingUser = {
+        userId: 'TEST_ID',
+        email: 'update@example.com',
+        firstName: 'OldFirst',
+        lastName: 'OldLast',
+        isActive: true,
+        passwordHash: 'secret',
+      };
+    });
+
+    it('returns user without passwordHash on successful update', async () => {
+      const updatedUser = { ...existingUser, ...updates };
       mockUserModel.update.mockResolvedValue(updatedUser);
 
-      const result = await userService.update('TEST_USER_ID', updateData);
+      const result = await userService.update(existingUser.userId, updates);
 
       expect(result).toEqual(toSafeUser(updatedUser));
-
       expect(mockUserModel.update).toHaveBeenCalledWith(
-        'TEST_USER_ID',
-        updateData
+        existingUser.userId,
+        updates
       );
     });
 
-    it('should throw DatabaseError when update fails', async () => {
-      mockUserModel.update.mockRejectedValue(new Error('Database error'));
+    it('throws NotFoundError when user to update does not exist', async () => {
+      const notFoundError = new Error('ConditionalCheckFailedException');
+      mockUserModel.update.mockRejectedValue(notFoundError);
 
-      await expect(userService.update('TEST_ID', updateData)).rejects.toThrow(
-        new DatabaseError('Could not update the user')
+      await expect(userService.update('nonexistent', updates)).rejects.toThrow(
+        NotFoundError
       );
     });
 
-    it('should throw NotFoundError when ConditionalCheckFailedException occurs', async () => {
-      const error = new Error('ConditionalCheckFailedException');
-
-      mockUserModel.update.mockRejectedValue(error);
+    it('throws DatabaseError on update failure', async () => {
+      mockUserModel.update.mockRejectedValue(new Error('DB failure'));
 
       await expect(
-        userService.update('NON_EXISTENT_ID', updateData)
-      ).rejects.toThrow();
+        userService.update(existingUser.userId, updates)
+      ).rejects.toThrow(DatabaseError);
     });
   });
 
   describe('delete', () => {
-    it('should complete successfully when user deletion succeeds', async () => {
-      await expect(userService.delete('TEST_USER_ID')).resolves.not.toThrow();
+    it('completes successfully when deletion succeeds', async () => {
+      mockUserModel.delete.mockResolvedValue(undefined);
+      await expect(userService.delete('userId')).resolves.toBeUndefined();
+      expect(mockUserModel.delete).toHaveBeenCalledWith('userId');
     });
 
-    it('should throw DatabaseError when delete fails', async () => {
-      mockUserModel.delete.mockRejectedValue(new Error('Database error'));
-
-      await expect(userService.delete('TEST_ID')).rejects.toThrow(
-        new DatabaseError('Could not delete the user')
+    it('throws NotFoundError when user to delete does not exist', async () => {
+      mockUserModel.delete.mockRejectedValue(
+        new Error('ConditionalCheckFailedException')
       );
+      await expect(userService.delete('nonexistent')).rejects.toThrow(
+        NotFoundError
+      );
+    });
+
+    it('throws DatabaseError on delete failure', async () => {
+      mockUserModel.delete.mockRejectedValue(new Error('DB failure'));
+      await expect(userService.delete('userId')).rejects.toThrow(DatabaseError);
     });
   });
 
   describe('updateLastLogin', () => {
-    it('should return SafeUser when last login update succeeds', async () => {
-      const updatedUser = { ...mockUser }; // example raw user, will be wrapped by toSafeUser
-      mockUserModel.updateLastLogin.mockResolvedValue(updatedUser);
+    const timestamp = '2025-01-01T12:00:00Z';
+    let user: any;
 
-      const result = await userService.updateLastLogin(
-        'TEST_USER_ID',
-        '2025-01-01T12:00:00Z'
-      );
+    beforeEach(() => {
+      user = {
+        userId: 'userId',
+        lastLoginAt: timestamp,
+        updatedAt: timestamp,
+        passwordHash: 'hidden',
+      };
+    });
 
-      expect(result).toEqual(toSafeUser(updatedUser));
+    it('returns user without passwordHash when updated', async () => {
+      mockUserModel.updateLastLogin.mockResolvedValue(user);
+
+      const result = await userService.updateLastLogin(user.userId, timestamp);
+
+      expect(result).toEqual(toSafeUser(user));
       expect(mockUserModel.updateLastLogin).toHaveBeenCalledWith(
-        'TEST_USER_ID',
-        '2025-01-01T12:00:00Z'
+        user.userId,
+        timestamp
       );
     });
 
-    it('should throw NotFoundError if ConditionalCheckFailedException occurs', async () => {
-      const error = new Error('ConditionalCheckFailedException');
-      mockUserModel.updateLastLogin.mockRejectedValue(error);
-
-      await expect(
-        userService.updateLastLogin('NON_EXISTENT_ID', '2025-01-01T12:00:00Z')
-      ).rejects.toThrow();
-    });
-
-    it('should throw DatabaseError on other failures', async () => {
+    it('throws NotFoundError if user not found', async () => {
       mockUserModel.updateLastLogin.mockRejectedValue(
-        new Error('Database error')
+        new Error('ConditionalCheckFailedException')
       );
-
       await expect(
-        userService.updateLastLogin('TEST_ID', '2025-01-01T12:00:00Z')
+        userService.updateLastLogin('nonexistent', timestamp)
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it('throws DatabaseError on update failure', async () => {
+      mockUserModel.updateLastLogin.mockRejectedValue(new Error('DB failure'));
+      await expect(
+        userService.updateLastLogin('userId', timestamp)
       ).rejects.toThrow(DatabaseError);
     });
   });
 
   describe('updatePassword', () => {
-    it('should return SafeUser when password update succeeds', async () => {
-      const updatedUser = { ...mockUser };
-      mockUserModel.updatePassword.mockResolvedValue(updatedUser);
+    let user: any;
 
-      const result = await userService.updatePassword(
-        'TEST_USER_ID',
-        'new-password'
-      );
+    beforeEach(() => {
+      user = { userId: 'userId', passwordHash: 'newhash' };
+    });
 
-      expect(result).toEqual(toSafeUser(updatedUser));
+    it('returns user without passwordHash when updated', async () => {
+      mockUserModel.updatePassword.mockResolvedValue(user);
+
+      const result = await userService.updatePassword(user.userId, 'newhash');
+
+      expect(result).toEqual(toSafeUser(user));
       expect(mockUserModel.updatePassword).toHaveBeenCalledWith(
-        'TEST_USER_ID',
-        'new-password'
+        user.userId,
+        'newhash'
       );
     });
 
-    it('should throw NotFoundError if ConditionalCheckFailedException occurs', async () => {
-      const error = new Error('ConditionalCheckFailedException');
-      mockUserModel.updatePassword.mockRejectedValue(error);
-
-      await expect(
-        userService.updatePassword('NON_EXISTENT_ID', 'new-password')
-      ).rejects.toThrow();
-    });
-
-    it('should throw DatabaseError on other failures', async () => {
+    it('throws NotFoundError if user not found', async () => {
       mockUserModel.updatePassword.mockRejectedValue(
-        new Error('Database error')
+        new Error('ConditionalCheckFailedException')
       );
-
       await expect(
-        userService.updatePassword('TEST_ID', 'new-password')
+        userService.updatePassword('nonexistent', 'newhash')
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it('throws DatabaseError on update failure', async () => {
+      mockUserModel.updatePassword.mockRejectedValue(new Error('DB failure'));
+      await expect(
+        userService.updatePassword('userId', 'newhash')
       ).rejects.toThrow(DatabaseError);
     });
   });
 
   describe('deactivateUser', () => {
-    it('should return SafeUser when user deactivation succeeds', async () => {
-      const updatedUser = { ...mockUser };
-      mockUserModel.deactivateUser.mockResolvedValue(updatedUser);
+    let user: any;
 
-      const result = await userService.deactivateUser('TEST_USER_ID');
-
-      expect(result).toEqual(toSafeUser(updatedUser));
-      expect(mockUserModel.deactivateUser).toHaveBeenCalledWith('TEST_USER_ID');
+    beforeEach(() => {
+      user = { userId: 'userId', isActive: false, passwordHash: 'hidden' };
     });
 
-    it('should throw NotFoundError if ConditionalCheckFailedException occurs', async () => {
-      const error = new Error('ConditionalCheckFailedException');
-      mockUserModel.deactivateUser.mockRejectedValue(error);
+    it('returns user without passwordHash when deactivated', async () => {
+      mockUserModel.deactivateUser.mockResolvedValue(user);
 
-      await expect(
-        userService.deactivateUser('NON_EXISTENT_ID')
-      ).rejects.toThrow();
+      const result = await userService.deactivateUser(user.userId);
+
+      expect(result).toEqual(toSafeUser(user));
+      expect(mockUserModel.deactivateUser).toHaveBeenCalledWith(user.userId);
     });
 
-    it('should throw DatabaseError on other failures', async () => {
+    it('throws NotFoundError if user not found', async () => {
       mockUserModel.deactivateUser.mockRejectedValue(
-        new Error('Database error')
+        new Error('ConditionalCheckFailedException')
       );
+      await expect(userService.deactivateUser('nonexistent')).rejects.toThrow(
+        NotFoundError
+      );
+    });
 
-      await expect(userService.deactivateUser('TEST_ID')).rejects.toThrow(
+    it('throws DatabaseError on deactivate failure', async () => {
+      mockUserModel.deactivateUser.mockRejectedValue(new Error('DB failure'));
+      await expect(userService.deactivateUser('userId')).rejects.toThrow(
         DatabaseError
       );
     });
