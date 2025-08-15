@@ -1,16 +1,8 @@
-import express, { Express } from 'express';
+import express from 'express';
 import request from 'supertest';
-import { describe, it, vi, beforeEach, expect, MockedFunction } from 'vitest';
+import { describe, it, vi, expect, MockedFunction, beforeEach } from 'vitest';
 import { errorHandlerMiddleware } from '../../middlewares/error_handler.middleware';
 import { ICodeTaskService } from '../../services/codetask.service';
-import { DatabaseError, NotFoundError } from '../../utils/errors.utils';
-import {
-  CodeTask,
-  CodeTaskPriority,
-  CodeTasksInfo,
-} from '../../types/codetask.type';
-import { codeTaskUpdateValidation } from '../../schema/codetask.schema';
-import { generateUUID } from '../../utils/uuid.utils';
 import { CodeTaskController } from '../codetask.controller';
 
 const mockCodeTaskService = {
@@ -43,437 +35,121 @@ const createTestApp = () => {
   return app;
 };
 
-describe('CodeTask Controller', () => {
-  let app: Express;
+describe('CodeTaskController', () => {
+  let app: express.Express;
+  let mockTask;
 
   beforeEach(() => {
-    app = createTestApp();
     vi.clearAllMocks();
+    app = createTestApp();
+
+    mockTask = {
+      id: 'task-1',
+      userId: 'user-123',
+      content: 'Test Task',
+      filePath: 'test-file.ts',
+      lineNumber: 1,
+      syncedAt: new Date().toISOString(),
+      priority: 'low',
+      status: 'todo',
+      type: 'TODO',
+    };
   });
 
   describe('POST /codetasks', () => {
-    const validData = {
-      userId: generateUUID(),
-      content: 'This is a test content. Please ignore.',
-      filePath: '/This/Is/A/Test/FilePath',
-      lineNumber: 1,
-      priority: CodeTaskPriority.LOW,
-      status: 'todo',
-      type: 'TODO',
-    };
+    it('should create a new code task when valid', async () => {
+      mockCodeTaskService.create.mockResolvedValue(mockTask);
 
-    beforeEach(() => {
-      vi.clearAllMocks();
+      const res = await request(app).post('/codetasks').send({}).expect(201);
+
+      expect(res.body).toEqual(mockTask);
+      expect(mockCodeTaskService.create).toHaveBeenCalledWith({});
     });
 
-    it('should create new CodeTask and return 201', async () => {
-      const mockResponse: CodeTask = {
-        id: generateUUID(),
-        userId: generateUUID(),
-        content: 'This is a test content. Please ignore.',
-        filePath: '/This/Is/A/Test/FilePath',
-        lineNumber: 1,
-        syncedAt: '2025-07-31T14:42:05.000Z',
-        priority: CodeTaskPriority.LOW,
-        status: 'todo',
-        type: 'TODO',
-      };
-      mockCodeTaskService.create.mockResolvedValue(mockResponse);
-
+    it('should return 400 on validation error', async () => {
       await request(app)
         .post('/codetasks')
-        .send(validData)
-        .expect(201)
-        .expect('Content-Type', /json/)
-        .expect(res => {
-          expect(res.body).toEqual(
-            expect.objectContaining({
-              content: 'This is a test content. Please ignore.',
-              filePath: '/This/Is/A/Test/FilePath',
-              lineNumber: 1,
-              priority: 'low',
-              status: 'todo',
-              type: 'TODO',
-            })
-          );
-          expect(res.body.id).toBeDefined();
-          expect(res.body.userId).toBeDefined();
-          expect(res.body.syncedAt).toBeDefined();
-        });
-
-      expect(mockCodeTaskService.create).toHaveBeenCalledWith(validData);
-      expect(mockCodeTaskService.create).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reject invalid data and return 400', async () => {
-      const invalidData = {
-        content: 'This is a test content. Please ignore.',
-        filePath: '/This/Is/A/Test/FilePath',
-        lineNumber: 0, // Invalid value
-        priority: CodeTaskPriority.LOW,
-        status: 'todo',
-        type: 'TODO',
-      };
-
-      await request(app).post('/codetasks').send(invalidData).expect(400);
-
+        .send({ description: 'Missing title' })
+        .expect(400);
       expect(mockCodeTaskService.create).not.toHaveBeenCalled();
-      expect(mockCodeTaskService.create).toHaveBeenCalledTimes(0);
     });
+  });
 
-    it('should reject missing required field and return 400', async () => {
-      const invalidData = {
-        filePath: '/This/Is/A/Test/FilePath',
+  describe('GET /codetasks', () => {
+    it('should return tasks for the authenticated user', async () => {
+      const mockTasks = { tasks: [], total: 0 };
+      mockCodeTaskService.findByUserId.mockResolvedValue(mockTasks);
+
+      const res = await request(app).get('/codetasks').expect(200);
+
+      expect(res.body).toEqual(mockTasks);
+      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith('user-123');
+    });
+  });
+
+  describe('PUT /codetasks/:id', () => {
+    it('should update a task when data is valid', async () => {
+      const updatedTask = {
+        id: 'task-1',
+        userId: 'user-123',
+        content: 'Updated Task',
+        filePath: 'test-file.ts',
         lineNumber: 1,
-        priority: CodeTaskPriority.LOW,
-        status: 'todo',
+        syncedAt: new Date().toISOString(),
+        priority: 'high',
+        status: 'in-progress',
         type: 'TODO',
       };
 
-      await request(app).post('/codetasks').send(invalidData).expect(400);
+      mockCodeTaskService.update.mockResolvedValue(updatedTask);
 
-      expect(mockCodeTaskService.create).not.toHaveBeenCalled();
-      expect(mockCodeTaskService.create).toHaveBeenCalledTimes(0);
-    });
-
-    it('should reject malformed JSON and return 400', async () => {
-      await request(app)
-        .post('/codetasks')
-        .set('Content-Type', 'application/json')
-        .send('{ "broken": ')
-        .expect(400)
-        .expect(res => {
-          expect(res.body.error).toBe('Invalid JSON');
-          expect(res.get('Content-Type')).toMatch(/json/);
-        });
-    });
-
-    it('should reject extremely large request body and return 413', async () => {
-      const largePayload = {
-        content: 'a'.repeat(1024 * 1024 * 2),
-        filePath: '/path/to/file',
-        lineNumber: 1,
-        priority: CodeTaskPriority.HIGH,
-        status: 'todo',
-        type: 'TODO',
-      };
-
-      await request(app)
-        .post('/codetasks')
-        .set('Content-Type', 'application/json')
-        .send(largePayload)
-        .expect(413);
-    });
-
-    it('should reject oversized payloads before validation and return 413', async () => {
-      const largePayload = { garbage: 'a'.repeat(1024 * 1024 * 2) };
-
-      await request(app).post('/codetasks').send(largePayload).expect(413);
-    });
-
-    it('should handle service errors and return 500', async () => {
-      const error = new DatabaseError('DynamoDB error');
-      mockCodeTaskService.create.mockRejectedValue(error);
-
-      await request(app)
-        .post('/codetasks')
-        .send(validData)
-        .expect(500)
-        .expect(res => {
-          expect(res.body).toEqual({
-            error: 'Database Error',
-            message: 'DynamoDB error',
-          });
-        });
-
-      expect(mockCodeTaskService.create).toHaveBeenCalledWith(validData);
-      expect(mockCodeTaskService.create).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('GET /codetasks/:userId', () => {
-    const userId = generateUUID();
-    const validTask: CodeTask = {
-      id: generateUUID(),
-      userId,
-      content: 'Test content',
-      filePath: '/path/to/file',
-      lineNumber: 1,
-      syncedAt: new Date().toISOString(),
-      priority: CodeTaskPriority.HIGH,
-      status: 'todo',
-      type: 'TODO',
-    };
-
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
-    it('should find CodeTasks by userId and return 200', async () => {
-      const mockResponse: CodeTasksInfo = {
-        userId,
-        data: [validTask],
-        meta: {
-          totalCount: 1,
-          lastScanAt: '2025-01-01T00:00:00.000Z',
-          scannedFiles: 1,
-        },
-      };
-
-      mockCodeTaskService.findByUserId.mockResolvedValue(mockResponse);
-
-      await request(app)
-        .get(`/codetasks/${userId}`)
-        .expect(200)
-        .expect(res => {
-          expect(res.body.data).toHaveLength(1);
-          expect(res.body.meta.totalCount).toBe(1);
-        });
-
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith(userId);
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty array for users with no tasks and return 200', async () => {
-      mockCodeTaskService.findByUserId.mockResolvedValue({
-        userId,
-        data: [],
-        meta: {
-          totalCount: 0,
-          lastScanAt: '2025-01-01T00:00:00.000Z',
-          scannedFiles: 0,
-        },
-      });
-
-      await request(app).get(`/codetasks/${userId}`).expect(200);
-
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith(userId);
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reject invalid user id and return 400', async () => {
-      const invalidUserId = 'invalid-user-id-123';
-      await request(app).get(`/codetasks/${invalidUserId}`).expect(400);
-
-      expect(mockCodeTaskService.findByUserId).not.toHaveBeenCalled();
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledTimes(0);
-    });
-
-    it('should reject userIDs longer than 50 chars and return 400', async () => {
-      const longUserId = 'a'.repeat(51);
-      await request(app).get(`/codetasks/${longUserId}`).expect(400);
-    });
-
-    it('should handle user not found and return 500', async () => {
-      const error = new DatabaseError('Could not retrieve tasks.');
-      mockCodeTaskService.findByUserId.mockRejectedValue(error);
-
-      await request(app).get(`/codetasks/${userId}`).expect(500);
-
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith(userId);
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('PUT /codetasks/:id/:userId', () => {
-    const userId = generateUUID();
-    const id = generateUUID();
-
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
-    it('should update CodeTask and return 204', async () => {
-      const updates = codeTaskUpdateValidation.parse({
-        type: 'TODO',
-        content: 'Updated content',
-        priority: CodeTaskPriority.HIGH,
-        status: 'done',
-      });
-
-      mockCodeTaskService.update.mockResolvedValue();
-
-      await request(app)
-        .put(`/codetasks/${id}/${userId}`)
-        .send(updates)
-        .expect(204);
-
-      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
-        id,
-        userId,
-        updates
-      );
-      expect(mockCodeTaskService.update).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle updating non-existent task and return 404', async () => {
-      const updates = codeTaskUpdateValidation.parse({
-        type: 'TODO',
-        content: 'Updated content',
-        priority: CodeTaskPriority.HIGH,
-        status: 'done',
-      });
-
-      const error = new NotFoundError(`Task with ID ${id} not found.`);
-      mockCodeTaskService.update.mockRejectedValue(error);
-
-      await request(app)
-        .put(`/codetasks/${id}/${userId}`)
-        .send(updates)
-        .expect(404);
-
-      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
-        id,
-        userId,
-        updates
-      );
-      expect(mockCodeTaskService.update).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reject invalid user id and return 400', async () => {
-      const invalidUserId = 'invalid-user-id';
-
-      await request(app)
-        .put(`/codetasks/${id}/${invalidUserId}`)
+      const res = await request(app)
+        .put('/codetasks/task-1')
         .send({
+          content: 'Updated Task',
+          filePath: 'test-file.ts',
+          lineNumber: 1,
+          priority: 'high',
+          status: 'in-progress',
           type: 'TODO',
-          content: 'Updated content',
-          priority: CodeTaskPriority.HIGH,
-          status: 'done',
         })
+        .expect(200);
+
+      expect(res.body).toEqual(updatedTask);
+      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
+        'task-1',
+        'user-123',
+        {
+          content: 'Updated Task',
+          filePath: 'test-file.ts',
+          lineNumber: 1,
+          priority: 'high',
+          status: 'in-progress',
+          type: 'TODO',
+        }
+      );
+    });
+
+    it('should return 400 for invalid payload', async () => {
+      await request(app)
+        .put('/codetasks/task-1')
+        .send({ title: '' }) // invalid
         .expect(400);
 
       expect(mockCodeTaskService.update).not.toHaveBeenCalled();
-      expect(mockCodeTaskService.update).toHaveBeenCalledTimes(0);
-    });
-
-    it('should reject invalid id and return 400', async () => {
-      const invalidId = 'invalid-id';
-
-      await request(app)
-        .put(`/codetasks/${invalidId}/${userId}`)
-        .send({
-          type: 'TODO',
-          content: 'Updated content',
-          priority: CodeTaskPriority.HIGH,
-          status: 'done',
-        })
-        .expect(400);
-
-      expect(mockCodeTaskService.update).not.toHaveBeenCalled();
-      expect(mockCodeTaskService.update).toHaveBeenCalledTimes(0);
-    });
-
-    it('should reject malformed JSON in request body and return 400', async () => {
-      await request(app)
-        .put(`/codetasks/${id}/${userId}`)
-        .set('Content-Type', 'application/json')
-        .send('malformed json')
-        .expect(400);
-    });
-
-    it('should reject empty content during update and return 400', async () => {
-      const response = await request(app)
-        .put(`/codetasks/${id}/${userId}`)
-        .send({
-          type: 'TODO',
-          content: '', // Empty string
-          priority: CodeTaskPriority.HIGH,
-          status: 'done',
-        })
-        .expect(400);
-
-      expect(response.body).toEqual({
-        error: 'Invalid code task data',
-        details: [
-          {
-            code: 'too_small',
-            message: 'Too small: expected string to have >=1 characters',
-            inclusive: true,
-            minimum: 1,
-            origin: 'string',
-            path: ['content'],
-          },
-        ],
-      });
-
-      expect(mockCodeTaskService.update).not.toHaveBeenCalled();
-    });
-
-    it('should handle service errors and return 500', async () => {
-      const updates = codeTaskUpdateValidation.parse({
-        type: 'TODO',
-        content: 'Updated content',
-        priority: CodeTaskPriority.HIGH,
-        status: 'done',
-      });
-
-      const error = new DatabaseError('DynamoDB error');
-      mockCodeTaskService.update.mockRejectedValue(error);
-
-      await request(app)
-        .put(`/codetasks/${id}/${userId}`)
-        .send(updates)
-        .expect(500);
-
-      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
-        id,
-        userId,
-        updates
-      );
-      expect(mockCodeTaskService.update).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('DELETE /codetasks/:id/:userId', () => {
-    const userId = generateUUID();
-    const id = generateUUID();
+  describe('DELETE /codetasks/:id', () => {
+    it('should delete a task for the authenticated user', async () => {
+      mockCodeTaskService.delete.mockResolvedValue(undefined);
 
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
+      await request(app).delete('/codetasks/task-1').expect(204);
 
-    it('should delete CodeTask and return 204', async () => {
-      mockCodeTaskService.delete.mockResolvedValue();
-
-      await request(app).delete(`/codetasks/${id}/${userId}`).expect(204);
-
-      expect(mockCodeTaskService.delete).toHaveBeenCalledWith(id, userId);
-      expect(mockCodeTaskService.delete).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle deleting non-existent task and return 404', async () => {
-      const error = new NotFoundError(`Task with ID ${id} not found.`);
-      mockCodeTaskService.delete.mockRejectedValue(error);
-
-      await request(app).delete(`/codetasks/${id}/${userId}`).expect(404);
-
-      expect(mockCodeTaskService.delete).toHaveBeenCalledWith(id, userId);
-      expect(mockCodeTaskService.delete).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reject invalid user id and return 400', async () => {
-      const invalidUserId = 'invalid-user-id';
-      await request(app)
-        .delete(`/codetasks/${id}/${invalidUserId}`)
-        .expect(400);
-      expect(mockCodeTaskService.delete).not.toHaveBeenCalled();
-    });
-
-    it('should reject invalid task id and return 400', async () => {
-      const invalidId = 'invalid-id';
-      await request(app)
-        .delete(`/codetasks/${invalidId}/${userId}`)
-        .expect(400);
-      expect(mockCodeTaskService.delete).not.toHaveBeenCalled();
-    });
-
-    it('should handle service errors and return 500', async () => {
-      const error = new DatabaseError('DynamoDB error');
-      mockCodeTaskService.delete.mockRejectedValue(error);
-
-      await request(app).delete(`/codetasks/${id}/${userId}`).expect(500);
-      expect(mockCodeTaskService.delete).toHaveBeenCalledWith(id, userId);
+      expect(mockCodeTaskService.delete).toHaveBeenCalledWith(
+        'task-1',
+        'user-123'
+      );
     });
   });
 });

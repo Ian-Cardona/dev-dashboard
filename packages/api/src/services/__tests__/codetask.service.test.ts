@@ -1,10 +1,20 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  describe,
+  beforeEach,
+  afterEach,
+  it,
+  expect,
+  vi,
+  MockedFunction,
+} from 'vitest';
 import { CodeTaskService } from '../codetask.service';
-import { DatabaseError } from '../../utils/errors.utils';
-import { CodeTaskPriority, CodeTask } from '../../types/codetask.type';
+import { DatabaseError, NotFoundError } from '../../utils/errors.utils';
+
 import { ICodeTaskModel } from '../../models/codetask.model';
-import { MockedFunction } from 'vitest';
-import { CodeTaskPriorityEnum } from '../../schema/codetask.schema';
+import {
+  ConditionalCheckFailedException,
+  DynamoDBServiceException,
+} from '@aws-sdk/client-dynamodb';
 
 const mockCodeTaskModel = {
   create: vi.fn() as MockedFunction<ICodeTaskModel['create']>,
@@ -15,116 +25,88 @@ const mockCodeTaskModel = {
 
 const codeTaskService = CodeTaskService(mockCodeTaskModel);
 
-describe('CodeTask Service', () => {
+describe('CodeTaskService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
   });
-
   afterEach(() => {
     vi.useRealTimers();
   });
 
   describe('create', () => {
-    const createCodeTaskInput = {
-      userId: '550e8400-e29b-41d4-a716-446655440001',
-      content: 'This is a test content. Please ignore.',
-      filePath: '/This/Is/A/Test/FilePath',
+    const input = {
+      userId: 'user-123',
+      content: 'Test content',
+      filePath: '/path/to/file',
       lineNumber: 1,
-      priority: CodeTaskPriority.LOW,
-      status: 'todo' as const,
-      type: 'TODO' as const,
+      priority: 'low',
+      status: 'todo',
+      type: 'TODO',
     };
 
-    it('should successfully create a new CodeTask and return it', async () => {
-      const expectedResult: CodeTask = {
-        id: expect.any(String),
-        userId: '550e8400-e29b-41d4-a716-446655440001',
-        content: 'This is a test content. Please ignore.',
-        filePath: '/This/Is/A/Test/FilePath',
-        lineNumber: 1,
-        syncedAt: '2025-01-01T00:00:00.000Z',
-        priority: CodeTaskPriority.LOW,
-        status: 'todo',
-        type: 'TODO',
+    it('should create and return a CodeTask with generated fields', async () => {
+      const createdTask = {
+        ...input,
+        id: 'generated-uuid',
+        syncedAt: new Date().toISOString(),
+        priority: input.priority,
+        status: input.status,
       };
+      mockCodeTaskModel.create.mockResolvedValue(createdTask);
 
-      mockCodeTaskModel.create.mockResolvedValue(expectedResult);
+      const result = await codeTaskService.create(input);
 
-      const result = await codeTaskService.create(createCodeTaskInput);
-
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual(createdTask);
+      expect(mockCodeTaskModel.create).toHaveBeenCalledTimes(1);
       expect(mockCodeTaskModel.create).toHaveBeenCalledWith(
         expect.objectContaining({
           id: expect.any(String),
-          syncedAt: '2025-01-01T00:00:00.000Z',
-          ...createCodeTaskInput,
+          syncedAt: expect.any(String),
+          ...input,
         })
       );
-      expect(mockCodeTaskModel.create).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle model creation failure', async () => {
-      const error = new DatabaseError('Could not create the task.');
-
+    it('should throw DatabaseError if model.create rejects', async () => {
+      const error = new Error('DB failure');
       mockCodeTaskModel.create.mockRejectedValue(error);
 
-      await expect(
-        codeTaskService.create(createCodeTaskInput)
-      ).rejects.toThrow();
+      await expect(codeTaskService.create(input)).rejects.toBeInstanceOf(
+        DatabaseError
+      );
       expect(mockCodeTaskModel.create).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('findByUserId', () => {
-    it('should successfully find CodeTasks by userId', async () => {
-      const userId = '550e8400-e29b-41d4-a716-446655440000';
-      const codeTasks: CodeTask[] = [
+    const userId = 'user-123';
+
+    it('should return CodeTasksInfo with data and meta', async () => {
+      const tasks = [
         {
-          id: '550e8400-e29b-41d4-a716-446655440001',
+          id: 'task-1',
           userId,
-          content: 'This is a test content. Please ignore.',
-          filePath: '/This/Is/A/Test/FilePath',
+          content: 'content',
+          filePath: '/file/path',
           lineNumber: 1,
-          syncedAt: '2025-01-01T00:00:00.000Z',
-          priority: CodeTaskPriorityEnum.LOW,
+          syncedAt: new Date().toISOString(),
+          priority: 'low',
           status: 'todo',
           type: 'TODO',
         },
       ];
-
-      mockCodeTaskModel.findByUserId.mockResolvedValue(codeTasks);
-
-      const result = await codeTaskService.findByUserId(userId);
-
-      expect(result).toEqual({
-        userId,
-        data: codeTasks,
-        meta: {
-          totalCount: codeTasks.length,
-          lastScanAt: '2025-01-01T00:00:00.000Z',
-          scannedFiles: 0, // TODO: Add actual scanned files count here
-        },
-      });
-      expect(mockCodeTaskModel.findByUserId).toHaveBeenCalledWith(userId);
-      expect(mockCodeTaskModel.findByUserId).toHaveBeenCalledTimes(1);
-    });
-
-    it('should successfully find empty CodeTasks by userId', async () => {
-      const userId = '550e8400-e29b-41d4-a716-446655440000';
-      const codeTasks: CodeTask[] = [];
-
-      mockCodeTaskModel.findByUserId.mockResolvedValue(codeTasks);
+      mockCodeTaskModel.findByUserId.mockResolvedValue(tasks);
 
       const result = await codeTaskService.findByUserId(userId);
 
       expect(result).toEqual({
         userId,
-        data: codeTasks,
+        data: tasks,
         meta: {
-          totalCount: codeTasks.length,
-          lastScanAt: '2025-01-01T00:00:00.000Z',
+          totalCount: tasks.length,
+          lastScanAt: expect.any(String),
           scannedFiles: 0,
         },
       });
@@ -132,84 +114,101 @@ describe('CodeTask Service', () => {
       expect(mockCodeTaskModel.findByUserId).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle model find failure', async () => {
-      const error = new DatabaseError('Could not retrieve tasks');
+    it('should return empty data array if no tasks found', async () => {
+      mockCodeTaskModel.findByUserId.mockResolvedValue([]);
 
+      const result = await codeTaskService.findByUserId(userId);
+
+      expect(result.data).toEqual([]);
+      expect(result.meta.totalCount).toBe(0);
+    });
+
+    it('should throw DatabaseError if model.findByUserId rejects', async () => {
+      const error = new Error('DB failure');
       mockCodeTaskModel.findByUserId.mockRejectedValue(error);
 
-      await expect(
-        codeTaskService.findByUserId('550e8400-e29b-41d4-a716-446655440002')
-      ).rejects.toThrow(error);
-      expect(mockCodeTaskModel.findByUserId).toHaveBeenCalledWith(
-        '550e8400-e29b-41d4-a716-446655440002'
+      await expect(codeTaskService.findByUserId(userId)).rejects.toBeInstanceOf(
+        DatabaseError
       );
-      expect(mockCodeTaskModel.findByUserId).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('update', () => {
-    it('should successfully update a CodeTask', async () => {
-      const id = '550e8400-e29b-41d4-a716-446655440002';
-      const userId = '550e8400-e29b-41d4-a716-446655440002';
-      const updates: Partial<CodeTask> = {
-        content: 'Updated content',
-      };
+    const taskId = 'task-123';
+    const userId = 'user-123';
+    const updates: Partial<CodeTask> = { content: 'Updated content' };
 
-      await codeTaskService.update(id, userId, updates);
+    it('should call model.update with correct params', async () => {
+      mockCodeTaskModel.update.mockResolvedValue();
+
+      await codeTaskService.update(taskId, userId, updates);
 
       expect(mockCodeTaskModel.update).toHaveBeenCalledWith(
-        id,
+        taskId,
         userId,
         updates
       );
       expect(mockCodeTaskModel.update).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle model update failure', async () => {
-      const id = '550e8400-e29b-41d4-a716-446655440002';
-      const userId = '550e8400-e29b-41d4-a716-446655440002';
-      const updates: Partial<CodeTask> = {
-        content: 'Updated content',
-      };
-
-      const error = new DatabaseError('Could not update the task.');
-
-      mockCodeTaskModel.update.mockRejectedValue(error);
-
-      await expect(codeTaskService.update(id, userId, updates)).rejects.toThrow(
-        error
+    it('should throw NotFoundError when ConditionalCheckFailedException occurs', async () => {
+      mockCodeTaskModel.update.mockRejectedValue(
+        new ConditionalCheckFailedException({})
       );
-      expect(mockCodeTaskModel.update).toHaveBeenCalledWith(
-        id,
-        userId,
-        updates
+
+      await expect(
+        codeTaskService.update(taskId, userId, updates)
+      ).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it('should throw DatabaseError on DynamoDBServiceException', async () => {
+      mockCodeTaskModel.update.mockRejectedValue(
+        new DynamoDBServiceException({ message: 'fail' })
       );
-      expect(mockCodeTaskModel.update).toHaveBeenCalledTimes(1);
+
+      await expect(
+        codeTaskService.update(taskId, userId, updates)
+      ).rejects.toBeInstanceOf(DatabaseError);
+    });
+
+    it('should throw DatabaseError on generic error', async () => {
+      mockCodeTaskModel.update.mockRejectedValue(new Error('fail'));
+
+      await expect(
+        codeTaskService.update(taskId, userId, updates)
+      ).rejects.toBeInstanceOf(DatabaseError);
     });
   });
 
   describe('delete', () => {
-    it('should successfully delete a CodeTask', async () => {
-      const id = '550e8400-e29b-41d4-a716-446655440002';
-      const userId = '550e8400-e29b-41d4-a716-446655440002';
+    const taskId = 'task-123';
+    const userId = 'user-123';
 
-      await codeTaskService.delete(id, userId);
+    it('should call model.delete correctly', async () => {
+      mockCodeTaskModel.delete.mockResolvedValue();
 
-      expect(mockCodeTaskModel.delete).toHaveBeenCalledWith(id, userId);
+      await codeTaskService.delete(taskId, userId);
+
+      expect(mockCodeTaskModel.delete).toHaveBeenCalledWith(taskId, userId);
       expect(mockCodeTaskModel.delete).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle model delete failure', async () => {
-      const id = '550e8400-e29b-41d4-a716-446655440002';
-      const userId = '550e8400-e29b-41d4-a716-446655440002';
+    it('should throw NotFoundError when ConditionalCheckFailedException occurs', async () => {
+      mockCodeTaskModel.delete.mockRejectedValue(
+        new ConditionalCheckFailedException({})
+      );
 
-      const error = new DatabaseError('Could not delete the task.');
+      await expect(
+        codeTaskService.delete(taskId, userId)
+      ).rejects.toBeInstanceOf(NotFoundError);
+    });
 
-      mockCodeTaskModel.delete.mockRejectedValue(error);
+    it('should throw DatabaseError on generic error', async () => {
+      mockCodeTaskModel.delete.mockRejectedValue(new Error('fail'));
 
-      await expect(codeTaskService.delete(id, userId)).rejects.toThrow(error);
-      expect(mockCodeTaskModel.delete).toHaveBeenCalledWith(id, userId);
-      expect(mockCodeTaskModel.delete).toHaveBeenCalledTimes(1);
+      await expect(
+        codeTaskService.delete(taskId, userId)
+      ).rejects.toBeInstanceOf(DatabaseError);
     });
   });
 });

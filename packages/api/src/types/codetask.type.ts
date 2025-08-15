@@ -1,6 +1,6 @@
 import z from 'zod';
 import {
-  codeTaskCreateValidation,
+  codeTaskCreateSchema,
   CodeTaskPriorityEnum,
   codeTasksInfoValidationSchema,
   CodeTaskStatusEnum,
@@ -8,7 +8,7 @@ import {
   metaValidationSchema,
   PredefinedCodeTaskTypeEnum,
   OtherCodeTaskTypeEnum,
-  updateCodeTaskValidation,
+  updateCodeTaskSchema,
 } from '../schema/codetask.schema';
 
 // Types
@@ -18,8 +18,8 @@ export type PredefinedCodeTaskType = z.infer<typeof PredefinedCodeTaskTypeEnum>;
 export type OtherCodeTaskType = z.infer<typeof OtherCodeTaskTypeEnum>;
 
 export type CodeTask = z.infer<typeof codeTaskValidationSchema>;
-export type CreateCodeTask = z.infer<typeof codeTaskCreateValidation>;
-export type UpdateCodeTask = z.infer<typeof updateCodeTaskValidation>;
+export type CreateCodeTask = z.infer<typeof codeTaskCreateSchema>;
+export type UpdateCodeTask = z.infer<typeof updateCodeTaskSchema>;
 
 export type Meta = z.infer<typeof metaValidationSchema>;
 export type CodeTasksInfo = z.infer<typeof codeTasksInfoValidationSchema>;
