@@ -56,7 +56,7 @@ const otherCodeTaskSchema = codeTaskBaseSchema.extend({
 });
 
 // Main validation
-export const codeTaskValidationSchema = z.discriminatedUnion('type', [
+export const codeTaskSchema = z.discriminatedUnion('type', [
   predefinedCodeTaskSchema,
   otherCodeTaskSchema,
 ]);
@@ -87,6 +87,8 @@ export const codeTaskCreateSchema = z.discriminatedUnion('type', [
 
 // Update
 const updateCodeTaskBaseSchema = codeTaskBaseSchema.pick({
+  filePath: true,
+  lineNumber: true,
   content: true,
   priority: true,
   status: true,
@@ -112,7 +114,7 @@ export const updateCodeTaskSchema = z.discriminatedUnion('type', [
 ]);
 
 // Metadata
-export const metaValidationSchema = z.object({
+export const metaSchema = z.object({
   totalCount: z
     .number()
     .min(VALIDATION_CONSTANTS.CODETASK.META.MIN_COUNT)
@@ -125,8 +127,8 @@ export const metaValidationSchema = z.object({
 });
 
 // Full Information with Metadata
-export const codeTasksInfoValidationSchema = z.object({
+export const codeTasksInfoSchema = z.object({
   userId: z.uuidv4(),
-  data: z.array(codeTaskValidationSchema),
-  meta: metaValidationSchema,
+  data: z.array(codeTaskSchema),
+  meta: metaSchema,
 });

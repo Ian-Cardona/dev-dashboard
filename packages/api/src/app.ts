@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
+import authenticationRouter from './routes/authentication.route';
 import codeTaskRouter from './routes/codetask.route';
 import userRouter from './routes/user.route';
 
@@ -17,9 +18,9 @@ app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
     directives: {
-      'default-src': ['self'],
-      'img-src': ['self', 'data:'],
-      'script-src': ['self'],
+      'default-src': ["'self'"],
+      'img-src': ["'self'", 'data:'],
+      'script-src': ["'self'"],
     },
   })
 );
@@ -37,6 +38,7 @@ app.use(express.json({ limit: '1mb' }));
 
 app.use(loggerMiddleware);
 
+app.use('/auth', authenticationRouter);
 app.use('/codetasks', codeTaskRouter);
 app.use('/users', authorizationMiddleware, userRouter);
 

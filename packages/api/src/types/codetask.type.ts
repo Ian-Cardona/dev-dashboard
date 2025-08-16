@@ -2,10 +2,10 @@ import z from 'zod';
 import {
   codeTaskCreateSchema,
   CodeTaskPriorityEnum,
-  codeTasksInfoValidationSchema,
+  codeTasksInfoSchema,
   CodeTaskStatusEnum,
-  codeTaskValidationSchema,
-  metaValidationSchema,
+  codeTaskSchema,
+  metaSchema,
   PredefinedCodeTaskTypeEnum,
   OtherCodeTaskTypeEnum,
   updateCodeTaskSchema,
@@ -17,12 +17,12 @@ export type CodeTaskStatus = z.infer<typeof CodeTaskStatusEnum>;
 export type PredefinedCodeTaskType = z.infer<typeof PredefinedCodeTaskTypeEnum>;
 export type OtherCodeTaskType = z.infer<typeof OtherCodeTaskTypeEnum>;
 
-export type CodeTask = z.infer<typeof codeTaskValidationSchema>;
+export type CodeTask = z.infer<typeof codeTaskSchema>;
 export type CreateCodeTask = z.infer<typeof codeTaskCreateSchema>;
 export type UpdateCodeTask = z.infer<typeof updateCodeTaskSchema>;
 
-export type Meta = z.infer<typeof metaValidationSchema>;
-export type CodeTasksInfo = z.infer<typeof codeTasksInfoValidationSchema>;
+export type Meta = z.infer<typeof metaSchema>;
+export type CodeTasksInfo = z.infer<typeof codeTasksInfoSchema>;
 
 // export enum CodeTaskPriority {
 //   LOW = 'low',

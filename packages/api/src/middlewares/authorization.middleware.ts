@@ -8,6 +8,7 @@ import { docClient } from '../config/dynamodb';
 
 const userService = UserService(UserModel(docClient));
 
+// TODO: Create test suite for this
 export const authorizationMiddleware = async (
   req: Request,
   res: Response,

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { generateUUID } from '../../utils/uuid.utils';
 import { VALIDATION_CONSTANTS } from '../../constants/validations';
 import {
-  codeTaskValidationSchema,
+  codeTaskSchema,
   codeTaskCreateSchema,
   updateCodeTaskSchema,
 } from '../codetask.schema';
@@ -28,14 +28,14 @@ describe('CodeTask Schemas', () => {
     customTag: 'REFACTOR',
   };
 
-  describe('codeTaskValidationSchema', () => {
+  describe('codeTaskSchema', () => {
     it('should successfully validate a complete predefined code task', () => {
-      const result = codeTaskValidationSchema.parse(validPredefinedData);
+      const result = codeTaskSchema.parse(validPredefinedData);
       expect(result).toEqual(validPredefinedData);
     });
 
     it('should successfully validate a complete "OTHER" type code task', () => {
-      const result = codeTaskValidationSchema.parse(validOtherData);
+      const result = codeTaskSchema.parse(validOtherData);
       expect(result).toEqual(validOtherData);
     });
 
@@ -44,19 +44,19 @@ describe('CodeTask Schemas', () => {
         ...validPredefinedData,
         extra: 'should-be-removed',
       };
-      const result = codeTaskValidationSchema.parse(extraPropData);
+      const result = codeTaskSchema.parse(extraPropData);
       expect(result).not.toHaveProperty('extra');
       expect(result).toEqual(validPredefinedData);
     });
 
     it('should reject "OTHER" type without customTag', () => {
       const testData = { ...validPredefinedData, type: 'OTHER' };
-      expect(() => codeTaskValidationSchema.parse(testData)).toThrow();
+      expect(() => codeTaskSchema.parse(testData)).toThrow();
     });
 
     it('should reject predefined types with customTag', () => {
       const testData = { ...validPredefinedData, customTag: 'INVALID_TAG' };
-      expect(() => codeTaskValidationSchema.parse(testData)).toThrow();
+      expect(() => codeTaskSchema.parse(testData)).toThrow();
     });
 
     describe('Invalid Field Values', () => {
@@ -89,7 +89,7 @@ describe('CodeTask Schemas', () => {
         ['type', { type: 'INVALID_TYPE' }],
       ])('should throw an error for invalid `%s`', (field, invalidData) => {
         const testData = { ...baseData, ...invalidData };
-        expect(() => codeTaskValidationSchema.parse(testData)).toThrow();
+        expect(() => codeTaskSchema.parse(testData)).toThrow();
       });
     });
   });
@@ -152,6 +152,8 @@ describe('CodeTask Schemas', () => {
       priority: 'high',
       status: 'in-progress',
       type: 'TODO',
+      filePath: '/test/update/path.ts',
+      lineNumber: 20,
     };
 
     it('should successfully validate a complete update object', () => {
@@ -174,16 +176,14 @@ describe('CodeTask Schemas', () => {
         ...validUpdatePayload,
         id: generateUUID(),
         userId: generateUUID(),
-        filePath: '/should/be/removed.ts',
-        lineNumber: 99,
+        filePath: '/test/update/path.ts',
+        lineNumber: 20,
         syncedAt: '2025-08-15T21:12:31.000Z',
       };
 
       const result = updateCodeTaskSchema.parse(updateDataWithExcluded);
       expect(result).not.toHaveProperty('id');
       expect(result).not.toHaveProperty('userId');
-      expect(result).not.toHaveProperty('filePath');
-      expect(result).not.toHaveProperty('lineNumber');
       expect(result).not.toHaveProperty('syncedAt');
       expect(result).toEqual(validUpdatePayload);
     });

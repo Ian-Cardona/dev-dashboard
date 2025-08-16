@@ -4,6 +4,7 @@ import { describe, it, vi, expect, MockedFunction, beforeEach } from 'vitest';
 import { errorHandlerMiddleware } from '../../middlewares/error_handler.middleware';
 import { ICodeTaskService } from '../../services/codetask.service';
 import { CodeTaskController } from '../codetask.controller';
+import { generateUUID } from '../../utils/uuid.utils';
 
 const mockCodeTaskService = {
   create: vi.fn() as MockedFunction<ICodeTaskService['create']>,
@@ -37,119 +38,157 @@ const createTestApp = () => {
 
 describe('CodeTaskController', () => {
   let app: express.Express;
-  let mockTask;
-
   beforeEach(() => {
     vi.clearAllMocks();
     app = createTestApp();
-
-    mockTask = {
-      id: 'task-1',
-      userId: 'user-123',
-      content: 'Test Task',
-      filePath: 'test-file.ts',
-      lineNumber: 1,
-      syncedAt: new Date().toISOString(),
-      priority: 'low',
-      status: 'todo',
-      type: 'TODO',
-    };
   });
 
   describe('POST /codetasks', () => {
-    it('should create a new code task when valid', async () => {
-      mockCodeTaskService.create.mockResolvedValue(mockTask);
+    let createTaskData;
+    let expectedTask;
 
-      const res = await request(app).post('/codetasks').send({}).expect(201);
-
-      expect(res.body).toEqual(mockTask);
-      expect(mockCodeTaskService.create).toHaveBeenCalledWith({});
+    beforeEach(() => {
+      createTaskData = {
+        userId: generateUUID(),
+        content: 'Test Task',
+        filePath: 'test-file.ts',
+        lineNumber: 1,
+        type: 'TODO',
+        priority: 'low',
+        status: 'todo',
+      };
+      expectedTask = {
+        ...createTaskData,
+        id: generateUUID(),
+        syncedAt: new Date().toISOString(),
+      };
     });
 
-    it('should return 400 on validation error', async () => {
-      await request(app)
+    it('should create a new code task when data is valid', async () => {
+      mockCodeTaskService.create.mockResolvedValue(expectedTask);
+      const res = await request(app)
         .post('/codetasks')
-        .send({ description: 'Missing title' })
-        .expect(400);
+        .send(createTaskData)
+        .expect(201);
+
+      expect(res.body).toEqual(expectedTask);
+      expect(mockCodeTaskService.create).toHaveBeenCalledWith(createTaskData);
+    });
+
+    it('should return 400 on validation error (e.g., missing content)', async () => {
+      const invalidData = { ...createTaskData, content: '' };
+      await request(app).post('/codetasks').send(invalidData).expect(400);
       expect(mockCodeTaskService.create).not.toHaveBeenCalled();
     });
-  });
 
-  describe('GET /codetasks', () => {
-    it('should return tasks for the authenticated user', async () => {
-      const mockTasks = { tasks: [], total: 0 };
-      mockCodeTaskService.findByUserId.mockResolvedValue(mockTasks);
-
-      const res = await request(app).get('/codetasks').expect(200);
-
-      expect(res.body).toEqual(mockTasks);
-      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith('user-123');
+    it('should return 500 on a service or database error', async () => {
+      mockCodeTaskService.create.mockRejectedValue(new Error('DB error'));
+      await request(app).post('/codetasks').send(createTaskData).expect(500);
+      expect(mockCodeTaskService.create).toHaveBeenCalledWith(createTaskData);
     });
   });
 
-  describe('PUT /codetasks/:id', () => {
-    it('should update a task when data is valid', async () => {
-      const updatedTask = {
-        id: 'task-1',
-        userId: 'user-123',
+  describe('GET /codetasks/:userId', () => {
+    let userId;
+
+    beforeEach(() => {
+      userId = generateUUID();
+    });
+
+    it('should return tasks for a given user ID', async () => {
+      const expectedCodeTaskInfo = {
+        userId,
+        data: [],
+        meta: {
+          totalCount: 0,
+          lastScanAt: new Date().toISOString(),
+          scannedFiles: 0,
+        },
+      };
+      mockCodeTaskService.findByUserId.mockResolvedValue(expectedCodeTaskInfo);
+
+      const res = await request(app).get(`/codetasks/${userId}`).expect(200);
+
+      expect(res.body).toEqual(expectedCodeTaskInfo);
+      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith(userId);
+    });
+
+    it('should return 400 for an invalid user ID format', async () => {
+      await request(app).get('/codetasks/invalid-uuid').expect(400);
+      expect(mockCodeTaskService.findByUserId).not.toHaveBeenCalled();
+    });
+
+    it('should return 500 on a service or database error', async () => {
+      mockCodeTaskService.findByUserId.mockRejectedValue(new Error('DB error'));
+      await request(app).get(`/codetasks/${userId}`).expect(500);
+      expect(mockCodeTaskService.findByUserId).toHaveBeenCalledWith(userId);
+    });
+  });
+
+  describe('PUT /codetasks/:id/:userId', () => {
+    let updateTaskData;
+    const taskId = generateUUID();
+    const userId = generateUUID();
+
+    beforeEach(() => {
+      updateTaskData = {
         content: 'Updated Task',
         filePath: 'test-file.ts',
         lineNumber: 1,
-        syncedAt: new Date().toISOString(),
         priority: 'high',
         status: 'in-progress',
         type: 'TODO',
       };
+    });
 
-      mockCodeTaskService.update.mockResolvedValue(updatedTask);
-
+    it('should update a task when data is valid', async () => {
       const res = await request(app)
-        .put('/codetasks/task-1')
-        .send({
-          content: 'Updated Task',
-          filePath: 'test-file.ts',
-          lineNumber: 1,
-          priority: 'high',
-          status: 'in-progress',
-          type: 'TODO',
-        })
-        .expect(200);
+        .put(`/codetasks/${taskId}/${userId}`)
+        .send(updateTaskData)
+        .expect(204);
 
-      expect(res.body).toEqual(updatedTask);
-      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
-        'task-1',
-        'user-123',
-        {
-          content: 'Updated Task',
-          filePath: 'test-file.ts',
-          lineNumber: 1,
-          priority: 'high',
-          status: 'in-progress',
-          type: 'TODO',
-        }
-      );
+      expect(res.body).toEqual({});
     });
 
     it('should return 400 for invalid payload', async () => {
       await request(app)
-        .put('/codetasks/task-1')
-        .send({ title: '' }) // invalid
+        .put(`/codetasks/${taskId}/${userId}`)
+        .send({ content: '' })
         .expect(400);
 
       expect(mockCodeTaskService.update).not.toHaveBeenCalled();
     });
+
+    it('should return 500 on a service or database error', async () => {
+      mockCodeTaskService.update.mockRejectedValue(new Error('DB error'));
+      await request(app)
+        .put(`/codetasks/${taskId}/${userId}`)
+        .send(updateTaskData)
+        .expect(500);
+      expect(mockCodeTaskService.update).toHaveBeenCalledWith(
+        taskId,
+        userId,
+        updateTaskData
+      );
+    });
   });
 
   describe('DELETE /codetasks/:id', () => {
+    const taskId = generateUUID();
+    const userId = generateUUID();
+
     it('should delete a task for the authenticated user', async () => {
       mockCodeTaskService.delete.mockResolvedValue(undefined);
 
-      await request(app).delete('/codetasks/task-1').expect(204);
+      await request(app).delete(`/codetasks/${taskId}/${userId}`).expect(204);
 
-      expect(mockCodeTaskService.delete).toHaveBeenCalledWith(
-        'task-1',
-        'user-123'
-      );
+      expect(mockCodeTaskService.delete).toHaveBeenCalledWith(taskId, userId);
+    });
+
+    it('should return 500 on a service or database error', async () => {
+      mockCodeTaskService.delete.mockRejectedValue(new Error('DB error'));
+      await request(app).delete(`/codetasks/${taskId}/${userId}`).expect(500);
+      expect(mockCodeTaskService.delete).toHaveBeenCalledWith(taskId, userId);
     });
   });
 });
