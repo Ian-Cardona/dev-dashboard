@@ -33,6 +33,7 @@ export interface IAuthenticationService {
   verifyAccessToken(token: string): Promise<ResponseUser>;
 }
 
+// TODO: Create test suite for this
 export const AuthenticationService = (
   userService: IUserService,
   refreshTokenService: IRefreshTokenService

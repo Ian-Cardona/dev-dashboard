@@ -17,9 +17,9 @@ app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
     directives: {
-      'default-src': ['self'],
-      'img-src': ['self', 'data:'],
-      'script-src': ['self'],
+      'default-src': ["'self'"],
+      'img-src': ["'self'", 'data:'],
+      'script-src': ["'self'"],
     },
   })
 );

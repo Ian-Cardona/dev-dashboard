@@ -12,6 +12,7 @@ import {
   AuthenticationRegisterRequest,
 } from '../types/auth.type';
 
+// TODO: Create test suite for this
 export interface IAuthenticationController {
   registerUser: (
     req: Request,
