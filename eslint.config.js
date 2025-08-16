@@ -13,6 +13,11 @@ export default tseslint.config(
         ...globals.es2020,
         ...globals.node,
       },
+      parser: tseslint.parser,
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
       ecmaVersion: 2020,
       sourceType: 'module',
     },

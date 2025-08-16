@@ -18,15 +18,15 @@ const userModel = UserModel(docClient);
 const userServiceInstance = UserService(userModel);
 const refreshTokenServiceInstance = RefreshTokenService(refreshTokenModel);
 
-const authServiceInstance: IAuthenticationService = AuthenticationService(
-  userServiceInstance,
-  refreshTokenServiceInstance
+const authenticationServiceInstance: IAuthenticationService =
+  AuthenticationService(userServiceInstance, refreshTokenServiceInstance);
+const authenticationControllerInstance = AuthenticationController(
+  authenticationServiceInstance
 );
-const authControllerInstance = AuthenticationController(authServiceInstance);
 
-router.post('/register', authControllerInstance.registerUser);
-router.post('/login', authControllerInstance.loginUser);
-router.post('/refresh', authControllerInstance.refreshAccessToken);
-router.post('/logout', authControllerInstance.logoutUser);
+router.post('/register', authenticationControllerInstance.registerUser);
+router.post('/login', authenticationControllerInstance.loginUser);
+router.post('/refresh', authenticationControllerInstance.refreshAccessToken);
+router.post('/logout', authenticationControllerInstance.logoutUser);
 
 export default router;
