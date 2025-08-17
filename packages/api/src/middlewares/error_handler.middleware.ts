@@ -3,6 +3,7 @@ import {
   ConflictError,
   DatabaseError,
   NotFoundError,
+  UnauthorizedError,
 } from '../utils/errors.utils';
 import { sendError } from '../utils/api.utils';
 export const errorHandlerMiddleware = (
@@ -36,6 +37,10 @@ export const errorHandlerMiddleware = (
       'Request body contains malformed JSON',
       400
     );
+  }
+
+  if (error instanceof UnauthorizedError) {
+    return sendError(res, 'Unauthorized', error.message, 401);
   }
 
   if (error instanceof NotFoundError) {

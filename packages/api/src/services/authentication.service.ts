@@ -43,8 +43,9 @@ export const AuthenticationService = (
       user: AuthenticationRegisterRequest
     ): Promise<AuthenticationSuccessResponse> {
       try {
-        const existingUser = await userService.findByEmailForPublic(user.email);
-        if (existingUser) {
+        const emailAlreadyExists = await userService.emailExists(user.email);
+
+        if (emailAlreadyExists) {
           throw new ConflictError('User already exists');
         }
 
@@ -96,10 +97,15 @@ export const AuthenticationService = (
           throw new UnauthorizedError('Invalid email or password');
         }
 
+        console.log('validatedData.password', validatedData.password);
+        console.log('user.passwordHash', user.passwordHash);
+
         const passwordMatches = await bcrypt.compare(
           validatedData.password,
           user.passwordHash
         );
+
+        console.log('passwordMatches', passwordMatches);
 
         if (!passwordMatches) {
           throw new UnauthorizedError('Invalid email or password');
