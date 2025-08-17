@@ -1,7 +1,15 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { ENV } from './env_variables';
 
-const client = new DynamoDBClient({});
+const client = new DynamoDBClient({
+  region: ENV.AWS_REGION,
+  endpoint: ENV.DYNAMODB_ENDPOINT,
+  credentials: {
+    accessKeyId: ENV.AWS_ACCESS_KEY_ID,
+    secretAccessKey: ENV.AWS_SECRET_ACCESS_KEY,
+  },
+});
 const docClient = DynamoDBDocumentClient.from(client);
 
 export { client, docClient };
