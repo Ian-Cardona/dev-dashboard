@@ -54,8 +54,8 @@ export const loginPasswordSchema = z
 export const authenticationRegisterRequestSchema = z.object({
   email: z.email(),
   password: passwordStrengthValidation(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  firstName: z.string().nullish().default(null),
+  lastName: z.string().nullish().default(null),
 });
 
 // Login Validation

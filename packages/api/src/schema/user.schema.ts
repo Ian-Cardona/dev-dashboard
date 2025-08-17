@@ -32,6 +32,8 @@ export const userSchema = z.object({
       VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH,
       VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
     )
+    .nullish()
+    .default(null)
     .optional(),
   lastName: z
     .string({ message: 'Invalid last name' })
@@ -44,43 +46,51 @@ export const userSchema = z.object({
       VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH,
       VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
     )
+    .nullish()
+    .default(null)
     .optional(),
   createdAt: z.iso.datetime({ message: 'Invalid ISO datetime' }),
   updatedAt: z.iso.datetime({ message: 'Invalid ISO datetime' }),
-  lastLoginAt: z.iso.datetime({ message: 'Invalid ISO datetime' }).optional(),
+  lastLoginAt: z.iso
+    .datetime({ message: 'Invalid ISO datetime' })
+    .nullish()
+    .default(null)
+    .optional(),
   passwordUpdatedAt: z.iso
     .datetime({ message: 'Invalid ISO datetime' })
+    .nullish()
+    .default(null)
     .optional(),
   isActive: z.boolean({ message: 'Invalid boolean' }),
   role: z.enum(['user', 'admin']).default('user'),
 });
 
-export const userCreateSchema = z.object({
-  email: z.email({ message: 'Invalid email' }),
-  password: passwordSchema,
-  firstName: z
-    .string()
-    .min(
-      VALIDATION_CONSTANTS.USER.FIRST_NAME.MIN_LENGTH,
-      VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
-    )
-    .max(
-      VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH,
-      VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
-    )
-    .optional(),
-  lastName: z
-    .string()
-    .min(
-      VALIDATION_CONSTANTS.USER.LAST_NAME.MIN_LENGTH,
-      VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
-    )
-    .max(
-      VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH,
-      VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
-    )
-    .optional(),
-});
+// export const userCreateSchema = z.object({
+//   email: z.email({ message: 'Invalid email' }),
+//   password: passwordSchema,
+//   firstName: z
+//     .string()
+//     .min(
+//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MIN_LENGTH,
+//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
+//     )
+//     .max(
+//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH,
+//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
+//     )
+//     .optional(),
+//   lastName: z
+//     .string()
+//     .min(
+//       VALIDATION_CONSTANTS.USER.LAST_NAME.MIN_LENGTH,
+//       VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
+//     )
+//     .max(
+//       VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH,
+//       VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
+//     )
+//     .optional(),
+// });
 
 export const userUpdateSchema = userSchema.omit({
   userId: true,

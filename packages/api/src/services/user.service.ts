@@ -16,6 +16,7 @@ export interface IUserService {
   findById(userId: string): Promise<ResponseUser>;
   findByEmailForAuth(email: string): Promise<User>;
   findByEmailForPublic(email: string): Promise<ResponseUser>;
+  emailExists(email: string): Promise<boolean>;
   update(
     userId: string,
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
@@ -47,8 +48,15 @@ export const UserService = (userModel: IUserModel): IUserService => {
           role: 'user',
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { passwordHash, ...responseUser } = result;
+        // TODO: Fix the schemas to avoid manual object manipulation like this
+        const responseUser: ResponseUser = {
+          userId: result.userId,
+          email: result.email,
+          firstName: result.firstName,
+          lastName: result.lastName,
+          isActive: result.isActive,
+        };
+
         return responseUser;
       } catch (error) {
         if (
@@ -129,6 +137,19 @@ export const UserService = (userModel: IUserModel): IUserService => {
           email,
         });
         throw new DatabaseError('Could not find the user');
+      }
+    },
+
+    async emailExists(email: string): Promise<boolean> {
+      try {
+        const user = await userModel.findByEmail(email);
+        return user !== null;
+      } catch (error) {
+        logger.error('Email existence check failed', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          email,
+        });
+        throw new DatabaseError('Could not check email existence');
       }
     },
 
