@@ -5,12 +5,12 @@ import {
   authenticationLoginRequestSchema,
   authenticationRefreshRequestSchema,
   authenticationRegisterRequestSchema,
-} from '../schema/auth.schema';
+} from '../../../shared/schemas/auth.schema';
 import {
   AuthenticationLoginRequest,
   AuthenticationRefreshRequest,
   AuthenticationRegisterRequest,
-} from '../types/auth.type';
+} from '../../../shared/types/auth.type';
 
 // TODO: Create test suite for this
 export interface IAuthenticationController {

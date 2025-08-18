@@ -4,7 +4,7 @@ import { generateUUID } from '../../utils/uuid.utils';
 import {
   refreshTokenSchema,
   refreshTokenCreateSchema,
-} from '../refreshToken.schema';
+} from '../../../../shared/schemas/refreshToken.schema';
 
 describe('Refresh Token Validation Schemas', () => {
   let validRefreshTokenData;

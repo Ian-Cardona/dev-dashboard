@@ -9,7 +9,7 @@ import {
   ScanCommandOutput,
   QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
-import { RefreshToken } from '../types/refreshToken.type';
+import { RefreshToken } from '../../../shared/types/refreshToken.type';
 import { ENV } from '../config/env_variables';
 
 const REFRESH_TOKEN_TABLE = ENV.REFRESH_TOKEN_TABLE;

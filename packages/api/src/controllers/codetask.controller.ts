@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import {
   codeTaskCreateSchema,
   updateCodeTaskSchema,
-} from '../schema/codetask.schema';
+} from '../../../shared/schemas/codetask.schema';
 import { ICodeTaskService } from '../services/codetask.service';
 import z from 'zod';
 

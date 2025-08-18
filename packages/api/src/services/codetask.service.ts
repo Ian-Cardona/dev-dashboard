@@ -2,7 +2,7 @@ import {
   CreateCodeTask,
   CodeTask,
   CodeTasksInfo,
-} from '../types/codetask.type';
+} from '../../../shared/types/codetask.type';
 import { ICodeTaskModel } from '../models/codetask.model';
 import { logger } from '../middlewares/logger.middleware';
 import { generateUUID } from '../utils/uuid.utils';

@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { z } from 'zod';
 import { generateUUID } from '../../utils/uuid.utils';
-import { VALIDATION_CONSTANTS } from '../../constants/validations';
+import { VALIDATION_CONSTANTS } from '../../../../shared/constants/validations';
 import {
   userSchema,
   userCreateSchema,
   userPartialUpdateSchema,
   responseUserSchema,
-} from '../user.schema';
+} from '../../../../shared/schemas/user.schema';
 
 describe('User Validation Schemas', () => {
   let validUserData;

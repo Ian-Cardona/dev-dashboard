@@ -1,6 +1,6 @@
 import { logger } from '../middlewares/logger.middleware';
 import { IRefreshTokenModel } from '../models/refreshToken.model';
-import { RefreshToken } from '../types/refreshToken.type';
+import { RefreshToken } from '../../../shared/types/refreshToken.type';
 import { ConflictError, DatabaseError } from '../utils/errors.utils';
 import { generateSecureRefreshToken, generateUUID } from '../utils/uuid.utils';
 import { ENV } from '../config/env_variables';

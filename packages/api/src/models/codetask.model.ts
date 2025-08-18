@@ -5,7 +5,7 @@ import {
   QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { CodeTask } from '../types/codetask.type';
+import { CodeTask } from '../../../shared/types/codetask.type';
 import { ENV } from '../config/env_variables';
 
 const CODE_TASK_TABLE = ENV.CODE_TASK_TABLE;

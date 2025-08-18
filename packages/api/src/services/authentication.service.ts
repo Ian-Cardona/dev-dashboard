@@ -1,5 +1,5 @@
 import { logger } from '../middlewares/logger.middleware';
-import { ResponseUser } from '../types/user.type';
+import { ResponseUser } from '../../../shared/types/user.type';
 import {
   ConflictError,
   DatabaseError,
@@ -15,7 +15,7 @@ import {
   AuthenticationRegisterRequest,
   AuthenticationSuccessResponse,
   AuthorizationTokenPayload,
-} from '../types/auth.type';
+} from '../../../shared/types/auth.type';
 import { IUserService } from './user.service';
 import { IRefreshTokenService } from './refreshToken.service';
 

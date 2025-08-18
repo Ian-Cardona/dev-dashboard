@@ -4,7 +4,7 @@ import {
   passwordUpdateSchema,
   userIdSchema,
   userUpdateSchema,
-} from '../schema/user.schema';
+} from '../../../shared/schemas/user.schema';
 import z from 'zod';
 
 export interface IUserController {
