@@ -6,7 +6,7 @@ import {
   authenticationRefreshRequestSchema,
   authenticationSuccessResponseSchema,
   authenticationRefreshResponseSchema,
-} from '../schema/auth.schema';
+} from '../schemas/auth.schema';
 
 export type AuthenticationRegisterRequest = z.infer<
   typeof authenticationRegisterRequestSchema

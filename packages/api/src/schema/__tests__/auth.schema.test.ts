@@ -7,7 +7,7 @@ import {
   authenticationRefreshRequestSchema,
   authenticationSuccessResponseSchema,
   authenticationRefreshResponseSchema,
-} from '../auth.schema';
+} from '../../../../shared/schemas/auth.schema';
 import { generateUUID } from '../../utils/uuid.utils';
 
 const MOCK_JWT =

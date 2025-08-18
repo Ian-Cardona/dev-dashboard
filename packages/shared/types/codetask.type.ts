@@ -9,7 +9,7 @@ import {
   PredefinedCodeTaskTypeEnum,
   OtherCodeTaskTypeEnum,
   updateCodeTaskSchema,
-} from '../schema/codetask.schema';
+} from '../schemas/codetask.schema';
 
 // Types
 export type CodeTaskPriority = z.infer<typeof CodeTaskPriorityEnum>;

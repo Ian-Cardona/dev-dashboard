@@ -6,7 +6,7 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { User } from '../types/user.type';
+import { User } from '../../../shared/types/user.type';
 import { ENV } from '../config/env_variables';
 
 const USER_TABLE = ENV.USER_TABLE;

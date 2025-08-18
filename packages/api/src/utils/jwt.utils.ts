@@ -1,6 +1,6 @@
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { ENV } from '../config/env_variables';
-import { AuthorizationTokenPayload } from '../types/auth.type';
+import { AuthorizationTokenPayload } from '../../../shared/types/auth.type';
 import { Request } from 'express';
 
 export const generateJWT = (payload: AuthorizationTokenPayload): string => {

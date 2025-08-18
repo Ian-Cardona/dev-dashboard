@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { generateUUID } from '../../utils/uuid.utils';
-import { VALIDATION_CONSTANTS } from '../../constants/validations';
+import { VALIDATION_CONSTANTS } from '../../../../shared/constants/validations';
 import {
   codeTaskSchema,
   codeTaskCreateSchema,
   updateCodeTaskSchema,
-} from '../codetask.schema';
+} from '../../../../shared/schemas/codetask.schema';
 
 describe('CodeTask Schemas', () => {
   const baseData = {

@@ -1,6 +1,6 @@
 import { logger } from '../middlewares/logger.middleware';
 import { IUserModel } from '../models/user.model';
-import { ResponseUser, User } from '../types/user.type';
+import { ResponseUser, User } from '../../../shared/types/user.type';
 import {
   ConflictError,
   DatabaseError,
@@ -9,7 +9,7 @@ import {
 import { generateUUID } from '../utils/uuid.utils';
 import bcrypt from 'bcryptjs';
 import { ENV } from '../config/env_variables';
-import { AuthenticationRegisterRequest } from '../types/auth.type';
+import { AuthenticationRegisterRequest } from '../../../shared/types/auth.type';
 
 export interface IUserService {
   create(user: AuthenticationRegisterRequest): Promise<ResponseUser>;

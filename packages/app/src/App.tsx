@@ -1,10 +1,13 @@
 import Register from './pages/auth/Register.tsx';
+import { Routes, Route } from 'react-router';
+import Login from './pages/auth/Login.tsx';
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Register />
-    </div>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+    </Routes>
   );
 }
 
