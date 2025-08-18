@@ -79,3 +79,5 @@ export const authenticationRefreshResponseSchema = z.object({
   accessToken: z.jwt(),
   refreshToken: z.uuidv4(),
 });
+
+// TODO: Use Refresh Token as httponly cookie
