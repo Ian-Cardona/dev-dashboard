@@ -6,6 +6,8 @@ import {
   authenticationRefreshRequestSchema,
   authenticationSuccessResponseSchema,
   authenticationRefreshResponseSchema,
+  authenticationSuccessServiceSchema,
+  authenticationRefreshServiceSchema,
 } from '../schemas/auth.schema';
 
 export type AuthenticationRegisterRequest = z.infer<
@@ -23,6 +25,12 @@ export type AuthenticationSuccessResponse = z.infer<
 >;
 export type AuthenticationRefreshResponse = z.infer<
   typeof authenticationRefreshResponseSchema
+>;
+export type AuthenticationSuccessService = z.infer<
+  typeof authenticationSuccessServiceSchema
+>;
+export type AuthenticationRefreshService = z.infer<
+  typeof authenticationRefreshServiceSchema
 >;
 
 // JWT Payload

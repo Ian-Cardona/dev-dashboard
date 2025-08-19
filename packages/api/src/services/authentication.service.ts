@@ -11,9 +11,9 @@ import bcrypt from 'bcryptjs';
 import {
   AuthenticationLoginRequest,
   AuthenticationRefreshRequest,
-  AuthenticationRefreshResponse,
+  AuthenticationRefreshService,
   AuthenticationRegisterRequest,
-  AuthenticationSuccessResponse,
+  AuthenticationSuccessService,
   AuthorizationTokenPayload,
 } from '../../../shared/types/auth.type';
 import { IUserService } from './user.service';
@@ -22,13 +22,13 @@ import { IRefreshTokenService } from './refreshToken.service';
 export interface IAuthenticationService {
   register(
     user: AuthenticationRegisterRequest
-  ): Promise<AuthenticationSuccessResponse>;
+  ): Promise<AuthenticationSuccessService>;
   login(
     validatedData: AuthenticationLoginRequest
-  ): Promise<AuthenticationSuccessResponse>;
+  ): Promise<AuthenticationSuccessService>;
   refreshAccessToken(
     validatedData: AuthenticationRefreshRequest
-  ): Promise<AuthenticationRefreshResponse>;
+  ): Promise<AuthenticationRefreshService>;
   logout(validatedData: AuthenticationRefreshRequest): Promise<void>;
   verifyAccessToken(token: string): Promise<ResponseUser>;
 }
@@ -41,7 +41,7 @@ export const AuthenticationService = (
   return {
     async register(
       user: AuthenticationRegisterRequest
-    ): Promise<AuthenticationSuccessResponse> {
+    ): Promise<AuthenticationSuccessService> {
       try {
         const emailAlreadyExists = await userService.emailExists(user.email);
 
@@ -89,7 +89,7 @@ export const AuthenticationService = (
 
     async login(
       validatedData: AuthenticationLoginRequest
-    ): Promise<AuthenticationSuccessResponse> {
+    ): Promise<AuthenticationSuccessService> {
       try {
         const user = await userService.findByEmailForAuth(validatedData.email);
 
@@ -152,7 +152,7 @@ export const AuthenticationService = (
 
     async refreshAccessToken(
       validatedData: AuthenticationRefreshRequest
-    ): Promise<AuthenticationRefreshResponse> {
+    ): Promise<AuthenticationRefreshService> {
       try {
         const matchedToken = await refreshTokenService.findByUserAndMatch(
           validatedData.userId,
