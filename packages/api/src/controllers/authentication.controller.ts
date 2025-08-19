@@ -9,7 +9,9 @@ import {
 import {
   AuthenticationLoginRequest,
   AuthenticationRefreshRequest,
+  AuthenticationRefreshResponse,
   AuthenticationRegisterRequest,
+  AuthenticationSuccessResponse,
 } from '../../../shared/types/auth.type';
 
 // TODO: Create test suite for this
@@ -60,7 +62,20 @@ export const AuthenticationController = (
         const validatedData: AuthenticationRegisterRequest =
           authenticationRegisterRequestSchema.parse(req.body);
         const result = await authService.register(validatedData);
-        res.status(201).json(result);
+
+        res.cookie('refreshToken', result.refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+          path: '/',
+        });
+
+        const response: AuthenticationSuccessResponse = {
+          accessToken: result.accessToken,
+          user: result.user,
+        };
+
+        res.status(201).json(response);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid registration data');
       }
@@ -71,7 +86,20 @@ export const AuthenticationController = (
         const validatedData: AuthenticationLoginRequest =
           authenticationLoginRequestSchema.parse(req.body);
         const result = await authService.login(validatedData);
-        res.status(200).json(result);
+
+        res.cookie('refreshToken', result.refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+          path: '/',
+        });
+
+        const response: AuthenticationSuccessResponse = {
+          accessToken: result.accessToken,
+          user: result.user,
+        };
+
+        res.status(200).json(response);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid login data');
       }
@@ -82,7 +110,12 @@ export const AuthenticationController = (
         const validatedData: AuthenticationRefreshRequest =
           authenticationRefreshRequestSchema.parse(req.body);
         const result = await authService.refreshAccessToken(validatedData);
-        res.status(200).json(result);
+
+        const response: AuthenticationRefreshResponse = {
+          accessToken: result.accessToken,
+        };
+
+        res.status(200).json(response);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid refresh token data');
       }
