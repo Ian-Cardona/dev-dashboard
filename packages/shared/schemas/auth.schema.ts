@@ -69,15 +69,24 @@ export const authenticationRefreshRequestSchema = z.object({
   refreshToken: z.string().min(1).max(512),
 });
 
-export const authenticationSuccessResponseSchema = z.object({
+export const authenticationSuccessServiceSchema = z.object({
   accessToken: z.jwt(),
   refreshToken: z.uuidv4(),
   user: responseUserSchema,
 });
 
-export const authenticationRefreshResponseSchema = z.object({
+export const authenticationSuccessResponseSchema = z.object({
+  accessToken: z.jwt(),
+  user: responseUserSchema,
+});
+
+export const authenticationRefreshServiceSchema = z.object({
   accessToken: z.jwt(),
   refreshToken: z.uuidv4(),
+});
+
+export const authenticationRefreshResponseSchema = z.object({
+  accessToken: z.jwt(),
 });
 
 // TODO: Use Refresh Token as httponly cookie
