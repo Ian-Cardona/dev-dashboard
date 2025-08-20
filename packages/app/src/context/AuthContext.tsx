@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { AuthenticationSuccessResponse } from '../../../shared/types/auth.type';
+import { auth } from '../lib/auth';
 
 type State = AuthenticationSuccessResponse | null;
 
@@ -28,13 +29,14 @@ type AuthContextType = {
   initializing: boolean;
 };
 
+// TODO: Validate approach if correct
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case AUTH_REDUCER_ACTION_TYPE.SET_AUTH:
-      // TODO: Add anything here
-      // if (import.meta.env.DEV) console.debug("SET_AUTH"); // never log payloads
+      localStorage.setItem('userId', action.payload.user.userId);
       return action.payload;
     case AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH:
+      localStorage.removeItem('userId');
       return null;
     default:
       return state;
@@ -51,40 +53,30 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     const controller = new AbortController();
 
     (async () => {
+      const storedUserId = localStorage.getItem('userId');
+      if (!storedUserId) {
+        setInitializing(false);
+        return;
+      }
+
       try {
-        const res = await fetch('/api/auth/refresh', {
-          method: 'POST',
-          credentials: 'include', // TODO: send HttpOnly refresh cookie
-          cache: 'no-store',
-          headers: { Accept: 'application/json' },
+        const data = await auth.refresh({
           signal: controller.signal,
+          userId: storedUserId,
         });
 
-        if (res.ok) {
-          const ct = res.headers.get('content-type') ?? '';
-          if (ct.includes('application/json')) {
-            const data = (await res.json()) as AuthenticationSuccessResponse;
-            dispatch({
-              type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,
-              payload: data,
-            });
-          } else {
-            // Treat unexpected/no content as unauthenticated
+        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH, payload: data });
+      } catch (err: unknown) {
+        if (err instanceof Response) {
+          if (err.status === 401 || err.status === 419) {
             dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
+            localStorage.removeItem('userId');
           }
-        } else if (res.status === 401 || res.status === 419) {
-          // Auth invalid/expired
-          dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
-        } else {
-          // Server trouble; do not nuke state on transient issues
-          // Optionally surface a toast/metric here
-        }
-      } catch (err) {
-        if (!(err instanceof DOMException && err.name === 'AbortError')) {
-          // Network error; leave state as-is
         }
       } finally {
-        if (!controller.signal.aborted) setInitializing(false);
+        if (!controller.signal.aborted) {
+          setInitializing(false);
+        }
       }
     })();
 
