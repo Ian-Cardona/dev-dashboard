@@ -68,6 +68,34 @@ export const RefreshTokenService = (
       }
     },
 
+    // async findByToken(refreshTokenPlain: string): Promise<RefreshToken | null> {
+    //   try {
+    //     const refreshTokenHash =
+    //       await refreshTokenModel.findByToken(refreshTokenPlain);
+
+    //     if (!refreshTokenHash) return null;
+
+    //     if (
+    //       !refreshTokenHash.revoked &&
+    //       new Date(refreshTokenHash.expiresAt).getTime() > Date.now() &&
+    //       (await bcrypt.compare(
+    //         refreshTokenPlain,
+    //         refreshTokenHash.refreshTokenHash
+    //       ))
+    //     ) {
+    //       return refreshTokenHash;
+    //     }
+
+    //     return null;
+    //   } catch (error) {
+    //     logger.error('Service Error: Failed to retrieve refresh token', {
+    //       error: error instanceof Error ? error.message : error,
+    //       refreshTokenPlain,
+    //     });
+    //     throw new DatabaseError('Failed to find refresh token');
+    //   }
+    // },
+
     async findByUserAndMatch(
       userId: string,
       refreshTokenPlain: string
