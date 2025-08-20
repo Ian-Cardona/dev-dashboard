@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 
 import authenticationRouter from './routes/authentication.route';
 import codeTaskRouter from './routes/codetask.route';
@@ -35,6 +36,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use(express.json({ limit: '1mb' }));
+app.use(cookieParser());
 
 app.use(loggerMiddleware);
 

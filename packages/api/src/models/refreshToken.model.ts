@@ -65,15 +65,30 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
       const result = await docClient.send(
         new QueryCommand({
           TableName: REFRESH_TOKEN_TABLE,
-          KeyConditionExpression: 'userId = :uuid',
+          KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: {
-            ':uuid': userId,
+            ':userId': userId,
           },
         })
       );
 
       return (result.Items as RefreshToken[]) || [];
     },
+
+    // async findByToken(refreshToken: string): Promise<RefreshToken | null> {
+    //   const result = await docClient.send(
+    //     new QueryCommand({
+    //       TableName: REFRESH_TOKEN_TABLE,
+    //       IndexName: 'RefreshTokenGSI',
+    //       KeyConditionExpression: 'refreshToken = :token',
+    //       ExpressionAttributeValues: {
+    //         ':token': refreshToken,
+    //       },
+    //     })
+    //   );
+
+    //   return (result.Items as RefreshToken[])?.[0] || null;
+    // },
 
     async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
       await docClient.send(

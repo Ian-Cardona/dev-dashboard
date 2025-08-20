@@ -14,6 +14,8 @@ import {
   AuthenticationSuccessResponse,
 } from '../../../shared/types/auth.type';
 
+const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
+
 // TODO: Create test suite for this
 export interface IAuthenticationController {
   registerUser: (
@@ -68,6 +70,7 @@ export const AuthenticationController = (
           secure: true,
           sameSite: 'lax',
           path: '/',
+          maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
         const response: AuthenticationSuccessResponse = {
@@ -92,6 +95,7 @@ export const AuthenticationController = (
           secure: true,
           sameSite: 'lax',
           path: '/',
+          maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
         const response: AuthenticationSuccessResponse = {
@@ -107,9 +111,22 @@ export const AuthenticationController = (
 
     async refreshAccessToken(req: Request, res: Response, next: NextFunction) {
       try {
+        const userIdAndRefreshToken = {
+          userId: req.body.userId,
+          refreshToken: req.cookies.refreshToken,
+        };
+
         const validatedData: AuthenticationRefreshRequest =
-          authenticationRefreshRequestSchema.parse(req.body);
+          authenticationRefreshRequestSchema.parse(userIdAndRefreshToken);
         const result = await authService.refreshAccessToken(validatedData);
+
+        res.cookie('refreshToken', result.refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
 
         const response: AuthenticationRefreshResponse = {
           accessToken: result.accessToken,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authenticationRegisterRequestSchema } from '../../../../../../shared/schemas/auth.schema';
+import { authenticationRegisterRequestSchema } from '../../../../../shared/schemas/auth.schema';
 
 export const useRegisterForm = () => {
   const [email, setEmail] = useState('');

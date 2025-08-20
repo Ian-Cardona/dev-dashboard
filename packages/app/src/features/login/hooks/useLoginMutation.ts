@@ -1,9 +1,9 @@
-import { useMutation } from '@tanstack/react-query';
-import { loginApi } from '../api/loginApi';
 import { useNavigate } from 'react-router';
-import type { AuthenticationLoginRequest } from '../../../../../../shared/types/auth.type';
-import { useAuth } from '../../../../hooks/useAuth';
-import { AUTH_REDUCER_ACTION_TYPE } from '../../../../context/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
+import { useMutation } from '@tanstack/react-query';
+import type { AuthenticationLoginRequest } from '../../../../../shared/types/auth.type';
+import { loginApi } from '../api/loginApi';
+import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
 
 export const useLoginMutation = () => {
   const navigate = useNavigate();
@@ -18,11 +18,10 @@ export const useLoginMutation = () => {
       });
 
       navigate('/dashboard');
-      // TODO: Set user data in context
     },
     onError: error => {
       console.error('Login failed:', error);
-      // TODO: Show error message to user
+      // TODO: Toast for errors
     },
   });
 };
