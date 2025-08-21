@@ -1,49 +1,22 @@
-import { Navigate, useLocation } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 
-interface RouteProps {
-  children: React.ReactNode;
-}
+export const ProtectedRoute = () => {
+  const { state } = useAuth();
 
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    <span className="ml-2">Loading...</span>
-  </div>
-);
-
-export const ProtectedRoute = ({ children }: RouteProps) => {
-  const { state, initializing } = useAuth();
-  const location = useLocation();
-
-  if (initializing) {
-    return <LoadingSpinner />;
-  }
-
-  // after init is done, then decide
-  if (!state) {
-    return <Navigate to="/" state={{ from: location }} replace />;
-  }
-
-  if (!state.accessToken || !state.user.isActive) {
+  if (!state.authenticatedUser) {
     return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
 
-export const PublicRoute = ({ children }: RouteProps) => {
-  const { state, initializing } = useAuth();
+export const PublicRoute = () => {
+  const { state } = useAuth();
 
-  if (initializing) {
-    return <LoadingSpinner />;
-  }
-
-  if (state?.accessToken && state.user.isActive) {
+  if (state.authenticatedUser) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
-
-export default { ProtectedRoute, PublicRoute };
