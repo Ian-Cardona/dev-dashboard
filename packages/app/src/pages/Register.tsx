@@ -1,6 +1,6 @@
 import RegisterForm from '../features/register/components/RegisterForm';
 
-const Register = () => {
+const RegisterPage = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <h1>Register</h1>
@@ -9,4 +9,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterPage;

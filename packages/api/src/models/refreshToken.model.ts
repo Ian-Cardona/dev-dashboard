@@ -3,11 +3,11 @@ import {
   DynamoDBDocumentClient,
   PutCommand,
   ScanCommand,
-  DeleteCommand,
   QueryCommand,
   BatchWriteCommand,
   ScanCommandOutput,
   QueryCommandOutput,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { RefreshToken } from '../../../shared/types/refreshToken.type';
 import { ENV } from '../config/env_variables';
@@ -18,7 +18,7 @@ const BATCH_CHUNK_SIZE = 25;
 export interface IRefreshTokenModel {
   create(refreshToken: RefreshToken): Promise<RefreshToken>;
   findByUserId(userId: string): Promise<RefreshToken[] | null>;
-  deleteToken(userId: string, refreshTokenId: string): Promise<void>;
+  tombstoneToken(refreshToken: RefreshToken): Promise<void>;
   deleteAllUserTokens(userId: string): Promise<void>;
   deleteExpiredTokens(): Promise<number>;
 }
@@ -90,13 +90,33 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     //   return (result.Items as RefreshToken[])?.[0] || null;
     // },
 
-    async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
+    // async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
+    //   await docClient.send(
+    //     new DeleteCommand({
+    //       TableName: REFRESH_TOKEN_TABLE,
+    //       Key: { userId, refreshTokenId },
+    //       ConditionExpression:
+    //         'attribute_exists(userId) AND attribute_exists(refreshTokenId)',
+    //     })
+    //   );
+    // },
+
+    async tombstoneToken(refreshToken: RefreshToken): Promise<void> {
       await docClient.send(
-        new DeleteCommand({
+        new UpdateCommand({
           TableName: REFRESH_TOKEN_TABLE,
-          Key: { userId, refreshTokenId },
+          Key: {
+            userId: refreshToken.userId,
+            refreshTokenId: refreshToken.refreshTokenId,
+          },
+          UpdateExpression: 'SET revoked = :revoked, revokedAt = :revokedAt',
           ConditionExpression:
-            'attribute_exists(userId) AND attribute_exists(refreshTokenId)',
+            'attribute_exists(userId) AND attribute_exists(refreshTokenId) AND (attribute_not_exists(revoked) OR revoked = :false)',
+          ExpressionAttributeValues: {
+            ':revoked': refreshToken.revoked,
+            ':revokedAt': refreshToken.revokedAt,
+            ':false': false,
+          },
         })
       );
     },

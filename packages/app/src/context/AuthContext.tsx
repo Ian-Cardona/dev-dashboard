@@ -1,18 +1,34 @@
 import {
   createContext,
-  useReducer,
   useEffect,
-  useState,
+  useReducer,
   type Dispatch,
   type ReactNode,
 } from 'react';
 import type { AuthenticationSuccessResponse } from '../../../shared/types/auth.type';
 import { auth } from '../lib/auth';
+import { isAxiosError } from 'axios';
 
-type State = AuthenticationSuccessResponse | null;
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <span className="ml-2">Loading...</span>
+  </div>
+);
+
+type State = {
+  authenticatedUser: AuthenticationSuccessResponse | null;
+  isLoading: boolean;
+};
+
+const initialState: State = {
+  authenticatedUser: null,
+  isLoading: true,
+};
 
 export const AUTH_REDUCER_ACTION_TYPE = {
   SET_AUTH: 'SET_AUTH',
+  SET_LOADING: 'SET_LOADING',
   CLEAR_AUTH: 'CLEAR_AUTH',
 } as const;
 
@@ -21,23 +37,28 @@ type Action =
       type: typeof AUTH_REDUCER_ACTION_TYPE.SET_AUTH;
       payload: AuthenticationSuccessResponse;
     }
-  | { type: typeof AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH };
+  | {
+      type: typeof AUTH_REDUCER_ACTION_TYPE.SET_LOADING;
+    }
+  | {
+      type: typeof AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH;
+    };
 
 type AuthContextType = {
   state: State;
   dispatch: Dispatch<Action>;
-  initializing: boolean;
 };
 
-// TODO: Validate approach if correct
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case AUTH_REDUCER_ACTION_TYPE.SET_AUTH:
       localStorage.setItem('userId', action.payload.user.userId);
-      return action.payload;
+      return { authenticatedUser: action.payload, isLoading: false };
+    case AUTH_REDUCER_ACTION_TYPE.SET_LOADING:
+      return { ...state, isLoading: true };
     case AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH:
       localStorage.removeItem('userId');
-      return null;
+      return { authenticatedUser: null, isLoading: false };
     default:
       return state;
   }
@@ -46,45 +67,41 @@ const reducer = (state: State, action: Action): State => {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(reducer, null);
-  const [initializing, setInitializing] = useState(true);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    (async () => {
+    const handleRefresh = async () => {
       const storedUserId = localStorage.getItem('userId');
+
       if (!storedUserId) {
-        setInitializing(false);
+        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
         return;
       }
 
       try {
-        const data = await auth.refresh({
-          signal: controller.signal,
-          userId: storedUserId,
+        const response = await auth.refresh({ userId: storedUserId });
+        dispatch({
+          type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,
+          payload: response,
         });
-
-        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH, payload: data });
-      } catch (err: unknown) {
-        if (err instanceof Response) {
-          if (err.status === 401 || err.status === 419) {
-            dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
-            localStorage.removeItem('userId');
-          }
+      } catch (error) {
+        if (isAxiosError(error) && error.response) {
+          console.log(error.response.status, error.response.data);
         }
-      } finally {
-        if (!controller.signal.aborted) {
-          setInitializing(false);
-        }
+        console.log(error);
+        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
       }
-    })();
+    };
 
-    return () => controller.abort();
+    handleRefresh();
   }, []);
 
+  if (state.isLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
-    <AuthContext.Provider value={{ state, dispatch, initializing }}>
+    <AuthContext.Provider value={{ state, dispatch }}>
       {children}
     </AuthContext.Provider>
   );

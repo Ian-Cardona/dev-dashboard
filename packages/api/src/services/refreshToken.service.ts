@@ -14,7 +14,7 @@ export interface IRefreshTokenService {
     userId: string,
     refreshTokenPlain: string
   ): Promise<RefreshToken | null>;
-  deleteToken(userId: string, refreshTokenId: string): Promise<void>;
+  tombstoneToken(refreshToken: RefreshToken): Promise<void>;
   deleteAllUserTokens(userId: string): Promise<void>;
   deleteExpiredTokens(): Promise<number>;
 }
@@ -127,19 +127,34 @@ export const RefreshTokenService = (
       }
     },
 
-    async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
+    // async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
+    //   try {
+    //     await refreshTokenModel.deleteToken(userId, refreshTokenId);
+    //   } catch (error) {
+    //     if (error instanceof Error) {
+    //       logger.error('Service Error: Failed to delete refresh token', {
+    //         error: error.message,
+    //         stack: error.stack,
+    //         userId,
+    //         refreshTokenId,
+    //       });
+    //     }
+    //     throw new DatabaseError('Failed to delete refresh token');
+    //   }
+    // },
+
+    async tombstoneToken(refreshToken: RefreshToken): Promise<void> {
       try {
-        await refreshTokenModel.deleteToken(userId, refreshTokenId);
+        await refreshTokenModel.tombstoneToken(refreshToken);
       } catch (error) {
         if (error instanceof Error) {
-          logger.error('Service Error: Failed to delete refresh token', {
+          logger.error('Service Error: Failed to tombstone refresh token', {
             error: error.message,
             stack: error.stack,
-            userId,
-            refreshTokenId,
+            refreshToken,
           });
         }
-        throw new DatabaseError('Failed to delete refresh token');
+        throw new DatabaseError('Failed to tombstone refresh token');
       }
     },
 
