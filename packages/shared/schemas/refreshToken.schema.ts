@@ -14,6 +14,11 @@ export const refreshTokenSchema = z.object({
     .optional(),
 });
 
+export const refreshTokenRecordAndPlainSchema = z.object({
+  refreshTokenPlain: z.uuidv4({ message: 'Invalid UUID' }),
+  refreshToken: refreshTokenSchema,
+});
+
 export const refreshTokenCreateSchema = refreshTokenSchema
   .omit({
     refreshTokenId: true,

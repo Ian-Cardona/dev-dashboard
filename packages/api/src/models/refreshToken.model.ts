@@ -17,7 +17,8 @@ const BATCH_CHUNK_SIZE = 25;
 
 export interface IRefreshTokenModel {
   create(refreshToken: RefreshToken): Promise<RefreshToken>;
-  findByUserId(userId: string): Promise<RefreshToken[] | null>;
+  // findByUserId(userId: string): Promise<RefreshToken[] | null>;
+  findById(id: string): Promise<RefreshToken | null>;
   tombstoneToken(refreshToken: RefreshToken): Promise<void>;
   deleteAllUserTokens(userId: string): Promise<void>;
   deleteExpiredTokens(): Promise<number>;
@@ -61,19 +62,33 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
       return refreshToken;
     },
 
-    async findByUserId(userId: string): Promise<RefreshToken[] | null> {
+    async findById(id: string): Promise<RefreshToken | null> {
       const result = await docClient.send(
         new QueryCommand({
           TableName: REFRESH_TOKEN_TABLE,
-          KeyConditionExpression: 'userId = :userId',
+          KeyConditionExpression: 'refreshTokenId = :refreshTokenId',
           ExpressionAttributeValues: {
-            ':userId': userId,
+            ':refreshTokenId': id,
           },
         })
       );
 
-      return (result.Items as RefreshToken[]) || [];
+      return (result.Items as RefreshToken[])?.[0] || null;
     },
+
+    // async findByUserId(userId: string): Promise<RefreshToken[] | null> {
+    //   const result = await docClient.send(
+    //     new QueryCommand({
+    //       TableName: REFRESH_TOKEN_TABLE,
+    //       KeyConditionExpression: 'userId = :userId',
+    //       ExpressionAttributeValues: {
+    //         ':userId': userId,
+    //       },
+    //     })
+    //   );
+
+    //   return (result.Items as RefreshToken[]) || [];
+    // },
 
     // async findByToken(refreshToken: string): Promise<RefreshToken | null> {
     //   const result = await docClient.send(

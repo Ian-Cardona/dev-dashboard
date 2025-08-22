@@ -5,7 +5,7 @@ import {
   authenticationLoginRequestSchema,
   authenticationRefreshRequestSchema,
   authenticationSuccessResponseSchema,
-  authenticationRefreshResponseSchema,
+  authenticationJWTResponseSchema,
   authenticationSuccessServiceSchema,
   authenticationRefreshServiceSchema,
 } from '../schemas/auth.schema';
@@ -23,8 +23,8 @@ export type AuthenticationRefreshRequest = z.infer<
 export type AuthenticationSuccessResponse = z.infer<
   typeof authenticationSuccessResponseSchema
 >;
-export type AuthenticationRefreshResponse = z.infer<
-  typeof authenticationRefreshResponseSchema
+export type AuthenticationJWTResponse = z.infer<
+  typeof authenticationJWTResponseSchema
 >;
 export type AuthenticationSuccessService = z.infer<
   typeof authenticationSuccessServiceSchema
@@ -37,4 +37,5 @@ export type AuthenticationRefreshService = z.infer<
 export interface AuthorizationTokenPayload extends JwtPayload {
   userId: string;
   email: string;
+  isActive: boolean;
 }
