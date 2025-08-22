@@ -18,7 +18,9 @@ import {
 } from '../../../shared/types/auth.type';
 import { IUserService } from './user.service';
 import { IRefreshTokenService } from './refreshToken.service';
+import { RefreshTokenRecordAndPlain } from '../../../shared/types/refreshToken.type';
 
+// TODO: Refactor user flow to return refresh details instead of just the token
 export interface IAuthenticationService {
   register(
     user: AuthenticationRegisterRequest
@@ -59,16 +61,17 @@ export const AuthenticationService = (
         const accessTokenPayload: AuthorizationTokenPayload = {
           userId: newUser.userId,
           email: newUser.email,
+          isActive: newUser.isActive,
         };
         const newAccessToken = generateJWT(accessTokenPayload);
 
-        const newRefreshToken = await refreshTokenService.create(
-          newUser.userId
-        );
+        const newRefreshToken: RefreshTokenRecordAndPlain =
+          await refreshTokenService.create(newUser.userId);
 
         return {
           accessToken: newAccessToken,
-          refreshToken: newRefreshToken.refreshToken,
+          refreshTokenId: newRefreshToken.refreshToken.refreshTokenId,
+          refreshTokenPlain: newRefreshToken.refreshTokenPlain,
           user: newUser,
         };
       } catch (error) {
@@ -112,6 +115,7 @@ export const AuthenticationService = (
         const accessTokenPayload: AuthorizationTokenPayload = {
           userId: user.userId,
           email: user.email,
+          isActive: user.isActive,
         };
         const newAccessToken = generateJWT(accessTokenPayload);
 
@@ -127,7 +131,8 @@ export const AuthenticationService = (
 
         return {
           accessToken: newAccessToken,
-          refreshToken: newRefreshToken.refreshToken,
+          refreshTokenId: newRefreshToken.refreshToken.refreshTokenId,
+          refreshTokenPlain: newRefreshToken.refreshTokenPlain,
           user: responseUser,
         };
       } catch (error) {
@@ -149,37 +154,93 @@ export const AuthenticationService = (
       validatedData: AuthenticationRefreshRequest
     ): Promise<AuthenticationRefreshService> {
       try {
-        const matchedToken = await refreshTokenService.findByUserAndMatch(
-          validatedData.userId,
-          validatedData.refreshToken
+        const matchedToken = await refreshTokenService.findByIdAndMatch(
+          validatedData.refreshTokenId,
+          validatedData.refreshTokenPlain
         );
 
-        if (
-          !matchedToken ||
-          matchedToken.revoked ||
-          Date.now() > new Date(matchedToken.expiresAt).getTime()
-        ) {
-          logger.warn('Potential session hijacking attempt', {
-            userId: validatedData.userId,
-            refreshToken: validatedData.refreshToken,
-          });
-          await refreshTokenService.deleteAllUserTokens(validatedData.userId);
+        if (!matchedToken) {
+          logger.warn(
+            'Potential session hijacking attempt - no matching token',
+            {
+              refreshTokenId: validatedData.refreshTokenId,
+            }
+          );
           throw new UnauthorizedError('Invalid session. Please login again.');
         }
 
-        await refreshTokenService.deleteToken(
-          validatedData.userId,
-          matchedToken.refreshTokenId
-        );
+        if (
+          matchedToken.revoked ||
+          Date.now() > new Date(matchedToken.expiresAt).getTime()
+        ) {
+          logger.warn(
+            'Potential session hijacking attempt - token invalid state',
+            {
+              refreshTokenId: validatedData.refreshTokenId,
+            }
+          );
+          await refreshTokenService.deleteAllUserTokens(matchedToken.userId);
+          throw new UnauthorizedError('Invalid session. Please login again.');
+        }
+
+        try {
+          await refreshTokenService.tombstoneToken(matchedToken);
+        } catch (tombstoneErr) {
+          try {
+            const currentToken = await refreshTokenService.findById(
+              matchedToken.refreshTokenId
+            );
+            if (currentToken && currentToken.revoked) {
+              logger.warn(
+                'Duplicate refresh detected — token already tombstoned',
+                {
+                  userId: matchedToken.userId,
+                  refreshTokenId: matchedToken.refreshTokenId,
+                }
+              );
+
+              await refreshTokenService.deleteAllUserTokens(
+                matchedToken.userId
+              );
+              throw new UnauthorizedError(
+                'Refresh token already used. Please login again.'
+              );
+            }
+
+            logger.error('Failed to tombstone refresh token.', {
+              error:
+                tombstoneErr instanceof Error
+                  ? tombstoneErr.message
+                  : tombstoneErr,
+              userId: matchedToken.userId,
+              refreshTokenId: matchedToken.refreshTokenId,
+            });
+            throw new DatabaseError('Failed to process refresh token');
+          } catch (verifyErr) {
+            logger.error(
+              'Error verifying token status after tombstone failure',
+              {
+                error:
+                  verifyErr instanceof Error ? verifyErr.message : verifyErr,
+                userId: matchedToken.userId,
+                refreshTokenId: matchedToken.refreshTokenId,
+              }
+            );
+            throw new DatabaseError('Failed to process refresh token');
+          }
+        }
 
         const user = await userService.findById(matchedToken.userId);
+
         if (!user) {
+          await refreshTokenService.deleteAllUserTokens(matchedToken.userId);
           throw new UnauthorizedError('Invalid user account.');
         }
 
         const newAccessTokenPayload: AuthorizationTokenPayload = {
           userId: user.userId,
           email: user.email,
+          isActive: user.isActive,
         };
         const newAccessToken = generateJWT(newAccessTokenPayload);
 
@@ -187,7 +248,8 @@ export const AuthenticationService = (
 
         return {
           accessToken: newAccessToken,
-          refreshToken: newRefreshToken.refreshToken,
+          refreshTokenId: newRefreshToken.refreshToken.refreshTokenId,
+          refreshTokenPlain: newRefreshToken.refreshTokenPlain,
         };
       } catch (error) {
         if (error instanceof UnauthorizedError) {
@@ -195,32 +257,83 @@ export const AuthenticationService = (
         }
         logger.error('Refresh token processing error', {
           error: error instanceof Error ? error.message : 'Unknown error',
-          userId: validatedData.userId,
-          refreshToken: validatedData.refreshToken,
+          refreshTokenId: validatedData.refreshTokenId,
         });
         throw new DatabaseError('Failed to process refresh token');
       }
     },
 
+    // async refreshAccessToken(
+    //   validatedData: AuthenticationRefreshRequest
+    // ): Promise<AuthenticationRefreshService> {
+    //   try {
+    //     const matchedToken = await refreshTokenService.findByUserAndMatch(
+    //       validatedData.userId,
+    //       validatedData.refreshToken
+    //     );
+
+    //     if (
+    //       !matchedToken ||
+    //       matchedToken.revoked ||
+    //       Date.now() > new Date(matchedToken.expiresAt).getTime()
+    //     ) {
+    //       logger.warn('Potential session hijacking attempt', {
+    //         userId: validatedData.userId,
+    //         refreshToken: validatedData.refreshToken,
+    //       });
+    //       await refreshTokenService.deleteAllUserTokens(validatedData.userId);
+    //       throw new UnauthorizedError('Invalid session. Please login again.');
+    //     }
+
+    //     await refreshTokenService.tombstoneToken(matchedToken);
+
+    //     const user = await userService.findById(matchedToken.userId);
+    //     if (!user) {
+    //       throw new UnauthorizedError('Invalid user account.');
+    //     }
+
+    //     const newAccessTokenPayload: AuthorizationTokenPayload = {
+    //       userId: user.userId,
+    //       email: user.email,
+    //     };
+    //     const newAccessToken = generateJWT(newAccessTokenPayload);
+
+    //     const newRefreshToken = await refreshTokenService.create(user.userId);
+
+    //     return {
+    //       accessToken: newAccessToken,
+    //       refreshToken: newRefreshToken.refreshToken,
+    //     };
+    //   } catch (error) {
+    //     if (error instanceof UnauthorizedError) {
+    //       throw error;
+    //     }
+    //     logger.error('Refresh token processing error', {
+    //       error: error instanceof Error ? error.message : 'Unknown error',
+    //       userId: validatedData.userId,
+    //       refreshToken: validatedData.refreshToken,
+    //     });
+    //     throw new DatabaseError('Failed to process refresh token');
+    //   }
+    // },
+
     async logout(validatedData: AuthenticationRefreshRequest): Promise<void> {
       try {
-        const matchedToken = await refreshTokenService.findByUserAndMatch(
-          validatedData.userId,
-          validatedData.refreshToken
+        const matchedToken = await refreshTokenService.findByIdAndMatch(
+          validatedData.refreshTokenId,
+          validatedData.refreshTokenPlain
         );
         if (!matchedToken) throw new NotFoundError('Refresh token not found');
-        await refreshTokenService.deleteToken(
-          validatedData.userId,
-          matchedToken.refreshTokenId
-        );
+
+        await refreshTokenService.tombstoneToken(matchedToken);
       } catch (error) {
         if (error instanceof NotFoundError) throw error;
-        logger.error('Failed to delete refresh token', {
+        logger.error('Failed to tombstone refresh token', {
           error: error instanceof Error ? error.message : 'Unknown error',
-          userId: validatedData.userId,
-          refreshToken: validatedData.refreshToken,
+          refreshTokenId: validatedData.refreshTokenId,
+          refreshTokenPlain: validatedData.refreshTokenPlain,
         });
-        throw new DatabaseError('Failed to delete refresh token');
+        throw new DatabaseError('Failed to tombstone refresh token');
       }
     },
 

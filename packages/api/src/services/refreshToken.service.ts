@@ -1,17 +1,19 @@
 import { logger } from '../middlewares/logger.middleware';
 import { IRefreshTokenModel } from '../models/refreshToken.model';
-import { RefreshToken } from '../../../shared/types/refreshToken.type';
+import {
+  RefreshToken,
+  RefreshTokenRecordAndPlain,
+} from '../../../shared/types/refreshToken.type';
 import { ConflictError, DatabaseError } from '../utils/errors.utils';
 import { generateSecureRefreshToken, generateUUID } from '../utils/uuid.utils';
 import { ENV } from '../config/env_variables';
 import bcrypt from 'bcryptjs';
 
 export interface IRefreshTokenService {
-  create(
-    userId: string
-  ): Promise<{ refreshToken: string; refreshTokenRecord: RefreshToken }>;
-  findByUserAndMatch(
-    userId: string,
+  create(userId: string): Promise<RefreshTokenRecordAndPlain>;
+  findById(id: string): Promise<RefreshToken | null>;
+  findByIdAndMatch(
+    id: string,
     refreshTokenPlain: string
   ): Promise<RefreshToken | null>;
   tombstoneToken(refreshToken: RefreshToken): Promise<void>;
@@ -23,9 +25,7 @@ export const RefreshTokenService = (
   refreshTokenModel: IRefreshTokenModel
 ): IRefreshTokenService => {
   return {
-    async create(
-      userId: string
-    ): Promise<{ refreshToken: string; refreshTokenRecord: RefreshToken }> {
+    async create(userId: string): Promise<RefreshTokenRecordAndPlain> {
       const refreshTokenPlain = generateSecureRefreshToken();
 
       const salt = await bcrypt.genSalt(Number(ENV.BCRYPT_SALT_ROUNDS_RT));
@@ -47,10 +47,12 @@ export const RefreshTokenService = (
 
       try {
         const createdToken = await refreshTokenModel.create(tokenToStore);
-        return {
-          refreshToken: refreshTokenPlain,
-          refreshTokenRecord: createdToken,
+        const refreshTokenRecordAndPlain: RefreshTokenRecordAndPlain = {
+          refreshTokenPlain: refreshTokenPlain,
+          refreshToken: createdToken,
         };
+
+        return refreshTokenRecordAndPlain;
       } catch (error) {
         if (
           error instanceof Error &&
@@ -96,36 +98,78 @@ export const RefreshTokenService = (
     //   }
     // },
 
-    async findByUserAndMatch(
-      userId: string,
+    async findById(id: string): Promise<RefreshToken | null> {
+      try {
+        return await refreshTokenModel.findById(id);
+      } catch (error) {
+        logger.error('Service Error: Failed to retrieve refresh token', {
+          error: error instanceof Error ? error.message : error,
+          id,
+        });
+        throw new DatabaseError('Failed to find refresh token');
+      }
+    },
+
+    async findByIdAndMatch(
+      id: string,
       refreshTokenPlain: string
     ): Promise<RefreshToken | null> {
       try {
-        const refreshTokensFromDB =
-          await refreshTokenModel.findByUserId(userId);
+        const refreshTokenFromDB = await refreshTokenModel.findById(id);
 
-        if (!refreshTokensFromDB || refreshTokensFromDB.length === 0)
-          return null;
+        if (!refreshTokenFromDB) return null;
 
-        for (const token of refreshTokensFromDB) {
-          if (
-            !token.revoked &&
-            new Date(token.expiresAt).getTime() > Date.now() &&
-            (await bcrypt.compare(refreshTokenPlain, token.refreshTokenHash))
-          ) {
-            return token;
-          }
+        if (
+          !refreshTokenFromDB.revoked &&
+          new Date(refreshTokenFromDB.expiresAt).getTime() > Date.now() &&
+          (await bcrypt.compare(
+            refreshTokenPlain,
+            refreshTokenFromDB.refreshTokenHash
+          ))
+        ) {
+          return refreshTokenFromDB;
         }
 
         return null;
       } catch (error) {
         logger.error('Service Error: Failed to retrieve refresh token', {
           error: error instanceof Error ? error.message : error,
-          userId,
+          id,
         });
         throw new DatabaseError('Failed to find refresh token');
       }
     },
+
+    // async findByUserAndMatch(
+    //   userId: string,
+    //   refreshTokenPlain: string
+    // ): Promise<RefreshToken | null> {
+    //   try {
+    //     const refreshTokensFromDB =
+    //       await refreshTokenModel.findByUserId(userId);
+
+    //     if (!refreshTokensFromDB || refreshTokensFromDB.length === 0)
+    //       return null;
+
+    //     for (const token of refreshTokensFromDB) {
+    //       if (
+    //         !token.revoked &&
+    //         new Date(token.expiresAt).getTime() > Date.now() &&
+    //         (await bcrypt.compare(refreshTokenPlain, token.refreshTokenHash))
+    //       ) {
+    //         return token;
+    //       }
+    //     }
+
+    //     return null;
+    //   } catch (error) {
+    //     logger.error('Service Error: Failed to retrieve refresh token', {
+    //       error: error instanceof Error ? error.message : error,
+    //       userId,
+    //     });
+    //     throw new DatabaseError('Failed to find refresh token');
+    //   }
+    // },
 
     // async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
     //   try {
@@ -145,7 +189,12 @@ export const RefreshTokenService = (
 
     async tombstoneToken(refreshToken: RefreshToken): Promise<void> {
       try {
-        await refreshTokenModel.tombstoneToken(refreshToken);
+        const tokenToTombstone = {
+          ...refreshToken,
+          revoked: true,
+          revokedAt: new Date().toISOString(),
+        };
+        await refreshTokenModel.tombstoneToken(tokenToTombstone);
       } catch (error) {
         if (error instanceof Error) {
           logger.error('Service Error: Failed to tombstone refresh token', {

@@ -1,4 +1,10 @@
 import z from 'zod';
-import { refreshTokenSchema } from '../schemas/refreshToken.schema';
+import {
+  refreshTokenRecordAndPlainSchema,
+  refreshTokenSchema,
+} from '../schemas/refreshToken.schema';
 
 export type RefreshToken = z.infer<typeof refreshTokenSchema>;
+export type RefreshTokenRecordAndPlain = z.infer<
+  typeof refreshTokenRecordAndPlainSchema
+>;

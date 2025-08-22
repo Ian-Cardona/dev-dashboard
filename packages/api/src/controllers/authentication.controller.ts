@@ -7,11 +7,10 @@ import {
   authenticationRegisterRequestSchema,
 } from '../../../shared/schemas/auth.schema';
 import {
+  AuthenticationJWTResponse,
   AuthenticationLoginRequest,
   AuthenticationRefreshRequest,
-  AuthenticationRefreshResponse,
   AuthenticationRegisterRequest,
-  AuthenticationSuccessResponse,
 } from '../../../shared/types/auth.type';
 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
@@ -65,17 +64,23 @@ export const AuthenticationController = (
           authenticationRegisterRequestSchema.parse(req.body);
         const result = await authService.register(validatedData);
 
-        res.cookie('refreshToken', result.refreshToken, {
+        res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'lax',
-          path: '/',
+          sameSite: 'strict',
+          path: '/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationSuccessResponse = {
+        res.cookie('rt2', result.refreshTokenId, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        const response: AuthenticationJWTResponse = {
           accessToken: result.accessToken,
-          user: result.user,
         };
 
         res.status(201).json(response);
@@ -90,17 +95,23 @@ export const AuthenticationController = (
           authenticationLoginRequestSchema.parse(req.body);
         const result = await authService.login(validatedData);
 
-        res.cookie('refreshToken', result.refreshToken, {
+        res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'lax',
-          path: '/',
+          sameSite: 'strict',
+          path: '/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationSuccessResponse = {
+        res.cookie('rt2', result.refreshTokenId, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        const response: AuthenticationJWTResponse = {
           accessToken: result.accessToken,
-          user: result.user,
         };
 
         res.status(200).json(response);
@@ -111,24 +122,33 @@ export const AuthenticationController = (
 
     async refreshAccessToken(req: Request, res: Response, next: NextFunction) {
       try {
-        const userIdAndRefreshToken = {
-          userId: req.body.userId,
+        const refreshTokenIdAndRefreshToken = {
+          refreshTokenId: req.body.refreshTokenId,
           refreshToken: req.cookies.refreshToken,
         };
 
         const validatedData: AuthenticationRefreshRequest =
-          authenticationRefreshRequestSchema.parse(userIdAndRefreshToken);
+          authenticationRefreshRequestSchema.parse(
+            refreshTokenIdAndRefreshToken
+          );
         const result = await authService.refreshAccessToken(validatedData);
 
-        res.cookie('refreshToken', result.refreshToken, {
+        res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'lax',
-          path: '/',
+          sameSite: 'strict',
+          path: '/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationRefreshResponse = {
+        res.cookie('rt2', result.refreshTokenId, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        const response: AuthenticationJWTResponse = {
           accessToken: result.accessToken,
         };
 

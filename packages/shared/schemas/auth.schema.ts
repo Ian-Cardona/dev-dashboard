@@ -65,26 +65,30 @@ export const authenticationLoginRequestSchema = z.object({
 });
 
 export const authenticationRefreshRequestSchema = z.object({
-  userId: z.uuidv4(),
-  refreshToken: z.string().min(1).max(512),
+  refreshTokenId: z.uuidv4(),
+  refreshTokenPlain: z.uuidv4(),
 });
 
 export const authenticationSuccessServiceSchema = z.object({
   accessToken: z.jwt(),
-  refreshToken: z.uuidv4(),
+  refreshTokenPlain: z.uuidv4(),
+  refreshTokenId: z.uuidv4(),
   user: responseUserSchema,
 });
 
 export const authenticationSuccessResponseSchema = z.object({
   accessToken: z.jwt(),
+  refreshTokenPlain: z.uuidv4(),
+  refreshTokenId: z.uuidv4(),
   user: responseUserSchema,
 });
 
 export const authenticationRefreshServiceSchema = z.object({
   accessToken: z.jwt(),
-  refreshToken: z.uuidv4(),
+  refreshTokenPlain: z.uuidv4(),
+  refreshTokenId: z.uuidv4(),
 });
 
-export const authenticationRefreshResponseSchema = z.object({
+export const authenticationJWTResponseSchema = z.object({
   accessToken: z.jwt(),
 });
