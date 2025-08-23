@@ -1,5 +1,5 @@
 import z from 'zod';
-import { responseUserSchema } from './user.schema';
+import { userResponsePublicSchema } from './user.schema';
 
 // Helper Validation
 export const passwordStrengthValidation = (email?: string, username?: string) =>
@@ -51,7 +51,7 @@ export const loginPasswordSchema = z
   });
 
 // Register Validation
-export const authenticationRegisterRequestSchema = z.object({
+export const authenticationRegisterRequestPublicSchema = z.object({
   email: z.email(),
   password: passwordStrengthValidation(),
   firstName: z.string().nullish().default(null),
@@ -59,36 +59,38 @@ export const authenticationRegisterRequestSchema = z.object({
 });
 
 // Login Validation
-export const authenticationLoginRequestSchema = z.object({
+export const authenticationLoginRequestPublicSchema = z.object({
   email: z.email(),
   password: loginPasswordSchema,
 });
 
-export const authenticationRefreshRequestSchema = z.object({
-  refreshTokenId: z.uuidv4(),
-  refreshTokenPlain: z.uuidv4(),
-});
-
-export const authenticationSuccessServiceSchema = z.object({
+// Success Response Validation
+export const authenticationSuccessResponsePrivateSchema = z.object({
   accessToken: z.jwt(),
-  refreshTokenPlain: z.uuidv4(),
+  refreshTokenPlain: z.string(),
   refreshTokenId: z.uuidv4(),
-  user: responseUserSchema,
+  user: userResponsePublicSchema,
 });
 
-export const authenticationSuccessResponseSchema = z.object({
+// Refresh Validation
+export const authenticationRefreshRequestPrivateSchema = z.object({
+  refreshTokenId: z.uuidv4(),
+  refreshTokenPlain: z.string(),
+});
+
+// Refresh Response Validation
+export const authenticationRefreshResponsePrivateSchema = z.object({
   accessToken: z.jwt(),
-  refreshTokenPlain: z.uuidv4(),
+  refreshTokenPlain: z.string(),
   refreshTokenId: z.uuidv4(),
-  user: responseUserSchema,
 });
 
-export const authenticationRefreshServiceSchema = z.object({
+// Public Response Validation
+export const authenticationResponsePublicSchema = z.object({
   accessToken: z.jwt(),
-  refreshTokenPlain: z.uuidv4(),
-  refreshTokenId: z.uuidv4(),
+  user: userResponsePublicSchema,
 });
 
-export const authenticationJWTResponseSchema = z.object({
+export const authorizationJwtSchema = z.object({
   accessToken: z.jwt(),
 });

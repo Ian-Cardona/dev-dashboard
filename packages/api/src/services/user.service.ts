@@ -1,35 +1,40 @@
-import { logger } from '../middlewares/logger.middleware';
 import { IUserModel } from '../models/user.model';
-import { ResponseUser, User } from '../../../shared/types/user.type';
-import {
-  ConflictError,
-  DatabaseError,
-  NotFoundError,
-} from '../utils/errors.utils';
+import { UserResponsePublic, User } from '../../../shared/types/user.type';
+import { ConflictError, NotFoundError } from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
 import bcrypt from 'bcryptjs';
 import { ENV } from '../config/env_variables';
-import { AuthenticationRegisterRequest } from '../../../shared/types/auth.type';
+import { AuthenticationRegisterRequestPublicSchema } from '../../../shared/types/auth.type';
 
 export interface IUserService {
-  create(user: AuthenticationRegisterRequest): Promise<ResponseUser>;
-  findById(userId: string): Promise<ResponseUser>;
+  create(
+    user: AuthenticationRegisterRequestPublicSchema
+  ): Promise<UserResponsePublic>;
+  findById(userId: string): Promise<UserResponsePublic>;
   findByEmailForAuth(email: string): Promise<User>;
-  findByEmailForPublic(email: string): Promise<ResponseUser>;
+  findByEmailForPublic(email: string): Promise<UserResponsePublic>;
   emailExists(email: string): Promise<boolean>;
   update(
     userId: string,
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>
-  ): Promise<ResponseUser>;
+  ): Promise<UserResponsePublic>;
   delete(userId: string): Promise<void>;
-  updateLastLogin(userId: string, timestamp: string): Promise<ResponseUser>;
-  updatePassword(userId: string, passwordHash: string): Promise<ResponseUser>;
-  deactivateUser(userId: string): Promise<ResponseUser>;
+  updateLastLogin(
+    userId: string,
+    timestamp: string
+  ): Promise<UserResponsePublic>;
+  updatePassword(
+    userId: string,
+    passwordHash: string
+  ): Promise<UserResponsePublic>;
+  deactivateUser(userId: string): Promise<UserResponsePublic>;
 }
 
 export const UserService = (userModel: IUserModel): IUserService => {
   return {
-    async create(user: AuthenticationRegisterRequest): Promise<ResponseUser> {
+    async create(
+      user: AuthenticationRegisterRequestPublicSchema
+    ): Promise<UserResponsePublic> {
       try {
         const { password, ...userWithoutPassword } = user;
 
@@ -49,7 +54,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
         });
 
         // TODO: Fix the schemas to avoid manual object manipulation like this
-        const responseUser: ResponseUser = {
+        const responseUser: UserResponsePublic = {
           userId: result.userId,
           email: result.email,
           firstName: result.firstName,
@@ -65,15 +70,11 @@ export const UserService = (userModel: IUserModel): IUserService => {
         ) {
           throw new ConflictError('User already exists');
         }
-        logger.error('User creation failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          email: user.email,
-        });
-        throw new DatabaseError('Failed to create user');
+        throw new Error('Failed to create user');
       }
     },
 
-    async findById(userId: string): Promise<ResponseUser> {
+    async findById(userId: string): Promise<UserResponsePublic> {
       try {
         const user = await userModel.findById(userId);
 
@@ -88,11 +89,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
         if (error instanceof NotFoundError) {
           throw error;
         }
-        logger.error('User lookup failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-        });
-        throw new DatabaseError('Could not find the user');
+        throw new Error('Could not find the user');
       }
     },
 
@@ -109,15 +106,11 @@ export const UserService = (userModel: IUserModel): IUserService => {
         if (error instanceof NotFoundError) {
           throw error;
         }
-        logger.error('User lookup by email failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          email,
-        });
-        throw new DatabaseError('Could not find the user');
+        throw new Error('Could not find the user');
       }
     },
 
-    async findByEmailForPublic(email: string): Promise<ResponseUser> {
+    async findByEmailForPublic(email: string): Promise<UserResponsePublic> {
       try {
         const user = await userModel.findByEmail(email);
 
@@ -132,11 +125,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
         if (error instanceof NotFoundError) {
           throw error;
         }
-        logger.error('User lookup by email failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          email,
-        });
-        throw new DatabaseError('Could not find the user');
+        throw new Error('Could not find the user');
       }
     },
 
@@ -145,11 +134,10 @@ export const UserService = (userModel: IUserModel): IUserService => {
         const user = await userModel.findByEmail(email);
         return user !== null;
       } catch (error) {
-        logger.error('Email existence check failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          email,
-        });
-        throw new DatabaseError('Could not check email existence');
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('Could not check email existence');
       }
     },
 
@@ -158,7 +146,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
       updates: Partial<
         Omit<User, 'userId' | 'email' | 'createdAt' | 'passwordHash'>
       >
-    ): Promise<ResponseUser> {
+    ): Promise<UserResponsePublic> {
       try {
         const result = await userModel.update(userId, updates);
 
@@ -174,13 +162,9 @@ export const UserService = (userModel: IUserModel): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User ${userId} not found`);
+          throw new NotFoundError(`User not found`);
         }
-        logger.error('User update failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-        });
-        throw new DatabaseError('Could not update the user');
+        throw new Error('Could not update the user');
       }
     },
 
@@ -192,20 +176,16 @@ export const UserService = (userModel: IUserModel): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User ${userId} not found`);
+          throw new NotFoundError(`User not found`);
         }
-        logger.error('User deletion failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-        });
-        throw new DatabaseError('Could not delete the user');
+        throw new Error('Could not delete the user');
       }
     },
 
     async updateLastLogin(
       userId: string,
       timestamp: string
-    ): Promise<ResponseUser> {
+    ): Promise<UserResponsePublic> {
       try {
         const result = await userModel.updateLastLogin(userId, timestamp);
 
@@ -221,20 +201,16 @@ export const UserService = (userModel: IUserModel): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User ${userId} not found`);
+          throw new NotFoundError(`User not found`);
         }
-        logger.error('Last login update failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-        });
-        throw new DatabaseError('Could not update the user last login');
+        throw new Error('Could not update the user last login');
       }
     },
 
     async updatePassword(
       userId: string,
       newPasswordHash: string
-    ): Promise<ResponseUser> {
+    ): Promise<UserResponsePublic> {
       try {
         const result = await userModel.updatePassword(userId, newPasswordHash);
 
@@ -250,17 +226,13 @@ export const UserService = (userModel: IUserModel): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User ${userId} not found`);
+          throw new NotFoundError(`User not found`);
         }
-        logger.error('Password update failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-        });
-        throw new DatabaseError('Could not update the user password');
+        throw new Error('Could not update the user password');
       }
     },
 
-    async deactivateUser(userId: string): Promise<ResponseUser> {
+    async deactivateUser(userId: string): Promise<UserResponsePublic> {
       try {
         const result = await userModel.deactivateUser(userId);
 
@@ -276,13 +248,9 @@ export const UserService = (userModel: IUserModel): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User ${userId} not found`);
+          throw new NotFoundError(`User not found`);
         }
-        logger.error('User deactivation failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-        });
-        throw new DatabaseError('Could not deactivate the user');
+        throw new Error('Could not deactivate the user');
       }
     },
   };

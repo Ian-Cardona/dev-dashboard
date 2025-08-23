@@ -1,49 +1,67 @@
-import { logger } from '../middlewares/logger.middleware';
-import { ResponseUser } from '../../../shared/types/user.type';
 import {
   ConflictError,
-  DatabaseError,
   NotFoundError,
   UnauthorizedError,
 } from '../utils/errors.utils';
 import { generateJWT, verifyJWT } from '../utils/jwt.utils';
 import bcrypt from 'bcryptjs';
 import {
-  AuthenticationLoginRequest,
-  AuthenticationRefreshRequest,
-  AuthenticationRefreshService,
-  AuthenticationRegisterRequest,
-  AuthenticationSuccessService,
+  AuthenticationLoginRequestPublicSchema,
+  AuthenticationRefreshRequestPrivateSchema,
+  AuthenticationRefreshResponsePrivateSchema,
+  AuthenticationRegisterRequestPublicSchema,
+  AuthenticationSuccessResponsePrivateSchema,
   AuthorizationTokenPayload,
 } from '../../../shared/types/auth.type';
 import { IUserService } from './user.service';
 import { IRefreshTokenService } from './refreshToken.service';
-import { RefreshTokenRecordAndPlain } from '../../../shared/types/refreshToken.type';
+import {
+  RefreshToken,
+  RefreshTokenRecordAndPlain,
+} from '../../../shared/types/refreshToken.type';
+import { UserResponsePublic } from '../../../shared/types/user.type';
 
-// TODO: Refactor user flow to return refresh details instead of just the token
 export interface IAuthenticationService {
   register(
-    user: AuthenticationRegisterRequest
-  ): Promise<AuthenticationSuccessService>;
+    user: AuthenticationRegisterRequestPublicSchema
+  ): Promise<AuthenticationSuccessResponsePrivateSchema>;
   login(
-    validatedData: AuthenticationLoginRequest
-  ): Promise<AuthenticationSuccessService>;
+    validatedData: AuthenticationLoginRequestPublicSchema
+  ): Promise<AuthenticationSuccessResponsePrivateSchema>;
   refreshAccessToken(
-    validatedData: AuthenticationRefreshRequest
-  ): Promise<AuthenticationRefreshService>;
-  logout(validatedData: AuthenticationRefreshRequest): Promise<void>;
-  verifyAccessToken(token: string): Promise<ResponseUser>;
+    validatedData: AuthenticationRefreshRequestPrivateSchema
+  ): Promise<AuthenticationRefreshResponsePrivateSchema>;
+  logout(refreshTokenId: string): Promise<void>;
+  verifyAccessToken(token: string): Promise<UserResponsePublic>;
 }
 
-// TODO: Create test suite for this
+// TODO: Create test suite
 export const AuthenticationService = (
   userService: IUserService,
   refreshTokenService: IRefreshTokenService
 ): IAuthenticationService => {
+  const _safelyTombstoneToken = async (token: RefreshToken): Promise<void> => {
+    try {
+      await refreshTokenService.tombstoneToken(token);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (tombstoneError) {
+      const currentToken = await refreshTokenService.findById(
+        token.refreshTokenId
+      );
+
+      if (currentToken && currentToken.revoked) {
+        throw new UnauthorizedError(
+          'Refresh token already used. Please login again.'
+        );
+      }
+
+      throw new Error('Failed to process refresh token');
+    }
+  };
   return {
     async register(
-      user: AuthenticationRegisterRequest
-    ): Promise<AuthenticationSuccessService> {
+      user: AuthenticationRegisterRequestPublicSchema
+    ): Promise<AuthenticationSuccessResponsePrivateSchema> {
       try {
         const emailAlreadyExists = await userService.emailExists(user.email);
 
@@ -51,7 +69,7 @@ export const AuthenticationService = (
           throw new ConflictError('User already exists');
         }
 
-        const newUser: ResponseUser = await userService.create({
+        const newUser: UserResponsePublic = await userService.create({
           email: user.email,
           password: user.password,
           firstName: user.firstName,
@@ -75,24 +93,17 @@ export const AuthenticationService = (
           user: newUser,
         };
       } catch (error) {
-        const safeError =
-          error instanceof ConflictError
-            ? error
-            : new DatabaseError('Registration failed due to internal error');
+        if (error instanceof ConflictError) {
+          throw error;
+        }
 
-        logger.error('User registration error', {
-          error: safeError.message,
-          stack: safeError.stack,
-          email: user.email,
-        });
-
-        throw safeError;
+        throw new Error('Registration failed due to internal error');
       }
     },
 
     async login(
-      validatedData: AuthenticationLoginRequest
-    ): Promise<AuthenticationSuccessService> {
+      validatedData: AuthenticationLoginRequestPublicSchema
+    ): Promise<AuthenticationSuccessResponsePrivateSchema> {
       try {
         const user = await userService.findByEmailForAuth(validatedData.email);
 
@@ -121,7 +132,7 @@ export const AuthenticationService = (
 
         const newRefreshToken = await refreshTokenService.create(user.userId);
 
-        const responseUser: ResponseUser = {
+        const responseUser: UserResponsePublic = {
           userId: user.userId,
           email: user.email,
           firstName: user.firstName,
@@ -136,114 +147,44 @@ export const AuthenticationService = (
           user: responseUser,
         };
       } catch (error) {
-        const safeError =
-          error instanceof UnauthorizedError
-            ? error
-            : new UnauthorizedError('Invalid email or password');
+        if (error instanceof UnauthorizedError) {
+          throw error;
+        }
 
-        logger.warn('User login failed', {
-          error: safeError.message,
-          email: validatedData.email,
-        });
-
-        throw safeError;
+        throw new Error('Login failed due to internal error');
       }
     },
 
     async refreshAccessToken(
-      validatedData: AuthenticationRefreshRequest
-    ): Promise<AuthenticationRefreshService> {
+      validatedData: AuthenticationRefreshRequestPrivateSchema
+    ): Promise<AuthenticationRefreshResponsePrivateSchema> {
       try {
         const matchedToken = await refreshTokenService.findByIdAndMatch(
           validatedData.refreshTokenId,
           validatedData.refreshTokenPlain
         );
-
         if (!matchedToken) {
-          logger.warn(
-            'Potential session hijacking attempt - no matching token',
-            {
-              refreshTokenId: validatedData.refreshTokenId,
-            }
-          );
           throw new UnauthorizedError('Invalid session. Please login again.');
         }
-
         if (
           matchedToken.revoked ||
           Date.now() > new Date(matchedToken.expiresAt).getTime()
         ) {
-          logger.warn(
-            'Potential session hijacking attempt - token invalid state',
-            {
-              refreshTokenId: validatedData.refreshTokenId,
-            }
-          );
           await refreshTokenService.deleteAllUserTokens(matchedToken.userId);
           throw new UnauthorizedError('Invalid session. Please login again.');
         }
-
-        try {
-          await refreshTokenService.tombstoneToken(matchedToken);
-        } catch (tombstoneErr) {
-          try {
-            const currentToken = await refreshTokenService.findById(
-              matchedToken.refreshTokenId
-            );
-            if (currentToken && currentToken.revoked) {
-              logger.warn(
-                'Duplicate refresh detected — token already tombstoned',
-                {
-                  userId: matchedToken.userId,
-                  refreshTokenId: matchedToken.refreshTokenId,
-                }
-              );
-
-              await refreshTokenService.deleteAllUserTokens(
-                matchedToken.userId
-              );
-              throw new UnauthorizedError(
-                'Refresh token already used. Please login again.'
-              );
-            }
-
-            logger.error('Failed to tombstone refresh token.', {
-              error:
-                tombstoneErr instanceof Error
-                  ? tombstoneErr.message
-                  : tombstoneErr,
-              userId: matchedToken.userId,
-              refreshTokenId: matchedToken.refreshTokenId,
-            });
-            throw new DatabaseError('Failed to process refresh token');
-          } catch (verifyErr) {
-            logger.error(
-              'Error verifying token status after tombstone failure',
-              {
-                error:
-                  verifyErr instanceof Error ? verifyErr.message : verifyErr,
-                userId: matchedToken.userId,
-                refreshTokenId: matchedToken.refreshTokenId,
-              }
-            );
-            throw new DatabaseError('Failed to process refresh token');
-          }
-        }
-
+        await _safelyTombstoneToken(matchedToken);
         const user = await userService.findById(matchedToken.userId);
-
         if (!user) {
           await refreshTokenService.deleteAllUserTokens(matchedToken.userId);
           throw new UnauthorizedError('Invalid user account.');
         }
-
         const newAccessTokenPayload: AuthorizationTokenPayload = {
           userId: user.userId,
           email: user.email,
           isActive: user.isActive,
         };
         const newAccessToken = generateJWT(newAccessTokenPayload);
-
         const newRefreshToken = await refreshTokenService.create(user.userId);
 
         return {
@@ -255,46 +196,86 @@ export const AuthenticationService = (
         if (error instanceof UnauthorizedError) {
           throw error;
         }
-        logger.error('Refresh token processing error', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          refreshTokenId: validatedData.refreshTokenId,
-        });
-        throw new DatabaseError('Failed to process refresh token');
+
+        throw new Error('Failed to process refresh token.');
       }
     },
 
     // async refreshAccessToken(
-    //   validatedData: AuthenticationRefreshRequest
-    // ): Promise<AuthenticationRefreshService> {
+    //   validatedData: AuthenticationRefreshRequestPrivateSchema
+    // ): Promise<AuthenticationRefreshResponsePrivateSchema> {
     //   try {
-    //     const matchedToken = await refreshTokenService.findByUserAndMatch(
-    //       validatedData.userId,
-    //       validatedData.refreshToken
+    //     const matchedToken = await refreshTokenService.findByIdAndMatch(
+    //       validatedData.refreshTokenId,
+    //       validatedData.refreshTokenPlain
     //     );
 
-    //     if (
-    //       !matchedToken ||
-    //       matchedToken.revoked ||
-    //       Date.now() > new Date(matchedToken.expiresAt).getTime()
-    //     ) {
-    //       logger.warn('Potential session hijacking attempt', {
-    //         userId: validatedData.userId,
-    //         refreshToken: validatedData.refreshToken,
-    //       });
-    //       await refreshTokenService.deleteAllUserTokens(validatedData.userId);
+    //     if (!matchedToken) {
+    //       logger.warn(
+    //         'Potential session hijacking attempt - no matching token',
+    //         {
+    //           refreshTokenId: validatedData.refreshTokenId,
+    //         }
+    //       );
     //       throw new UnauthorizedError('Invalid session. Please login again.');
     //     }
 
-    //     await refreshTokenService.tombstoneToken(matchedToken);
+    //     if (
+    //       matchedToken.revoked ||
+    //       Date.now() > new Date(matchedToken.expiresAt).getTime()
+    //     ) {
+    //       logger.warn(
+    //         'Potential session hijacking attempt - token invalid state',
+    //         {
+    //           refreshTokenId: validatedData.refreshTokenId,
+    //         }
+    //       );
+    //       await refreshTokenService.deleteAllUserTokens(matchedToken.userId);
+    //       throw new UnauthorizedError('Invalid session. Please login again.');
+    //     }
+
+    //     try {
+    //       await refreshTokenService.tombstoneToken(matchedToken);
+    //     } catch (tombstoneErr) {
+    //       const currentToken = await refreshTokenService.findById(
+    //         matchedToken.refreshTokenId
+    //       );
+
+    //       if (currentToken && currentToken.revoked) {
+    //         logger.warn('Duplicate refresh detected — token already revoked', {
+    //           userId: matchedToken.userId,
+    //           refreshTokenId: matchedToken.refreshTokenId,
+    //         });
+
+    //         // await refreshTokenService.deleteAllUserTokens(matchedToken.userId);
+    //         throw new UnauthorizedError(
+    //           'Refresh token already used. Please login again.'
+    //         );
+    //       }
+
+    //       logger.error('Failed to tombstone refresh token.', {
+    //         error:
+    //           tombstoneErr instanceof Error
+    //             ? tombstoneErr.message
+    //             : tombstoneErr,
+    //         userId: matchedToken.userId,
+    //         refreshTokenId: matchedToken.refreshTokenId,
+    //       });
+
+    //       throw new DatabaseError('Failed to process refresh token');
+    //     }
 
     //     const user = await userService.findById(matchedToken.userId);
+
     //     if (!user) {
+    //       await refreshTokenService.deleteAllUserTokens(matchedToken.userId);
     //       throw new UnauthorizedError('Invalid user account.');
     //     }
 
     //     const newAccessTokenPayload: AuthorizationTokenPayload = {
     //       userId: user.userId,
     //       email: user.email,
+    //       isActive: user.isActive,
     //     };
     //     const newAccessToken = generateJWT(newAccessTokenPayload);
 
@@ -302,60 +283,49 @@ export const AuthenticationService = (
 
     //     return {
     //       accessToken: newAccessToken,
-    //       refreshToken: newRefreshToken.refreshToken,
+    //       refreshTokenId: newRefreshToken.refreshToken.refreshTokenId,
+    //       refreshTokenPlain: newRefreshToken.refreshTokenPlain,
     //     };
     //   } catch (error) {
     //     if (error instanceof UnauthorizedError) {
-    //       throw error;
+    //       throw new UnauthorizedError('Invalid session. Please login again.');
     //     }
     //     logger.error('Refresh token processing error', {
     //       error: error instanceof Error ? error.message : 'Unknown error',
-    //       userId: validatedData.userId,
-    //       refreshToken: validatedData.refreshToken,
+    //       refreshTokenId: validatedData.refreshTokenId,
     //     });
     //     throw new DatabaseError('Failed to process refresh token');
     //   }
     // },
 
-    async logout(validatedData: AuthenticationRefreshRequest): Promise<void> {
+    async logout(refreshTokenId: string): Promise<void> {
       try {
-        const matchedToken = await refreshTokenService.findByIdAndMatch(
-          validatedData.refreshTokenId,
-          validatedData.refreshTokenPlain
-        );
-        if (!matchedToken) throw new NotFoundError('Refresh token not found');
-
-        await refreshTokenService.tombstoneToken(matchedToken);
+        const token = await refreshTokenService.findById(refreshTokenId);
+        if (token) {
+          await refreshTokenService.tombstoneToken(token);
+        }
       } catch (error) {
         if (error instanceof NotFoundError) throw error;
-        logger.error('Failed to tombstone refresh token', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          refreshTokenId: validatedData.refreshTokenId,
-          refreshTokenPlain: validatedData.refreshTokenPlain,
-        });
-        throw new DatabaseError('Failed to tombstone refresh token');
+        throw new Error('Failed to logout');
       }
     },
 
-    async verifyAccessToken(token: string): Promise<ResponseUser> {
+    async verifyAccessToken(token: string): Promise<UserResponsePublic> {
       let decodedToken: AuthorizationTokenPayload;
 
       try {
         decodedToken = verifyJWT(token);
       } catch {
-        logger.warn('Invalid or expired JWT');
         throw new UnauthorizedError('Invalid or expired access token');
       }
 
       if (!decodedToken?.userId) {
-        logger.warn('JWT payload missing required userId');
         throw new UnauthorizedError('Invalid token payload');
       }
 
       const user = await userService.findById(decodedToken.userId);
 
       if (!user) {
-        logger.warn(`User not found for ID ${decodedToken.userId}`);
         throw new UnauthorizedError('User not found');
       }
 

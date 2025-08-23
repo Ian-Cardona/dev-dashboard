@@ -8,6 +8,7 @@ import {
   ScanCommandOutput,
   QueryCommandOutput,
   UpdateCommand,
+  GetCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { RefreshToken } from '../../../shared/types/refreshToken.type';
 import { ENV } from '../config/env_variables';
@@ -64,16 +65,15 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
 
     async findById(id: string): Promise<RefreshToken | null> {
       const result = await docClient.send(
-        new QueryCommand({
+        new GetCommand({
           TableName: REFRESH_TOKEN_TABLE,
-          KeyConditionExpression: 'refreshTokenId = :refreshTokenId',
-          ExpressionAttributeValues: {
-            ':refreshTokenId': id,
+          Key: {
+            refreshTokenId: id,
           },
         })
       );
 
-      return (result.Items as RefreshToken[])?.[0] || null;
+      return (result.Item as RefreshToken) || null;
     },
 
     // async findByUserId(userId: string): Promise<RefreshToken[] | null> {
@@ -121,16 +121,16 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
         new UpdateCommand({
           TableName: REFRESH_TOKEN_TABLE,
           Key: {
-            userId: refreshToken.userId,
             refreshTokenId: refreshToken.refreshTokenId,
           },
           UpdateExpression: 'SET revoked = :revoked, revokedAt = :revokedAt',
           ConditionExpression:
-            'attribute_exists(userId) AND attribute_exists(refreshTokenId) AND (attribute_not_exists(revoked) OR revoked = :false)',
+            'userId = :userId AND (attribute_not_exists(revoked) OR revoked = :false)',
           ExpressionAttributeValues: {
             ':revoked': refreshToken.revoked,
             ':revokedAt': refreshToken.revokedAt,
             ':false': false,
+            ':userId': refreshToken.userId,
           },
         })
       );

@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import {
   ConflictError,
-  DatabaseError,
   NotFoundError,
   UnauthorizedError,
 } from '../utils/errors.utils';
@@ -49,10 +48,6 @@ export const errorHandlerMiddleware = (
 
   if (error instanceof ConflictError) {
     return sendError(res, 'Conflict', error.message, 409);
-  }
-
-  if (error instanceof DatabaseError) {
-    return sendError(res, 'Database Error', error.message, 500);
   }
 
   return sendError(

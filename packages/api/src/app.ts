@@ -42,9 +42,15 @@ app.use(loggerMiddleware);
 
 app.use('/auth', authenticationRouter);
 app.use('/codetasks', codeTaskRouter);
-app.use('/users', authorizationMiddleware, userRouter);
+app.use('/user', authorizationMiddleware, userRouter);
 
 app.get('/health', (req, res) => res.send({ status: 'ok' }));
+
+app.use((req, res) => {
+  res
+    .status(404)
+    .json({ status: 'Not Found', message: 'Path does not exist.' });
+});
 
 app.use(errorHandlerMiddleware);
 

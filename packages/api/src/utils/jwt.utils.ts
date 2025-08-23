@@ -9,7 +9,7 @@ export const generateJWT = (payload: AuthorizationTokenPayload): string => {
   }
 
   const signOptions: SignOptions = {
-    expiresIn: '30m', // TODO: Use env variable for this
+    expiresIn: '30m',
     algorithm: 'HS256',
     issuer: ENV.APP_NAME,
     audience: ENV.CLIENT_APP_NAME,
