@@ -1,13 +1,9 @@
-import type { AuthenticationSuccessResponse } from '../../../shared/types/auth.type';
-import { client } from './api';
+import type { AuthenticationResponsePublicSchema } from '../../../shared/types/auth.type';
+import { publicClient } from './api';
 
-export const auth = {
-  refresh: async ({
-    userId,
-  }: {
-    userId: string;
-  }): Promise<AuthenticationSuccessResponse> => {
-    const res = await client.post('/auth/refresh', { userId });
+export const authApi = {
+  refresh: async (): Promise<AuthenticationResponsePublicSchema> => {
+    const res = await publicClient.post('/auth/refresh');
     return res.data;
   },
 };

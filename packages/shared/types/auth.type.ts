@@ -1,39 +1,34 @@
 import z from 'zod';
 import { JwtPayload } from 'jsonwebtoken';
 import {
-  authenticationRegisterRequestSchema,
-  authenticationLoginRequestSchema,
-  authenticationRefreshRequestSchema,
-  authenticationSuccessResponseSchema,
-  authenticationJWTResponseSchema,
-  authenticationSuccessServiceSchema,
-  authenticationRefreshServiceSchema,
+  authenticationLoginRequestPublicSchema,
+  authenticationResponsePublicSchema,
+  authenticationRefreshRequestPrivateSchema,
+  authenticationRefreshResponsePrivateSchema,
+  authenticationRegisterRequestPublicSchema,
+  authenticationSuccessResponsePrivateSchema,
+  authorizationJwtSchema,
 } from '../schemas/auth.schema';
 
-export type AuthenticationRegisterRequest = z.infer<
-  typeof authenticationRegisterRequestSchema
+export type AuthenticationRegisterRequestPublicSchema = z.infer<
+  typeof authenticationRegisterRequestPublicSchema
 >;
-export type AuthenticationLoginRequest = z.infer<
-  typeof authenticationLoginRequestSchema
+export type AuthenticationLoginRequestPublicSchema = z.infer<
+  typeof authenticationLoginRequestPublicSchema
 >;
-export type AuthenticationRefreshRequest = z.infer<
-  typeof authenticationRefreshRequestSchema
+export type AuthenticationSuccessResponsePrivateSchema = z.infer<
+  typeof authenticationSuccessResponsePrivateSchema
 >;
-
-export type AuthenticationSuccessResponse = z.infer<
-  typeof authenticationSuccessResponseSchema
+export type AuthenticationRefreshRequestPrivateSchema = z.infer<
+  typeof authenticationRefreshRequestPrivateSchema
 >;
-export type AuthenticationJWTResponse = z.infer<
-  typeof authenticationJWTResponseSchema
+export type AuthenticationRefreshResponsePrivateSchema = z.infer<
+  typeof authenticationRefreshResponsePrivateSchema
 >;
-export type AuthenticationSuccessService = z.infer<
-  typeof authenticationSuccessServiceSchema
+export type AuthenticationResponsePublicSchema = z.infer<
+  typeof authenticationResponsePublicSchema
 >;
-export type AuthenticationRefreshService = z.infer<
-  typeof authenticationRefreshServiceSchema
->;
-
-// JWT Payload
+export type AuthorizationJwtSchema = z.infer<typeof authorizationJwtSchema>;
 export interface AuthorizationTokenPayload extends JwtPayload {
   userId: string;
   email: string;

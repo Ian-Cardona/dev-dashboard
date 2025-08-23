@@ -1,6 +1,7 @@
 import z from 'zod';
 import { VALIDATION_CONSTANTS } from '../constants/validations';
 
+// Password Validation
 export const passwordSchema = z
   .string({ message: 'Password is required' })
   .min(
@@ -16,9 +17,9 @@ export const passwordSchema = z
     VALIDATION_CONSTANTS.USER.PASSWORD.MESSAGE
   );
 
+// User Validation
 export const userSchema = z.object({
   userId: z.uuid({ message: 'Invalid UUID' }),
-
   email: z.email({ message: 'Invalid email address' }),
   passwordHash: z.string({ message: 'Invalid password hash' }).trim(),
   firstName: z
@@ -65,33 +66,6 @@ export const userSchema = z.object({
   role: z.enum(['user', 'admin']).default('user'),
 });
 
-// export const userCreateSchema = z.object({
-//   email: z.email({ message: 'Invalid email' }),
-//   password: passwordSchema,
-//   firstName: z
-//     .string()
-//     .min(
-//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MIN_LENGTH,
-//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
-//     )
-//     .max(
-//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH,
-//       VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
-//     )
-//     .optional(),
-//   lastName: z
-//     .string()
-//     .min(
-//       VALIDATION_CONSTANTS.USER.LAST_NAME.MIN_LENGTH,
-//       VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
-//     )
-//     .max(
-//       VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH,
-//       VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
-//     )
-//     .optional(),
-// });
-
 export const userUpdateSchema = userSchema.omit({
   userId: true,
   createdAt: true,
@@ -101,7 +75,7 @@ export const userUpdateSchema = userSchema.omit({
   role: true,
 });
 
-export const responseUserSchema = userSchema.omit({
+export const userResponsePublicSchema = userSchema.omit({
   passwordHash: true,
   createdAt: true,
   updatedAt: true,

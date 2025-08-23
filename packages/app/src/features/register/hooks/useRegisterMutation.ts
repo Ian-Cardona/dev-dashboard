@@ -1,14 +1,22 @@
 import { useMutation } from '@tanstack/react-query';
 import { registerApi } from '../api/registerApi';
 import { useNavigate } from 'react-router';
-import type { AuthenticationRegisterRequest } from '../../../../../shared/types/auth.type';
+import type { AuthenticationRegisterRequestPublicSchema } from '../../../../../shared/types/auth.type';
+import { useAuth } from '../../../hooks/useAuth';
+import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
 
 export const useRegisterMutation = () => {
   const navigate = useNavigate();
+  const { dispatch } = useAuth();
 
   return useMutation({
-    mutationFn: (data: AuthenticationRegisterRequest) => registerApi(data),
+    mutationFn: (data: AuthenticationRegisterRequestPublicSchema) =>
+      registerApi(data),
     onSuccess: data => {
+      dispatch({
+        type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,
+        payload: data.user,
+      });
       localStorage.setItem('accessToken', data.accessToken);
       navigate('/dashboard');
 

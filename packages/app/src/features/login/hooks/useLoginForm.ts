@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authenticationLoginRequestSchema } from '../../../../../shared/schemas/auth.schema';
+import { authenticationLoginRequestPublicSchema } from '../../../../../shared/schemas/auth.schema';
 
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -10,7 +10,7 @@ export const useLoginForm = () => {
     setPassword('');
   };
 
-  const isValid = authenticationLoginRequestSchema.safeParse({
+  const isValid = authenticationLoginRequestPublicSchema.safeParse({
     email,
     password,
   }).success;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authenticationRegisterRequestSchema } from '../../../../../shared/schemas/auth.schema';
+import { authenticationRegisterRequestPublicSchema } from '../../../../../shared/schemas/auth.schema';
 
 export const useRegisterForm = () => {
   const [email, setEmail] = useState('');
@@ -14,7 +14,7 @@ export const useRegisterForm = () => {
     setLastName('');
   };
 
-  const isValid = authenticationRegisterRequestSchema.safeParse({
+  const isValid = authenticationRegisterRequestPublicSchema.safeParse({
     email,
     password,
     firstName,

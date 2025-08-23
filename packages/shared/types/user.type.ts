@@ -1,13 +1,5 @@
 import z from 'zod';
-import { userSchema } from '../schemas/user.schema';
+import { userSchema, userResponsePublicSchema } from '../schemas/user.schema';
 
 export type User = z.infer<typeof userSchema>;
-export type ResponseUser = Omit<
-  User,
-  | 'passwordHash'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'lastLoginAt'
-  | 'passwordUpdatedAt'
-  | 'role'
->;
+export type UserResponsePublic = z.infer<typeof userResponsePublicSchema>;

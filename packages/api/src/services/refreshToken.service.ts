@@ -1,10 +1,9 @@
-import { logger } from '../middlewares/logger.middleware';
 import { IRefreshTokenModel } from '../models/refreshToken.model';
 import {
   RefreshToken,
   RefreshTokenRecordAndPlain,
 } from '../../../shared/types/refreshToken.type';
-import { ConflictError, DatabaseError } from '../utils/errors.utils';
+import { ConflictError } from '../utils/errors.utils';
 import { generateSecureRefreshToken, generateUUID } from '../utils/uuid.utils';
 import { ENV } from '../config/env_variables';
 import bcrypt from 'bcryptjs';
@@ -58,15 +57,9 @@ export const RefreshTokenService = (
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new ConflictError(
-            `Refresh token ${tokenToStore.refreshTokenId} already exists`
-          );
+          throw new ConflictError('Refresh token already exists');
         }
-        logger.error('Refresh token creation failed', {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          tokenToStore,
-        });
-        throw new DatabaseError('Failed to create refresh token');
+        throw new Error('Failed to create refresh token');
       }
     },
 
@@ -102,11 +95,10 @@ export const RefreshTokenService = (
       try {
         return await refreshTokenModel.findById(id);
       } catch (error) {
-        logger.error('Service Error: Failed to retrieve refresh token', {
-          error: error instanceof Error ? error.message : error,
-          id,
-        });
-        throw new DatabaseError('Failed to find refresh token');
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('Something went wrong');
       }
     },
 
@@ -132,11 +124,10 @@ export const RefreshTokenService = (
 
         return null;
       } catch (error) {
-        logger.error('Service Error: Failed to retrieve refresh token', {
-          error: error instanceof Error ? error.message : error,
-          id,
-        });
-        throw new DatabaseError('Failed to find refresh token');
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('Something went wrong');
       }
     },
 
@@ -197,13 +188,9 @@ export const RefreshTokenService = (
         await refreshTokenModel.tombstoneToken(tokenToTombstone);
       } catch (error) {
         if (error instanceof Error) {
-          logger.error('Service Error: Failed to tombstone refresh token', {
-            error: error.message,
-            stack: error.stack,
-            refreshToken,
-          });
+          throw error;
         }
-        throw new DatabaseError('Failed to tombstone refresh token');
+        throw new Error('Something went wrong');
       }
     },
 
@@ -212,13 +199,9 @@ export const RefreshTokenService = (
         await refreshTokenModel.deleteAllUserTokens(userId);
       } catch (error) {
         if (error instanceof Error) {
-          logger.error('Service Error: Failed to delete all user tokens', {
-            error: error.message,
-            stack: error.stack,
-            userId,
-          });
+          throw error;
         }
-        throw new DatabaseError('Failed to delete all user tokens');
+        throw new Error('Something went wrong');
       }
     },
 
@@ -228,12 +211,9 @@ export const RefreshTokenService = (
         return await refreshTokenModel.deleteExpiredTokens();
       } catch (error) {
         if (error instanceof Error) {
-          logger.error('Service Error: Failed to delete expired tokens', {
-            error: error.message,
-            stack: error.stack,
-          });
+          throw error;
         }
-        throw new DatabaseError('Failed to delete expired tokens');
+        throw new Error('Something went wrong');
       }
     },
   };
