@@ -1,12 +1,12 @@
 import type {
-  AuthenticationLoginRequest,
-  AuthenticationSuccessResponse,
+  AuthenticationLoginRequestPublicSchema,
+  AuthenticationResponsePublicSchema,
 } from '../../../../../shared/types/auth.type';
-import { client } from '../../../lib/api';
+import { publicClient } from '../../../lib/api';
 
 export const loginApi = async (
-  data: AuthenticationLoginRequest
-): Promise<AuthenticationSuccessResponse> => {
-  const response = await client.post('/auth/login', data);
+  data: AuthenticationLoginRequestPublicSchema
+): Promise<AuthenticationResponsePublicSchema> => {
+  const response = await publicClient.post('/auth/login', data);
   return response.data;
 };

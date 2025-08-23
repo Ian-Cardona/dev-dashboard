@@ -5,40 +5,31 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react';
-import type { AuthenticationSuccessResponse } from '../../../shared/types/auth.type';
-import { auth } from '../lib/auth';
+import { authApi } from '../lib/auth';
 import { isAxiosError } from 'axios';
-
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    <span className="ml-2">Loading...</span>
-  </div>
-);
+import type { UserResponsePublic } from '../../../shared/types/user.type';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { userApi } from '../lib/user';
 
 type State = {
-  authenticatedUser: AuthenticationSuccessResponse | null;
+  authUser: UserResponsePublic | null;
   isLoading: boolean;
 };
 
 const initialState: State = {
-  authenticatedUser: null,
+  authUser: null,
   isLoading: true,
 };
 
 export const AUTH_REDUCER_ACTION_TYPE = {
   SET_AUTH: 'SET_AUTH',
-  SET_LOADING: 'SET_LOADING',
   CLEAR_AUTH: 'CLEAR_AUTH',
 } as const;
 
 type Action =
   | {
       type: typeof AUTH_REDUCER_ACTION_TYPE.SET_AUTH;
-      payload: AuthenticationSuccessResponse;
-    }
-  | {
-      type: typeof AUTH_REDUCER_ACTION_TYPE.SET_LOADING;
+      payload: UserResponsePublic;
     }
   | {
       type: typeof AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH;
@@ -52,13 +43,9 @@ type AuthContextType = {
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case AUTH_REDUCER_ACTION_TYPE.SET_AUTH:
-      localStorage.setItem('userId', action.payload.user.userId);
-      return { authenticatedUser: action.payload, isLoading: false };
-    case AUTH_REDUCER_ACTION_TYPE.SET_LOADING:
-      return { ...state, isLoading: true };
+      return { authUser: action.payload, isLoading: false };
     case AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH:
-      localStorage.removeItem('userId');
-      return { authenticatedUser: null, isLoading: false };
+      return { authUser: null, isLoading: false };
     default:
       return state;
   }
@@ -70,30 +57,21 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    const handleRefresh = async () => {
-      const storedUserId = localStorage.getItem('userId');
-
-      if (!storedUserId) {
-        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
-        return;
-      }
-
+    const hydrateAuth = async () => {
       try {
-        const response = await auth.refresh({ userId: storedUserId });
-        dispatch({
-          type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,
-          payload: response,
-        });
+        const response = await authApi.refresh();
+        localStorage.setItem('accessToken', response.accessToken);
+
+        const user = await userApi.getProfile();
+        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH, payload: user });
       } catch (error) {
-        if (isAxiosError(error) && error.response) {
-          console.log(error.response.status, error.response.data);
+        if (isAxiosError(error)) {
+          dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
         }
-        console.log(error);
-        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
       }
     };
 
-    handleRefresh();
+    hydrateAuth();
   }, []);
 
   if (state.isLoading) {

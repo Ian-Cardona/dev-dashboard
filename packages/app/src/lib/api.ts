@@ -1,7 +1,9 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 
-export const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+
+export const publicClient = axios.create({
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -9,14 +11,22 @@ export const client = axios.create({
   withCredentials: true,
 });
 
-client.interceptors.request.use(config => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+export const protectedClient = axios.create({
+  baseURL,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  withCredentials: true,
 });
 
-export const devClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
-});
+protectedClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  }
+);
