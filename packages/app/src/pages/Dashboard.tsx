@@ -6,11 +6,8 @@ const DashboardPage = () => {
   return (
     <div>
       <h1>Dashboard</h1>
-      <p>Logged in as: {state.authenticatedUser?.user.email || 'No user'}</p>
-      <p>
-        Access token:{' '}
-        {state.authenticatedUser?.accessToken ? 'Present' : 'Missing'}
-      </p>
+      <p>Logged in as: {state.authUser?.email || 'No user'}</p>
+      <p>User status: {state.authUser?.isActive ? 'Active' : 'Inactive'}</p>
     </div>
   );
 };
