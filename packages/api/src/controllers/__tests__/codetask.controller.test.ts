@@ -2,8 +2,8 @@ import express from 'express';
 import request from 'supertest';
 import { describe, it, vi, expect, MockedFunction, beforeEach } from 'vitest';
 import { errorHandlerMiddleware } from '../../middlewares/error_handler.middleware';
-import { ICodeTaskService } from '../../services/codetask.service';
-import { CodeTaskController } from '../codetask.controller';
+import { ICodeTaskService } from '../../services/todo.service';
+import { CodeTaskController } from '../todo.controller';
 import { generateUUID } from '../../utils/uuid.utils';
 
 const mockCodeTaskService = {

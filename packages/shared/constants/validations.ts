@@ -32,7 +32,7 @@ export const VALIDATION_CONSTANTS = {
       MESSAGE: 'Invalid refresh token format',
     },
   },
-  CODETASK: {
+  TODO: {
     CONTENT: {
       MIN_LENGTH: 1,
       MAX_LENGTH: 500,

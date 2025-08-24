@@ -5,7 +5,7 @@ import {
   codeTaskSchema,
   codeTaskCreateSchema,
   updateCodeTaskSchema,
-} from '../../../../shared/schemas/codetask.schema';
+} from '../../../../shared/schemas/todo.schema';
 
 describe('CodeTask Schemas', () => {
   const baseData = {
