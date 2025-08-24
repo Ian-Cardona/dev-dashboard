@@ -12,7 +12,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 
 import { CodeTask } from '../../types/codetask.type';
-import { CodeTaskModel } from '../codetask.model';
+import { CodeTaskModel } from '../todo.model';
 import { ENV } from '../../config/env_variables';
 
 vi.mock('../../config/env_variables', () => ({

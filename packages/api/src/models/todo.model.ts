@@ -5,34 +5,34 @@ import {
   QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { CodeTask } from '../../../shared/types/codetask.type';
+import { Todo } from '../../../shared/types/todo.type';
 import { ENV } from '../config/env_variables';
 
-const CODE_TASK_TABLE = ENV.CODE_TASK_TABLE;
+const TODO_TABLE = ENV.CODE_TASK_TABLE;
 
-export interface ICodeTaskModel {
-  create(data: CodeTask): Promise<CodeTask>;
-  findByUserId(userId: string): Promise<CodeTask[]>;
-  update(id: string, userId: string, updates: Partial<CodeTask>): Promise<void>;
+export interface ITodoModel {
+  create(data: Todo): Promise<Todo>;
+  findByUserId(userId: string): Promise<Todo[]>;
+  update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
 
-export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
+export const TodoModel = (docClient: DynamoDBDocumentClient) => {
   return {
-    async create(task: CodeTask): Promise<CodeTask> {
+    async create(todo: Todo): Promise<Todo> {
       await docClient.send(
         new PutCommand({
-          TableName: CODE_TASK_TABLE,
-          Item: task,
+          TableName: TODO_TABLE,
+          Item: todo,
         })
       );
-      return task;
+      return todo;
     },
 
-    async findByUserId(userId: string): Promise<CodeTask[]> {
+    async findByUserId(userId: string): Promise<Todo[]> {
       const result = await docClient.send(
         new QueryCommand({
-          TableName: CODE_TASK_TABLE,
+          TableName: TODO_TABLE,
           KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: { ':userId': userId },
         })
@@ -42,10 +42,10 @@ export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
         return [];
       }
 
-      return result.Items as CodeTask[];
+      return result.Items as Todo[];
     },
 
-    async update(id: string, userId: string, updates: Partial<CodeTask>) {
+    async update(id: string, userId: string, updates: Partial<Todo>) {
       const updateExpression: string[] = [];
       const expressionAttributeNames: Record<string, string> = {};
       const expressionAttributeValues: Record<string, unknown> = {};
@@ -59,7 +59,7 @@ export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
         );
         expressionAttributeNames[attrNamePlaceholder] = key;
         expressionAttributeValues[attrValuePlaceholder] =
-          updates[key as keyof CodeTask];
+          updates[key as keyof Todo];
       });
 
       if (updateExpression.length === 0) {
@@ -68,7 +68,7 @@ export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
 
       await docClient.send(
         new UpdateCommand({
-          TableName: CODE_TASK_TABLE,
+          TableName: TODO_TABLE,
           Key: { id, userId },
           UpdateExpression: `SET ${updateExpression.join(', ')}`,
           ExpressionAttributeNames: expressionAttributeNames,
@@ -81,7 +81,7 @@ export const CodeTaskModel = (docClient: DynamoDBDocumentClient) => {
     async delete(id: string, userId: string) {
       await docClient.send(
         new DeleteCommand({
-          TableName: CODE_TASK_TABLE,
+          TableName: TODO_TABLE,
           Key: { id, userId },
           ConditionExpression: 'attribute_exists(id)',
         })

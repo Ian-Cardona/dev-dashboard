@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
 import authenticationRouter from './routes/authentication.route';
-import codeTaskRouter from './routes/codetask.route';
+import todoRouter from './routes/todo.route';
 import userRouter from './routes/user.route';
 
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
@@ -41,7 +41,7 @@ app.use(cookieParser());
 app.use(loggerMiddleware);
 
 app.use('/auth', authenticationRouter);
-app.use('/codetasks', codeTaskRouter);
+app.use('/todos', todoRouter);
 app.use('/user', authorizationMiddleware, userRouter);
 
 app.get('/health', (req, res) => res.send({ status: 'ok' }));
