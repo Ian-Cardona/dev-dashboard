@@ -10,9 +10,6 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev --workspace=packages/api",
-    "build:api": "npm run build --workspace=packages/api",
-    "lint:api": "npm run lint --workspace=packages/api",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
