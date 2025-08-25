@@ -5,12 +5,17 @@ import {
   UnauthorizedError,
 } from '../utils/errors.utils';
 import { sendError } from '../utils/api.utils';
+import { logger } from './logger.middleware';
 export const errorHandlerMiddleware = (
   error: unknown,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  if (error instanceof Error) {
+    logger.error(error.message, { stack: error.stack });
+  }
+
   if (res.headersSent) {
     return next(error);
   }

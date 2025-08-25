@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import {
-  // rawTodoBaseSchema,
+  rawTodoBaseSchema,
   todoCreateSchema,
-  todoItemSchema,
   updateTodoSchema,
 } from '../../../shared/schemas/todo.schema';
 import { ITodoService } from '../services/todo.service';
@@ -29,14 +28,13 @@ export const TodoController = (todoService: ITodoService) => {
     // TODO: Fix this implementation
     async syncTodos(req: Request, res: Response, next: NextFunction) {
       try {
-        console.log('Syncing todos...');
         const userId = userIdSchema.parse(req.user?.userId);
-        console.log('User ID:', userId);
-        const rawTodos = todoItemSchema.array().parse(req.body);
-        console.log('Raw Todos:', rawTodos);
+        const rawTodos = z.array(rawTodoBaseSchema).parse(req.body.todos);
+
         const result = await todoService.syncTodos(userId, rawTodos);
         res.json(result);
       } catch (error) {
+        console.log('Error syncing todos:', error);
         handleValidationError(error, res, next, 'Invalid user ID format');
       }
     },
