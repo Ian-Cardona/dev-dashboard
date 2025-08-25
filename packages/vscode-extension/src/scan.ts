@@ -5,10 +5,10 @@ import { todosApi } from './todosApi';
 
 // TODO - Define the TODO type in shared
 export interface RawTodo {
-  type: string;
+  // type: string;
   content: string;
-  file: string;
-  line: number;
+  filePath: string;
+  lineNumber: number;
 }
 
 export const scanTodos = async () => {
@@ -32,9 +32,7 @@ export const scanTodos = async () => {
 
   console.log(`Found ${allTodos.length} TODOs:`);
   allTodos.forEach(todo => {
-    console.log(`${todo.type}: ${todo.content} (${todo.file}:${todo.line})`);
-
-    console.log(allTodos);
+    console.log(`${todo.content} (${todo.filePath}:${todo.lineNumber})`);
   });
 
   try {
@@ -129,10 +127,11 @@ const scanFileForTodos = async (filePath: string): Promise<RawTodo[]> => {
       let match;
       while ((match = todoPattern.exec(line)) !== null) {
         todos.push({
-          type: match[1].toUpperCase(),
-          content: match[2].trim(),
-          file: filePath,
-          line: index + 1,
+          // type: match[1].toUpperCase(),
+          // content: match[2].trim(),
+          content: `${match[1].toUpperCase()}: ${match[2].trim()}`,
+          filePath: filePath,
+          lineNumber: index + 1,
         });
       }
       todoPattern.lastIndex = 0;
