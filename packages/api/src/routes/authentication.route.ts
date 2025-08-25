@@ -28,5 +28,6 @@ router.post('/register', authenticationControllerInstance.registerUser);
 router.post('/login', authenticationControllerInstance.loginUser);
 router.post('/refresh', authenticationControllerInstance.refreshAccessToken);
 router.post('/logout', authenticationControllerInstance.logoutUser);
+router.post('/verify', authenticationControllerInstance.verifyAccessToken);
 
 export default router;

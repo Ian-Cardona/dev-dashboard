@@ -16,9 +16,12 @@ export const authorizationMiddleware = async (
 ) => {
   try {
     const token = extractBearerToken(req);
+    console.log('Bearer:', token);
     const payload: AuthorizationTokenPayload = verifyJWT(token);
+    console.log('Payload:', payload);
 
     const user = await userService.findById(payload.userId);
+    console.log('User ID:', user);
     if (!user) {
       throw new UnauthorizedError('User account no longer exists');
     }

@@ -39,6 +39,11 @@ export interface IAuthenticationController {
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
+  verifyAccessToken: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>;
 }
 
 export const AuthenticationController = (
@@ -171,6 +176,18 @@ export const AuthenticationController = (
         res.status(200).json({ message: 'Logout successful' });
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid logout data');
+      }
+    },
+
+    async verifyAccessToken(req: Request, res: Response, next: NextFunction) {
+      try {
+        const accessToken: string =
+          req.headers.authorization?.split(' ')[1] || '';
+
+        await authService.verifyAccessToken(accessToken);
+        res.status(200).json({ message: 'Token is valid' });
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid token');
       }
     },
   };

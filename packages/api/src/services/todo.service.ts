@@ -1,8 +1,8 @@
 import {
   CreateTodo,
   Meta,
+  RawTodo,
   Todo,
-  TodoItem,
   TodosInfo,
 } from '../../../shared/types/todo.type';
 import { ITodoModel } from '../models/todo.model';
@@ -15,7 +15,7 @@ import { todoSchema } from '../../../shared/schemas/todo.schema';
 export interface ITodoService {
   syncTodos(
     userId: string,
-    data: TodoItem[]
+    data: RawTodo[]
   ): Promise<{ todos: Todo[]; meta: Meta }>;
   create(data: CreateTodo): Promise<Todo>;
   findByUserId(userId: string): Promise<TodosInfo>;
@@ -24,7 +24,7 @@ export interface ITodoService {
 }
 
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
-  const processRawTodo = async (item: TodoItem): Promise<Todo> => {
+  const processRawTodo = async (item: RawTodo): Promise<Todo> => {
     const { type, customTag } = classifyTag(item.content);
 
     return todoSchema.parse({
@@ -39,9 +39,10 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
   return {
     async syncTodos(
       userId: string,
-      data: TodoItem[]
+      data: RawTodo[]
     ): Promise<{ todos: Todo[]; meta: Meta }> {
       try {
+        // TODO - Implement batch transformation of todos with userId
         const processedTodos = await Promise.all(data.map(processRawTodo));
         console.log('Total todos processed:', processedTodos.length);
 

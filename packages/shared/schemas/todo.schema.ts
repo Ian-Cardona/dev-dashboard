@@ -15,24 +15,7 @@ export const PredefinedTodoTypeEnum = z.enum([
 export const OtherTodoTypeEnum = z.literal('OTHER');
 
 // TODO: Create a more robust data model for the TODO Item from the VSCode extension to the API
-export const todoItemSchema = z.object({
-  content: z
-    .string()
-    .min(VALIDATION_CONSTANTS.TODO.CONTENT.MIN_LENGTH)
-    .max(VALIDATION_CONSTANTS.TODO.CONTENT.MAX_LENGTH),
-  filePath: z
-    .string()
-    .max(VALIDATION_CONSTANTS.TODO.FILE_PATH.MAX_LENGTH)
-    .regex(VALIDATION_CONSTANTS.TODO.FILE_PATH.PATTERN),
-  lineNumber: z
-    .number()
-    .min(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MIN)
-    .max(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MAX),
-  type: z.union([PredefinedTodoTypeEnum, OtherTodoTypeEnum]),
-});
-
 export const rawTodoBaseSchema = z.object({
-  userId: z.uuidv4(),
   content: z
     .string()
     .min(VALIDATION_CONSTANTS.TODO.CONTENT.MIN_LENGTH)
@@ -48,6 +31,7 @@ export const rawTodoBaseSchema = z.object({
 });
 
 const todoBaseSchema = rawTodoBaseSchema.extend({
+  userId: z.uuidv4(),
   id: z.uuidv4(),
   syncedAt: z.iso.datetime({ offset: true }),
   // priority: TodoPriorityEnum,
