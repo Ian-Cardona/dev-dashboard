@@ -84,7 +84,7 @@ export const userResponsePublicSchema = userSchema.omit({
   role: true,
 });
 
-export const userIdSchema = z.uuidv4({ message: 'Invalid UUID' });
+export const parseUuidSchema = z.uuidv4({ message: 'Invalid UUID' });
 export const emailSchema = z.email({ message: 'Invalid email' });
 export const isoDateTimeSchema = z.iso.datetime({
   message: 'Invalid ISO datetime',

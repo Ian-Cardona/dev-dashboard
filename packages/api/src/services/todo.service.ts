@@ -1,6 +1,6 @@
 import {
   CreateTodo,
-  Meta,
+  TodoMeta,
   RawTodo,
   Todo,
   TodosInfo,
@@ -9,58 +9,61 @@ import { ITodoModel } from '../models/todo.model';
 import { generateUUID } from '../utils/uuid.utils';
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 import { NotFoundError } from '../utils/errors.utils';
-import { classifyTag } from '../utils/classifier';
 import { todoSchema } from '../../../shared/schemas/todo.schema';
 
 export interface ITodoService {
-  syncTodos(
-    userId: string,
-    data: RawTodo[]
-  ): Promise<{ todos: Todo[]; meta: Meta }>;
+  syncTodos(userId: string, data: RawTodo[]): Promise<TodosInfo>;
   create(data: CreateTodo): Promise<Todo>;
   findByUserId(userId: string): Promise<TodosInfo>;
+  findByUserIdAndSyncId(userId: string, syncId: string): Promise<TodosInfo>;
   update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
 
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
-  const processRawTodo = async (item: RawTodo): Promise<Todo> => {
-    const { type, customTag } = classifyTag(item.content);
-
+  const processRawTodo = async (
+    userId: string,
+    syncId: string,
+    item: RawTodo
+  ): Promise<Todo> => {
     return todoSchema.parse({
       ...item,
+      userId,
       id: generateUUID(),
       syncedAt: new Date().toISOString(),
-      type,
-      customTag,
+      syncId,
     });
   };
 
   return {
-    async syncTodos(
-      userId: string,
-      data: RawTodo[]
-    ): Promise<{ todos: Todo[]; meta: Meta }> {
+    async syncTodos(userId: string, data: RawTodo[]): Promise<TodosInfo> {
       try {
-        // TODO - Implement batch transformation of todos with userId
-        const processedTodos = await Promise.all(data.map(processRawTodo));
-        console.log('Total todos processed:', processedTodos.length);
+        const syncId = generateUUID();
+        const processedTodos = await Promise.all(
+          data.map(item => processRawTodo(userId, syncId, item))
+        );
+        await TodoModel.batchCreate(processedTodos);
 
         const scannedFiles = new Set(data.map(item => item.filePath)).size;
 
-        const meta: Meta = {
+        const meta: TodoMeta = {
           userId,
           totalCount: processedTodos.length,
           lastScanAt: new Date().toISOString(),
           scannedFiles,
         };
 
-        // await TodoModel.batchCreate(processedTodos);
-        console.log('Processed todos:', processedTodos);
-        console.log('Meta:', meta);
+        const todosInfo: TodosInfo = {
+          userId,
+          data: processedTodos,
+          meta,
+        };
 
-        return { todos: processedTodos, meta };
+        console.log('Todos synced successfully:', todosInfo);
+
+        return todosInfo;
       } catch (error) {
+        console.log(error);
         if (error instanceof Error) throw error;
         throw new Error('Failed to sync todos');
       }
@@ -98,6 +101,37 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
             scannedFiles: 0,
           },
         };
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+
+        throw new Error('Failed to retrieve tasks');
+      }
+    },
+
+    async findByUserIdAndSyncId(
+      userId: string,
+      syncId: string
+    ): Promise<TodosInfo> {
+      try {
+        const data = await TodoModel.findByUserIdAndSyncId(userId, syncId);
+        const scannedFiles = new Set(data.map(item => item.filePath)).size;
+
+        const meta: TodoMeta = {
+          userId,
+          totalCount: data.length,
+          lastScanAt: new Date().toISOString(),
+          scannedFiles,
+        };
+
+        const todosInfo: TodosInfo = {
+          userId,
+          data,
+          meta,
+        };
+
+        return todosInfo;
       } catch (error) {
         if (error instanceof Error) {
           throw error;

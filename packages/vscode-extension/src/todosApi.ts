@@ -1,5 +1,5 @@
 import { protectedClient } from './api';
-import { RawTodo } from './scan';
+import { RawTodo } from './types/todos.type';
 
 export const todosApi = {
   syncTodos: async (todos: RawTodo[]) => {

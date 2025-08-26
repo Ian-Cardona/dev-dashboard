@@ -2,14 +2,11 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { todosApi } from './todosApi';
-
-// TODO - Define the TODO type in shared
-export interface RawTodo {
-  // type: string;
-  content: string;
-  filePath: string;
-  lineNumber: number;
-}
+import {
+  PredefinedTodoTypeEnum,
+  RawTodo,
+  RawUndefinedTodoBaseSchema,
+} from './types/todos.type';
 
 export const scanTodos = async () => {
   const startTime = Date.now();
@@ -28,25 +25,33 @@ export const scanTodos = async () => {
 
   const todoPromises = files.map(file => scanFileForTodos(file));
   const todoArrays = await Promise.all(todoPromises);
-  const allTodos: RawTodo[] = todoArrays.flat();
+  const rawUndefinedTodos: RawUndefinedTodoBaseSchema[] = todoArrays.flat();
+  const processedTodos: RawTodo[] = processTodos(rawUndefinedTodos);
 
-  console.log(`Found ${allTodos.length} TODOs:`);
-  allTodos.forEach(todo => {
-    console.log(`${todo.content} (${todo.filePath}:${todo.lineNumber})`);
+  console.log(`Found ${processedTodos.length} TODOs:`);
+  processedTodos.forEach(todo => {
+    const tag = todo.type === 'OTHER' ? todo.customTag : todo.type;
+    console.log(
+      `[${tag}] ${todo.content} (${todo.filePath}:${todo.lineNumber})`
+    );
   });
 
   try {
     console.log('Syncing TODOs with API...');
-    await todosApi.syncTodos(allTodos);
+    await todosApi.syncTodos(processedTodos);
     console.log('TODOs synced successfully');
-  } catch (err) {
-    console.error('Failed to sync TODOs:', err);
+  } catch (error) {
+    console.log(error);
+    console.error('Failed to sync TODOs:', error);
+    if (error instanceof Error) {
+      vscode.window.showErrorMessage(`Failed to sync TODOs: ${error.message}`);
+    }
   }
 
   const endTime = Date.now();
   console.log(`Scan completed in ${endTime - startTime}ms`);
   vscode.window.showInformationMessage(
-    `Found ${allTodos.length} TODOs in ${endTime - startTime}ms`
+    `Found ${processedTodos.length} TODOs in ${endTime - startTime}ms`
   );
 };
 
@@ -115,30 +120,90 @@ const getSourceFiles = async (rootPath: string): Promise<string[]> => {
   return files;
 };
 
-const scanFileForTodos = async (filePath: string): Promise<RawTodo[]> => {
-  const todos: RawTodo[] = [];
-  const todoPattern = /\/\/\s*(TODO|FIXME|HACK|NOTE|XXX)[\s:]*(.*)/gi;
+const processTodos = (todos: RawUndefinedTodoBaseSchema[]): RawTodo[] => {
+  return todos.map(todo => {
+    const isPredefined = PredefinedTodoTypeEnum.safeParse(todo.type).success;
+
+    if (isPredefined) {
+      return {
+        ...todo,
+        type: todo.type as PredefinedTodoTypeEnum,
+        customTag: undefined,
+      };
+    } else {
+      return {
+        ...todo,
+        type: 'OTHER',
+        customTag: todo.type,
+      };
+    }
+  });
+};
+
+const scanFileForTodos = async (
+  filePath: string
+): Promise<RawUndefinedTodoBaseSchema[]> => {
+  const todoLinePatterns = [
+    /(?<!:)\s*\/\/\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
+    /^\s*(?:\/\*+|\*)\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
+  ];
+
+  const todos: RawUndefinedTodoBaseSchema[] = [];
 
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');
     const lines = content.split('\n');
 
     lines.forEach((line, index) => {
-      let match;
-      while ((match = todoPattern.exec(line)) !== null) {
-        todos.push({
-          // type: match[1].toUpperCase(),
-          // content: match[2].trim(),
-          content: `${match[1].toUpperCase()}: ${match[2].trim()}`,
-          filePath: filePath,
-          lineNumber: index + 1,
-        });
+      for (const pattern of todoLinePatterns) {
+        const match = line.match(pattern);
+        if (match) {
+          const rawContent = match[2].replace(/\s*\*\/\s*$/, '');
+          todos.push({
+            type: match[1].toUpperCase(),
+            content: rawContent.trim(),
+            filePath,
+            lineNumber: index + 1,
+          });
+          break;
+        }
       }
-      todoPattern.lastIndex = 0;
     });
   } catch (error) {
-    console.log(`Error reading file ${filePath}: ${error}`);
+    console.error(`Error reading file ${filePath}: ${error}`);
+    throw error;
   }
 
   return todos;
 };
+
+// const scanFileForTodos = async (
+//   filePath: string
+// ): Promise<RawUndefinedTodoBaseSchema[]> => {
+//   const todos: RawUndefinedTodoBaseSchema[] = [];
+
+//   const todoPattern = /\/\/\s*(TODO|FIXME|HACK|NOTE|XXX|BUG)[\s:]*(.*)/gi;
+
+//   try {
+//     const content = await fs.promises.readFile(filePath, 'utf8');
+//     const lines = content.split('\n');
+
+//     lines.forEach((line, index) => {
+//       let match;
+//       todoPattern.lastIndex = 0;
+//       while ((match = todoPattern.exec(line)) !== null) {
+//         todos.push({
+//           type: match[1].toUpperCase(),
+//           content: match[2].trim(),
+//           filePath: filePath,
+//           lineNumber: index + 1,
+//         });
+//       }
+//     });
+//   } catch (error) {
+//     console.error(`Error reading file ${filePath}: ${error}`);
+//     throw error;
+//   }
+
+//   return todos;
+// };

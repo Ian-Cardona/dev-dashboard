@@ -14,8 +14,13 @@ const todoControllerInstance = TodoController(todoServiceInstance);
 
 router.post('/sync', authorizationMiddleware, todoControllerInstance.syncTodos);
 router.post('/', authorizationMiddleware, todoControllerInstance.createTodo);
-router.get('/:userId', todoControllerInstance.findTodosInfoByUserId);
-router.put('/:id/:userId', todoControllerInstance.updateTodo);
+// router.get('/:userId', todoControllerInstance.findTodosInfoByUserId);
+router.get(
+  '/:syncId',
+  authorizationMiddleware,
+  todoControllerInstance.findByUserIdAndSyncId
+);
+// router.put('/:id/:userId', todoControllerInstance.updateTodo);
 router.delete('/:id/:userId', todoControllerInstance.deleteTodo);
 
 export default router;
