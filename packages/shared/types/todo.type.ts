@@ -1,10 +1,10 @@
 import z from 'zod';
 import {
-  metaSchema,
+  createTodoSchema,
+  todoMetaSchema,
   OtherTodoTypeEnum,
   PredefinedTodoTypeEnum,
-  rawTodoBaseSchema,
-  todoCreateSchema,
+  rawTodoSchema,
   TodoPriorityEnum,
   todoSchema,
   todosInfoSchema,
@@ -12,15 +12,15 @@ import {
   updateTodoSchema,
 } from '../schemas/todo.schema';
 
-export type TodoPriority = z.infer<typeof TodoPriorityEnum>;
-export type TodoStatus = z.infer<typeof TodoStatusEnum>;
-export type PredefinedTodoType = z.infer<typeof PredefinedTodoTypeEnum>;
-export type OtherTodoType = z.infer<typeof OtherTodoTypeEnum>;
+export type TodoPriorityEnum = z.infer<typeof TodoPriorityEnum>;
+export type TodoStatusEnum = z.infer<typeof TodoStatusEnum>;
+export type PredefinedTodoTypeEnum = z.infer<typeof PredefinedTodoTypeEnum>;
+export type OtherTodoTypeEnum = z.infer<typeof OtherTodoTypeEnum>;
 
-export type RawTodo = z.infer<typeof rawTodoBaseSchema>;
+export type RawTodo = z.infer<typeof rawTodoSchema>;
 export type Todo = z.infer<typeof todoSchema>;
-export type CreateTodo = z.infer<typeof todoCreateSchema>;
+export type CreateTodo = z.infer<typeof createTodoSchema>;
 export type UpdateTodo = z.infer<typeof updateTodoSchema>;
 
-export type Meta = z.infer<typeof metaSchema>;
+export type TodoMeta = z.infer<typeof todoMetaSchema>;
 export type TodosInfo = z.infer<typeof todosInfoSchema>;

@@ -14,8 +14,11 @@ export const PredefinedTodoTypeEnum = z.enum([
 
 export const OtherTodoTypeEnum = z.literal('OTHER');
 
-// TODO: Create a more robust data model for the TODO Item from the VSCode extension to the API
-export const rawTodoBaseSchema = z.object({
+const rawUndefinedTodoBaseSchema = z.object({
+  type: z
+    .string()
+    .min(VALIDATION_CONSTANTS.TODO.CONTENT.MIN_LENGTH)
+    .max(VALIDATION_CONSTANTS.TODO.CONTENT.MAX_LENGTH),
   content: z
     .string()
     .min(VALIDATION_CONSTANTS.TODO.CONTENT.MIN_LENGTH)
@@ -30,83 +33,58 @@ export const rawTodoBaseSchema = z.object({
     .max(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MAX),
 });
 
-const todoBaseSchema = rawTodoBaseSchema.extend({
+const rawPredefinedTodoSchema = rawUndefinedTodoBaseSchema.extend({
+  type: PredefinedTodoTypeEnum,
+  customTag: z.undefined().optional(),
+});
+
+const rawOtherTodoSchema = rawUndefinedTodoBaseSchema.extend({
+  type: z.literal('OTHER'),
+  customTag: z
+    .string()
+    .min(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MIN_LENGTH)
+    .max(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MAX_LENGTH)
+    .regex(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.PATTERN),
+});
+
+export const rawTodoSchema = z.discriminatedUnion('type', [
+  rawPredefinedTodoSchema,
+  rawOtherTodoSchema,
+]);
+
+const todoCommonSchema = z.object({
   userId: z.uuidv4(),
   id: z.uuidv4(),
   syncedAt: z.iso.datetime({ offset: true }),
-  // priority: TodoPriorityEnum,
-  // status: TodoStatusEnum,
+  syncId: z.uuidv4(),
 });
 
-const predefinedTodoSchema = todoBaseSchema.extend({
-  type: PredefinedTodoTypeEnum,
-  customTag: z.undefined().optional(),
-});
-
-const otherTodoSchema = todoBaseSchema.extend({
-  type: z.literal('OTHER'),
-  customTag: z
-    .string()
-    .min(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MIN_LENGTH)
-    .max(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MAX_LENGTH)
-    .regex(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.PATTERN),
-});
-
-export const todoSchema = z.discriminatedUnion('type', [
-  predefinedTodoSchema,
-  otherTodoSchema,
-]);
+export const todoSchema = rawTodoSchema.and(todoCommonSchema);
 
 // Creation
-const createTodoSchema = todoBaseSchema.omit({ id: true, syncedAt: true });
-
-const predefinedCreateSchema = createTodoSchema.extend({
-  type: PredefinedTodoTypeEnum,
-  customTag: z.undefined().optional(),
-});
-
-const otherCreateSchema = createTodoSchema.extend({
-  type: z.literal('OTHER'),
-  customTag: z
-    .string()
-    .min(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MIN_LENGTH)
-    .max(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MAX_LENGTH)
-    .regex(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.PATTERN),
-});
-
-export const todoCreateSchema = z.discriminatedUnion('type', [
-  predefinedCreateSchema,
-  otherCreateSchema,
-]);
+export const createTodoSchema = rawTodoSchema.and(
+  todoCommonSchema.omit({ id: true, syncedAt: true })
+);
 
 // Update
-const updateTodoBaseSchema = todoBaseSchema.pick({
-  filePath: true,
-  lineNumber: true,
-  content: true,
-});
-
-const predefinedTodoUpdateSchema = updateTodoBaseSchema.extend({
-  type: PredefinedTodoTypeEnum,
-  customTag: z.undefined().optional(),
-});
-
-const otherTodoUpdateSchema = updateTodoBaseSchema.extend({
-  type: z.literal('OTHER'),
-  customTag: z
+export const updateTodoSchema = z.object({
+  ...todoCommonSchema,
+  filePath: z
     .string()
-    .min(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MIN_LENGTH)
-    .max(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.MAX_LENGTH)
-    .regex(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.PATTERN),
+    .max(VALIDATION_CONSTANTS.TODO.FILE_PATH.MAX_LENGTH)
+    .regex(VALIDATION_CONSTANTS.TODO.FILE_PATH.PATTERN),
+  lineNumber: z
+    .number()
+    .min(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MIN)
+    .max(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MAX),
+  content: z
+    .string()
+    .min(VALIDATION_CONSTANTS.TODO.CONTENT.MIN_LENGTH)
+    .max(VALIDATION_CONSTANTS.TODO.CONTENT.MAX_LENGTH),
 });
-
-export const updateTodoSchema = z.discriminatedUnion('type', [
-  predefinedTodoUpdateSchema,
-  otherTodoUpdateSchema,
-]);
 
 // Metadata
-export const metaSchema = z.object({
+export const todoMetaSchema = z.object({
   userId: z.uuidv4(),
   totalCount: z
     .number()
@@ -123,5 +101,5 @@ export const metaSchema = z.object({
 export const todosInfoSchema = z.object({
   userId: z.uuidv4(),
   data: z.array(todoSchema),
-  meta: metaSchema,
+  meta: todoMetaSchema,
 });
