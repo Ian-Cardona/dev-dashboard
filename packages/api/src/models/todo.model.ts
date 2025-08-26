@@ -1,4 +1,5 @@
 import {
+  BatchWriteCommand,
   DeleteCommand,
   DynamoDBDocumentClient,
   PutCommand,
@@ -8,21 +9,45 @@ import {
 import { Todo } from '../../../shared/types/todo.type';
 import { ENV } from '../config/env_variables';
 
-const TODO_TABLE = ENV.CODE_TASK_TABLE;
+const TODOS_TABLE = ENV.TODOS_TABLE;
 
 export interface ITodoModel {
+  batchCreate(todos: Todo[]): Promise<void>;
   create(data: Todo): Promise<Todo>;
   findByUserId(userId: string): Promise<Todo[]>;
+  findByUserIdAndSyncId(userId: string, syncId: string): Promise<Todo[]>;
   update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
 
 export const TodoModel = (docClient: DynamoDBDocumentClient) => {
   return {
+    async batchCreate(todos: Todo[]): Promise<void> {
+      if (todos.length === 0) return;
+
+      const BATCH_SIZE = 25;
+
+      for (let i = 0; i < todos.length; i += BATCH_SIZE) {
+        const chunk = todos.slice(i, i + BATCH_SIZE);
+
+        const request = new BatchWriteCommand({
+          RequestItems: {
+            [TODOS_TABLE]: chunk.map(todo => ({
+              PutRequest: {
+                Item: todo,
+              },
+            })),
+          },
+        });
+
+        await docClient.send(request);
+      }
+    },
+
     async create(todo: Todo): Promise<Todo> {
       await docClient.send(
         new PutCommand({
-          TableName: TODO_TABLE,
+          TableName: TODOS_TABLE,
           Item: todo,
         })
       );
@@ -32,9 +57,33 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
     async findByUserId(userId: string): Promise<Todo[]> {
       const result = await docClient.send(
         new QueryCommand({
-          TableName: TODO_TABLE,
+          TableName: TODOS_TABLE,
+          IndexName: 'UserSyncIndex',
           KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: { ':userId': userId },
+        })
+      );
+
+      if (!result.Items || !Array.isArray(result.Items)) {
+        return [];
+      }
+
+      return result.Items as Todo[];
+    },
+
+    async findByUserIdAndSyncId(
+      userId: string,
+      syncId: string
+    ): Promise<Todo[]> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: TODOS_TABLE,
+          IndexName: 'UserSyncIndex',
+          KeyConditionExpression: 'userId = :userId AND syncId = :syncId',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+            ':syncId': syncId,
+          },
         })
       );
 
@@ -68,7 +117,7 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
 
       await docClient.send(
         new UpdateCommand({
-          TableName: TODO_TABLE,
+          TableName: TODOS_TABLE,
           Key: { id, userId },
           UpdateExpression: `SET ${updateExpression.join(', ')}`,
           ExpressionAttributeNames: expressionAttributeNames,
@@ -81,7 +130,7 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
     async delete(id: string, userId: string) {
       await docClient.send(
         new DeleteCommand({
-          TableName: TODO_TABLE,
+          TableName: TODOS_TABLE,
           Key: { id, userId },
           ConditionExpression: 'attribute_exists(id)',
         })

@@ -13,7 +13,7 @@ import {
 import { RefreshToken } from '../../../shared/types/refreshToken.type';
 import { ENV } from '../config/env_variables';
 
-const REFRESH_TOKEN_TABLE = ENV.REFRESH_TOKEN_TABLE;
+const REFRESH_TOKENS_TABLE = ENV.REFRESH_TOKENS_TABLE;
 const BATCH_CHUNK_SIZE = 25;
 
 export interface IRefreshTokenModel {
@@ -36,7 +36,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
       await docClient.send(
         new BatchWriteCommand({
           RequestItems: {
-            [REFRESH_TOKEN_TABLE]: chunk.map(item => ({
+            [REFRESH_TOKENS_TABLE]: chunk.map(item => ({
               DeleteRequest: {
                 Key: {
                   userId: item.userId,
@@ -54,7 +54,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     async create(refreshToken: RefreshToken): Promise<RefreshToken> {
       await docClient.send(
         new PutCommand({
-          TableName: REFRESH_TOKEN_TABLE,
+          TableName: REFRESH_TOKENS_TABLE,
           Item: refreshToken,
           ConditionExpression:
             'attribute_not_exists(userId) AND attribute_not_exists(refreshTokenId)',
@@ -66,7 +66,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     async findById(id: string): Promise<RefreshToken | null> {
       const result = await docClient.send(
         new GetCommand({
-          TableName: REFRESH_TOKEN_TABLE,
+          TableName: REFRESH_TOKENS_TABLE,
           Key: {
             refreshTokenId: id,
           },
@@ -79,7 +79,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     // async findByUserId(userId: string): Promise<RefreshToken[] | null> {
     //   const result = await docClient.send(
     //     new QueryCommand({
-    //       TableName: REFRESH_TOKEN_TABLE,
+    //       TableName: REFRESH_TOKENS_TABLE,
     //       KeyConditionExpression: 'userId = :userId',
     //       ExpressionAttributeValues: {
     //         ':userId': userId,
@@ -93,7 +93,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     // async findByToken(refreshToken: string): Promise<RefreshToken | null> {
     //   const result = await docClient.send(
     //     new QueryCommand({
-    //       TableName: REFRESH_TOKEN_TABLE,
+    //       TableName: REFRESH_TOKENS_TABLE,
     //       IndexName: 'RefreshTokenGSI',
     //       KeyConditionExpression: 'refreshToken = :token',
     //       ExpressionAttributeValues: {
@@ -108,7 +108,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     // async deleteToken(userId: string, refreshTokenId: string): Promise<void> {
     //   await docClient.send(
     //     new DeleteCommand({
-    //       TableName: REFRESH_TOKEN_TABLE,
+    //       TableName: REFRESH_TOKENS_TABLE,
     //       Key: { userId, refreshTokenId },
     //       ConditionExpression:
     //         'attribute_exists(userId) AND attribute_exists(refreshTokenId)',
@@ -119,7 +119,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     async tombstoneToken(refreshToken: RefreshToken): Promise<void> {
       await docClient.send(
         new UpdateCommand({
-          TableName: REFRESH_TOKEN_TABLE,
+          TableName: REFRESH_TOKENS_TABLE,
           Key: {
             refreshTokenId: refreshToken.refreshTokenId,
           },
@@ -142,7 +142,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
       do {
         const queryResult: QueryCommandOutput = await docClient.send(
           new QueryCommand({
-            TableName: REFRESH_TOKEN_TABLE,
+            TableName: REFRESH_TOKENS_TABLE,
             KeyConditionExpression: 'userId = :uuid',
             ExpressionAttributeValues: { ':uuid': userId },
             ProjectionExpression: 'userId, refreshTokenId',
@@ -165,7 +165,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
       do {
         const scanResult: ScanCommandOutput = await docClient.send(
           new ScanCommand({
-            TableName: REFRESH_TOKEN_TABLE,
+            TableName: REFRESH_TOKENS_TABLE,
             FilterExpression: 'expiresAt < :now',
             ExpressionAttributeValues: { ':now': now },
             ProjectionExpression: 'userId, refreshTokenId',

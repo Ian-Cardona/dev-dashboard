@@ -9,8 +9,8 @@ import {
 import { User } from '../../../shared/types/user.type';
 import { ENV } from '../config/env_variables';
 
-const USER_TABLE = ENV.USER_TABLE;
-const EMAIL_TABLE = ENV.EMAIL_TABLE;
+const USERS_TABLE = ENV.USERS_TABLE;
+const EMAILS_TABLE = ENV.EMAILS_TABLE;
 
 export interface IUserModel {
   create(user: User): Promise<User>;
@@ -34,14 +34,14 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
           TransactItems: [
             {
               Put: {
-                TableName: USER_TABLE,
+                TableName: USERS_TABLE,
                 Item: user,
                 ConditionExpression: 'attribute_not_exists(userId)',
               },
             },
             {
               Put: {
-                TableName: EMAIL_TABLE,
+                TableName: EMAILS_TABLE,
                 Item: { emailId: user.email, userId: user.userId },
                 ConditionExpression: 'attribute_not_exists(emailId)',
               },
@@ -56,7 +56,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
     async findById(userId: string): Promise<User | null> {
       const result = await docClient.send(
         new GetCommand({
-          TableName: USER_TABLE,
+          TableName: USERS_TABLE,
           Key: { userId },
         })
       );
@@ -67,7 +67,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
     async findByEmail(email: string): Promise<User | null> {
       const result = await docClient.send(
         new QueryCommand({
-          TableName: USER_TABLE,
+          TableName: USERS_TABLE,
           IndexName: 'EmailIndex',
           KeyConditionExpression: 'email = :email',
           ExpressionAttributeValues: { ':email': email },
@@ -109,7 +109,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
 
       const result = await docClient.send(
         new UpdateCommand({
-          TableName: USER_TABLE,
+          TableName: USERS_TABLE,
           Key: { userId },
           UpdateExpression: `SET ${updateExpressions.join(', ')}`,
           ExpressionAttributeNames: attributeNames,
@@ -125,7 +125,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
     async delete(userId: string): Promise<void> {
       await docClient.send(
         new DeleteCommand({
-          TableName: USER_TABLE,
+          TableName: USERS_TABLE,
           Key: { userId },
           ConditionExpression: 'attribute_exists(userId)',
         })
@@ -135,7 +135,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
     async updateLastLogin(userId: string, timestamp: string): Promise<User> {
       const result = await docClient.send(
         new UpdateCommand({
-          TableName: USER_TABLE,
+          TableName: USERS_TABLE,
           Key: { userId },
           UpdateExpression:
             'SET #lastLoginAt = :lastLoginAt, #updatedAt = :updatedAt',
@@ -158,7 +158,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
     async updatePassword(userId: string, passwordHash: string): Promise<User> {
       const result = await docClient.send(
         new UpdateCommand({
-          TableName: USER_TABLE,
+          TableName: USERS_TABLE,
           Key: { userId },
           UpdateExpression:
             'SET #passwordHash = :passwordHash, #updatedAt = :updatedAt, #passwordUpdatedAt = :passwordUpdatedAt',
@@ -183,7 +183,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
     async deactivateUser(userId: string): Promise<User> {
       const result = await docClient.send(
         new UpdateCommand({
-          TableName: USER_TABLE,
+          TableName: USERS_TABLE,
           Key: { userId },
           UpdateExpression:
             'SET #isActive = :isActive, #updatedAt = :updatedAt, #lastLoginAt = :lastLoginAt',

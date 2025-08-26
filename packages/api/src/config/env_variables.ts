@@ -18,10 +18,10 @@ export const ENV = {
   BCRYPT_SALT_ROUNDS_PW: process.env.BCRYPT_SALT_ROUNDS_PW || 12,
   BCRYPT_SALT_ROUNDS_RT: process.env.BCRYPT_SALT_ROUNDS_RT || 10,
   // Tables
-  CODE_TASK_TABLE: process.env.CODE_TASK_TABLE || 'CodeTasks',
-  USER_TABLE: process.env.USER_TABLE || 'Users',
-  EMAIL_TABLE: process.env.EMAIL_TABLE || 'Emails',
-  REFRESH_TOKEN_TABLE: process.env.REFRESH_TOKEN_TABLE || 'RefreshTokens',
+  TODOS_TABLE: process.env.TODOS_TABLE || 'Todos',
+  USERS_TABLE: process.env.USERS_TABLE || 'Users',
+  EMAILS_TABLE: process.env.EMAILS_TABLE || 'Emails',
+  REFRESH_TOKENS_TABLE: process.env.REFRESH_TOKENS_TABLE || 'RefreshTokens',
   // Audience
   CLIENT_APP_NAME: process.env.CLIENT_APP_NAME || 'DevDashboardUI',
 };
