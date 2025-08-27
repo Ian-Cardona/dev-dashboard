@@ -1,15 +1,27 @@
 {
   "name": "dev-dashboard",
   "version": "1.0.0",
-  "description": "",
+  "description": "The Ultimate Dashboard for Full Stack Developers",
   "license": "ISC",
-  "author": "",
+  "author": "Ian Cardona",
   "type": "module",
-  "main": "index.js",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
+    "dev:api": "cd packages/api && tsx watch src/server.ts",
+    "dev:app": "cd packages/app && vite --config vite.config.ts",
+    "dev:ext": "cd packages/vscode-extension && tsx src/extension.ts",
+    "dev:shared": "npm run dev -w @dev-dashboard/shared",
+    "dev": "npm run dev:shared && npm run dev:api && npm run dev:app && npm run dev:ext",
+
+    "build": "npm run build -ws --if-present",
+    "build:api": "cd packages/api && tsc -b tsconfig.build.json",
+    "build:app": "cd packages/app && vite build",
+    "build:ext": "cd packages/vscode-extension && tsc -b tsconfig.build.json",
+
+    "clean": "rimraf packages/*/dist packages/*/out",
+
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -29,6 +41,7 @@
     "prettier": "^3.6.2",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.37.0"
+    "typescript-eslint": "^8.37.0",
+    "rimraf": "^6.0.1"
   }
 }
