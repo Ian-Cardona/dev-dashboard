@@ -1,4 +1,4 @@
-import type { AuthenticationResponsePublicSchema } from '../../../shared/types/auth.type';
+import type { AuthenticationResponsePublicSchema } from '../../../shared/src/types/auth.type';
 import { publicClient } from './api';
 
 export const authApi = {

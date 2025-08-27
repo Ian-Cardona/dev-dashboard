@@ -28,7 +28,7 @@ const RegisterForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-80">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input
         type="text"
         value={firstName}

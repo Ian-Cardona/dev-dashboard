@@ -1,7 +1,7 @@
 import type {
   AuthenticationLoginRequestPublicSchema,
   AuthenticationResponsePublicSchema,
-} from '../../../../../shared/types/auth.type';
+} from '../../../../../shared/src/types/auth.type';
 import { publicClient } from '../../../lib/api';
 
 export const loginApi = async (
