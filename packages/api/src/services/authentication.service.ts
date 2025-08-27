@@ -12,14 +12,14 @@ import {
   AuthenticationRegisterRequestPublicSchema,
   AuthenticationSuccessResponsePrivateSchema,
   AuthorizationTokenPayload,
-} from '../../../shared/types/auth.type';
+} from '../../../shared/src/types/auth.type';
 import { IUserService } from './user.service';
 import { IRefreshTokenService } from './refreshToken.service';
 import {
   RefreshToken,
   RefreshTokenRecordAndPlain,
-} from '../../../shared/types/refreshToken.type';
-import { UserResponsePublic } from '../../../shared/types/user.type';
+} from '../../../shared/src/types/refreshToken.type';
+import { UserResponsePublic } from '../../../shared/src/types/user.type';
 
 export interface IAuthenticationService {
   register(

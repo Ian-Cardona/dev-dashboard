@@ -1,10 +1,10 @@
 import { IUserModel } from '../models/user.model';
-import { UserResponsePublic, User } from '../../../shared/types/user.type';
+import { UserResponsePublic, User } from '../../../shared/src/types/user.type';
 import { ConflictError, NotFoundError } from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
 import bcrypt from 'bcryptjs';
 import { ENV } from '../config/env_variables';
-import { AuthenticationRegisterRequestPublicSchema } from '../../../shared/types/auth.type';
+import { AuthenticationRegisterRequestPublicSchema } from '../../../shared/src/types/auth.type';
 
 export interface IUserService {
   create(

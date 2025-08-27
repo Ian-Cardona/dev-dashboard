@@ -1,4 +1,4 @@
-import type { UserResponsePublic } from '../../../shared/types/user.type';
+import type { UserResponsePublic } from '../../../shared/src/types/user.type';
 import { protectedClient } from './api';
 
 export const userApi = {

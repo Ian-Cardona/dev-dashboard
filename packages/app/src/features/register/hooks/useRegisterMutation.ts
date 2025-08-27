@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { registerApi } from '../api/registerApi';
 import { useNavigate } from 'react-router';
-import type { AuthenticationRegisterRequestPublicSchema } from '../../../../../shared/types/auth.type';
+import type { AuthenticationRegisterRequestPublicSchema } from '../../../../../shared/src/types/auth.type';
 import { useAuth } from '../../../hooks/useAuth';
 import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
 

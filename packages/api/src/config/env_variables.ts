@@ -22,6 +22,7 @@ export const ENV = {
   USERS_TABLE: process.env.USERS_TABLE || 'Users',
   EMAILS_TABLE: process.env.EMAILS_TABLE || 'Emails',
   REFRESH_TOKENS_TABLE: process.env.REFRESH_TOKENS_TABLE || 'RefreshTokens',
+  API_KEYS_TABLE: process.env.API_KEYS_TABLE || 'ApiKeys',
   // Audience
   CLIENT_APP_NAME: process.env.CLIENT_APP_NAME || 'DevDashboardUI',
 };

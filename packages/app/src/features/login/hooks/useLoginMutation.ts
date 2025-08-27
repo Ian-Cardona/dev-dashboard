@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../../hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
-import type { AuthenticationLoginRequestPublicSchema } from '../../../../../shared/types/auth.type';
+import type { AuthenticationLoginRequestPublicSchema } from '../../../../../shared/src/types/auth.type';
 import { loginApi } from '../api/loginApi';
 import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
 

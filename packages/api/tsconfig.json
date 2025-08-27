@@ -2,36 +2,38 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "outDir": "./out",
+    "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "ESNext",
     "moduleResolution": "Node",
-    "lib": ["ES2020"],
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
     "emitDeclarationOnly": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "baseUrl": ".",
+    "paths": {
+      "@dev-dashboard/shared/*": ["../../shared/src/*"]
+    }
   },
   "include": [
     "src/**/*"
   ],
   "exclude": [
-    "out",
+    "dist",
     "node_modules",
     "**/*.test.ts",
-    "**/*.spec.ts",
-    ".vscode-test/**"
+    "**/*.spec.ts"
   ],
   "ts-node": {
+    "esm": true,
     "compilerOptions": {
-      "module": "CommonJS"
+      "module": "ESNext",
+      "moduleResolution": "Node"
     }
   }
 }

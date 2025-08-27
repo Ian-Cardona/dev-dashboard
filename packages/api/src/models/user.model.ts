@@ -6,12 +6,13 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { User } from '../../../shared/types/user.type';
 import { ENV } from '../config/env_variables';
+import { User } from '@dev-dashboard/shared/dist/esm/index.d.ts';
 
 const USERS_TABLE = ENV.USERS_TABLE;
 const EMAILS_TABLE = ENV.EMAILS_TABLE;
 
+// TODO: Fix monorepo setup
 export interface IUserModel {
   create(user: User): Promise<User>;
   findById(userId: string): Promise<User | null>;

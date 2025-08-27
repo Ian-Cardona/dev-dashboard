@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { UnauthorizedError } from '../utils/errors.utils';
 import { extractBearerToken, verifyJWT } from '../utils/jwt.utils';
-import { AuthorizationTokenPayload } from '../../../shared/types/auth.type';
+import { AuthorizationTokenPayload } from '../../../shared/src/types/auth.type';
 import { UserService } from '../services/user.service';
 import { UserModel } from '../models/user.model';
 import { docClient } from '../config/dynamodb';

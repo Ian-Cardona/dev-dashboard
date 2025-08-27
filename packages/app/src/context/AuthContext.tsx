@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { authApi } from '../lib/auth';
 import { isAxiosError } from 'axios';
-import type { UserResponsePublic } from '../../../shared/types/user.type';
+import type { UserResponsePublic } from '../../../shared/src/types/user.type';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { userApi } from '../lib/user';
 
