@@ -7,12 +7,12 @@ import {
   AuthenticationRegisterRequestPublicSchema,
   AuthenticationResponsePublicSchema,
   AuthorizationJwtSchema,
-} from '../../../shared/types/auth.type';
+} from '../../../shared/src/types/auth.type';
 import {
   authenticationLoginRequestPublicSchema,
   authenticationRefreshRequestPrivateSchema,
   authenticationRegisterRequestPublicSchema,
-} from '../../../shared/schemas/auth.schema';
+} from '../../../shared/src/schemas/auth.schema';
 import { ENV } from '../config/env_variables';
 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;

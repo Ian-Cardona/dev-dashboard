@@ -10,7 +10,7 @@ import {
   UpdateCommand,
   GetCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { RefreshToken } from '../../../shared/types/refreshToken.type';
+import { RefreshToken } from '../../../shared/src/types/refreshToken.type';
 import { ENV } from '../config/env_variables';
 
 const REFRESH_TOKENS_TABLE = ENV.REFRESH_TOKENS_TABLE;

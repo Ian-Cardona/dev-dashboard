@@ -2,7 +2,7 @@ import { IRefreshTokenModel } from '../models/refreshToken.model';
 import {
   RefreshToken,
   RefreshTokenRecordAndPlain,
-} from '../../../shared/types/refreshToken.type';
+} from '../../../shared/src/types/refreshToken.type';
 import { ConflictError } from '../utils/errors.utils';
 import { generateSecureRefreshToken, generateUUID } from '../utils/uuid.utils';
 import { ENV } from '../config/env_variables';

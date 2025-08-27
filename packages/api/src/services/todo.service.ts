@@ -4,18 +4,19 @@ import {
   RawTodo,
   Todo,
   TodosInfo,
-} from '../../../shared/types/todo.type';
+} from '../../../shared/src/types/todo.type';
 import { ITodoModel } from '../models/todo.model';
 import { generateUUID } from '../utils/uuid.utils';
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 import { NotFoundError } from '../utils/errors.utils';
-import { todoSchema } from '../../../shared/schemas/todo.schema';
+import { todoSchema } from '../../../shared/src/schemas/todo.schema';
 
 export interface ITodoService {
   syncTodos(userId: string, data: RawTodo[]): Promise<TodosInfo>;
   create(data: CreateTodo): Promise<Todo>;
   findByUserId(userId: string): Promise<TodosInfo>;
   findByUserIdAndSyncId(userId: string, syncId: string): Promise<TodosInfo>;
+  findLatestByUserId(userId: string): Promise<TodosInfo>;
   update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
@@ -116,6 +117,34 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
     ): Promise<TodosInfo> {
       try {
         const data = await TodoModel.findByUserIdAndSyncId(userId, syncId);
+        const scannedFiles = new Set(data.map(item => item.filePath)).size;
+
+        const meta: TodoMeta = {
+          userId,
+          totalCount: data.length,
+          lastScanAt: new Date().toISOString(),
+          scannedFiles,
+        };
+
+        const todosInfo: TodosInfo = {
+          userId,
+          data,
+          meta,
+        };
+
+        return todosInfo;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+
+        throw new Error('Failed to retrieve tasks');
+      }
+    },
+
+    async findLatestByUserId(userId: string): Promise<TodosInfo> {
+      try {
+        const data = await TodoModel.findLatestByUserId(userId);
         const scannedFiles = new Set(data.map(item => item.filePath)).size;
 
         const meta: TodoMeta = {

@@ -6,7 +6,7 @@ import {
   QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { Todo } from '../../../shared/types/todo.type';
+import { Todo } from '../../../shared/src/types/todo.type';
 import { ENV } from '../config/env_variables';
 
 const TODOS_TABLE = ENV.TODOS_TABLE;
@@ -16,6 +16,7 @@ export interface ITodoModel {
   create(data: Todo): Promise<Todo>;
   findByUserId(userId: string): Promise<Todo[]>;
   findByUserIdAndSyncId(userId: string, syncId: string): Promise<Todo[]>;
+  findLatestByUserId(userId: string): Promise<Todo[]>;
   update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
@@ -92,6 +93,40 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
       }
 
       return result.Items as Todo[];
+    },
+
+    // TODO: Improve on this later on once you've learned databases
+    async findLatestByUserId(userId: string): Promise<Todo[]> {
+      const latestSync = await docClient.send(
+        new QueryCommand({
+          TableName: TODOS_TABLE,
+          IndexName: 'UserSyncIndex',
+          KeyConditionExpression: 'userId = :userId',
+          ExpressionAttributeValues: { ':userId': userId },
+          ScanIndexForward: false,
+          Limit: 1,
+        })
+      );
+
+      if (!latestSync.Items || latestSync.Items.length === 0) {
+        return [];
+      }
+
+      const latestSyncId = latestSync.Items[0].syncId;
+
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: TODOS_TABLE,
+          IndexName: 'UserSyncIndex',
+          KeyConditionExpression: 'userId = :userId AND syncId = :syncId',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+            ':syncId': latestSyncId,
+          },
+        })
+      );
+
+      return (result.Items ?? []) as Todo[];
     },
 
     async update(id: string, userId: string, updates: Partial<Todo>) {

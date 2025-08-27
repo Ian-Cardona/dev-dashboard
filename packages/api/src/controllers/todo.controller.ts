@@ -2,10 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import {
   rawTodoSchema,
   createTodoSchema,
-} from '../../../shared/schemas/todo.schema';
+} from '../../../shared/src/schemas/todo.schema';
 import { ITodoService } from '../services/todo.service';
 import z from 'zod';
-import { parseUuidSchema } from '../../../shared/schemas/user.schema';
+import { parseUuidSchema } from '../../../shared/src/schemas/user.schema';
 
 export const TodoController = (todoService: ITodoService) => {
   const handleValidationError = (
@@ -82,6 +82,17 @@ export const TodoController = (todoService: ITodoService) => {
           next,
           'Invalid user ID or sync ID format'
         );
+      }
+    },
+
+    async findLatestByUserId(req: Request, res: Response, next: NextFunction) {
+      try {
+        const userId = parseUuidSchema.parse(req.user?.userId);
+        const result = await todoService.findLatestByUserId(userId);
+
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid user ID format');
       }
     },
 

@@ -12,15 +12,16 @@ const todoRepositoryInstance = TodoModel(docClient);
 const todoServiceInstance = TodoService(todoRepositoryInstance);
 const todoControllerInstance = TodoController(todoServiceInstance);
 
-router.post('/sync', authorizationMiddleware, todoControllerInstance.syncTodos);
-router.post('/', authorizationMiddleware, todoControllerInstance.createTodo);
-// router.get('/:userId', todoControllerInstance.findTodosInfoByUserId);
+router.post('/', authorizationMiddleware, todoControllerInstance.syncTodos);
+router.get(
+  '/latest',
+  authorizationMiddleware,
+  todoControllerInstance.findLatestByUserId
+);
 router.get(
   '/:syncId',
   authorizationMiddleware,
   todoControllerInstance.findByUserIdAndSyncId
 );
-// router.put('/:id/:userId', todoControllerInstance.updateTodo);
-router.delete('/:id/:userId', todoControllerInstance.deleteTodo);
 
 export default router;
