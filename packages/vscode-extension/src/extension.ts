@@ -3,6 +3,7 @@ import { scanTodos } from './scan';
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Thank you for using DevDashboard!');
+  vscode.window.showInformationMessage('DevDashboard Extension Activated!');
 
   const scanCommand = vscode.commands.registerCommand(
     'vscode-extension.scanTodos',

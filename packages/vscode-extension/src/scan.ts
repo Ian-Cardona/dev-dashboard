@@ -4,9 +4,10 @@ import * as path from 'path';
 import { todosApi } from './todosApi';
 import {
   PredefinedTodoTypeEnum,
-  RawTodo,
-  RawUndefinedTodoBaseSchema,
-} from './types/todos.type';
+  PredefinedTodoTypeEnumType,
+  ProcessedTodos,
+  RawTodoBaseSchema,
+} from '@dev-dashboard/shared';
 
 export const scanTodos = async () => {
   const startTime = Date.now();
@@ -25,8 +26,8 @@ export const scanTodos = async () => {
 
   const todoPromises = files.map(file => scanFileForTodos(file));
   const todoArrays = await Promise.all(todoPromises);
-  const rawUndefinedTodos: RawUndefinedTodoBaseSchema[] = todoArrays.flat();
-  const processedTodos: RawTodo[] = processTodos(rawUndefinedTodos);
+  const rawUndefinedTodos: RawTodoBaseSchema[] = todoArrays.flat();
+  const processedTodos: ProcessedTodos[] = processTodos(rawUndefinedTodos);
 
   console.log(`Found ${processedTodos.length} TODOs:`);
   processedTodos.forEach(todo => {
@@ -120,14 +121,14 @@ const getSourceFiles = async (rootPath: string): Promise<string[]> => {
   return files;
 };
 
-const processTodos = (todos: RawUndefinedTodoBaseSchema[]): RawTodo[] => {
+const processTodos = (todos: RawTodoBaseSchema[]): ProcessedTodos[] => {
   return todos.map(todo => {
     const isPredefined = PredefinedTodoTypeEnum.safeParse(todo.type).success;
 
     if (isPredefined) {
       return {
         ...todo,
-        type: todo.type as PredefinedTodoTypeEnum,
+        type: todo.type as PredefinedTodoTypeEnumType,
         customTag: undefined,
       };
     } else {
@@ -142,13 +143,13 @@ const processTodos = (todos: RawUndefinedTodoBaseSchema[]): RawTodo[] => {
 
 const scanFileForTodos = async (
   filePath: string
-): Promise<RawUndefinedTodoBaseSchema[]> => {
+): Promise<RawTodoBaseSchema[]> => {
   const todoLinePatterns = [
     /(?<!:)\s*\/\/\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
     /^\s*(?:\/\*+|\*)\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
   ];
 
-  const todos: RawUndefinedTodoBaseSchema[] = [];
+  const todos: RawTodoBaseSchema[] = [];
 
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');

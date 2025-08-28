@@ -3,5 +3,5 @@ import crypto from 'crypto';
 
 export const generateUUID = (): string => uuidv4();
 
-export const generateSecureRefreshToken = (): string =>
+export const generateRefreshToken = (): string =>
   crypto.randomBytes(64).toString('hex');

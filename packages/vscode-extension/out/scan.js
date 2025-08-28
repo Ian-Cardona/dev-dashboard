@@ -61,7 +61,7 @@ const vscode = __importStar(require('vscode'));
 const fs = __importStar(require('fs'));
 const path = __importStar(require('path'));
 const todosApi_1 = require('./todosApi');
-const todos_type_1 = require('./types/todos.type');
+const shared_1 = require('@dev-dashboard/shared');
 const scanTodos = async () => {
   const startTime = Date.now();
   console.log('Starting TODO scan...');
@@ -159,7 +159,7 @@ const getSourceFiles = async rootPath => {
 };
 const processTodos = todos => {
   return todos.map(todo => {
-    const isPredefined = todos_type_1.PredefinedTodoTypeEnum.safeParse(
+    const isPredefined = shared_1.PredefinedTodoTypeEnum.safeParse(
       todo.type
     ).success;
     if (isPredefined) {
@@ -233,3 +233,4 @@ const scanFileForTodos = async filePath => {
 //   }
 //   return todos;
 // };
+//# sourceMappingURL=scan.js.map

@@ -6,6 +6,7 @@ import {
 } from '../utils/errors.utils';
 import { sendError } from '../utils/api.utils';
 import { logger } from './logger.middleware';
+
 export const errorHandlerMiddleware = (
   error: unknown,
   req: Request,

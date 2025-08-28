@@ -15,7 +15,7 @@ export const protectedClient = axios.create({
 protectedClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NmU4MDA3MC04OTg1LTQ0ODMtYmQwNC0wMWY4ODI4MzJhYzUiLCJlbWFpbCI6ImlhbmNhcmRvbmEwMDFAZ21haWwuY29tIiwiaXNBY3RpdmUiOnRydWUsImlhdCI6MTc1NjI3MTM3NCwiZXhwIjoxNzU2MjczMTc0LCJhdWQiOiJEZXZEYXNoYm9hcmRVSSIsImlzcyI6IkRldkRhc2hib2FyZCJ9.7d48S4igrnWVPn_V6c1_HxYLZ14_zcs9EK60C-9-GVU';
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjMTBiZTc0Mi1jMGJkLTQ0NGYtOTk5OC1hZGYyZjY1NzEzMjQiLCJlbWFpbCI6ImlhbmNhcmRvbmEwMDFAZ21haWwuY29tIiwiaXNBY3RpdmUiOnRydWUsImlhdCI6MTc1NjM1NzE4NywiZXhwIjoxNzU2MzU4OTg3LCJhdWQiOiJEZXZEYXNoYm9hcmRVSSIsImlzcyI6IkRldkRhc2hib2FyZCJ9.5METYorOLf93M7wn7vYddXOwdYI2I6JmKQYp9L9ME8U';
     if (token) {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;

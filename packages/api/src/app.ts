@@ -3,9 +3,10 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-import authenticationRouter from './routes/authentication.route';
-import todoRouter from './routes/todo.route';
-import userRouter from './routes/user.route';
+import authenticationRouter from './auth-related/authentication/authentication.route';
+import todoRouter from './todos/todo.route';
+import userRouter from './users/user.route';
+import apiKeysRouter from './api-keys/api-keys.route';
 
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
 import { loggerMiddleware } from './middlewares/logger.middleware';
@@ -13,7 +14,6 @@ import { authorizationMiddleware } from './middlewares/authorization.middleware'
 
 const app = express();
 
-// Security headers middleware
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 app.use(
   helmet.contentSecurityPolicy({
@@ -26,7 +26,6 @@ app.use(
   })
 );
 
-// Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -40,9 +39,13 @@ app.use(cookieParser());
 
 app.use(loggerMiddleware);
 
-app.use('/auth', authenticationRouter);
-app.use('/todos', todoRouter);
-app.use('/user', authorizationMiddleware, userRouter);
+const v1Router = express.Router();
+v1Router.use('/auth', authenticationRouter);
+v1Router.use('/todos', authorizationMiddleware, todoRouter);
+v1Router.use('/user', authorizationMiddleware, userRouter);
+v1Router.use('/api-keys', authorizationMiddleware, apiKeysRouter);
+
+app.use('/v1', v1Router);
 
 app.get('/health', (req, res) => res.send({ status: 'ok' }));
 

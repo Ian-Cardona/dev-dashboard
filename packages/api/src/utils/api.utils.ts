@@ -12,7 +12,7 @@ export const sendError = (
   res: Response,
   error: string,
   message: string,
-  statusCode: number = 400
+  statusCode: number = 404
 ) => {
   return res.status(statusCode).json({
     error,
