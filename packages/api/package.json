@@ -22,7 +22,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "@dev-dashboard/shared": "1.0.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",

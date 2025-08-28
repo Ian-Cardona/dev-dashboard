@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
     "outDir": "./out",
     "rootDir": "./src",
     "declaration": true,
@@ -12,26 +11,14 @@
     "moduleResolution": "Node",
     "lib": ["ES2020"],
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": false,
-    "emitDeclarationOnly": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "resolveJsonModule": true
   },
-  "include": [
-    "src/**/*"
-  ],
+  "include": ["src/**/*"],
   "exclude": [
     "out",
     "node_modules",
     "**/*.test.ts",
     "**/*.spec.ts",
     ".vscode-test/**"
-  ],
-  "ts-node": {
-    "compilerOptions": {
-      "module": "CommonJS"
-    }
-  }
+  ]
 }

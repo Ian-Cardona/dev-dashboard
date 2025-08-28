@@ -1,8 +1,8 @@
+import { RawTodoBaseSchema } from '@dev-dashboard/shared';
 import { protectedClient } from './api';
-import { RawTodo } from './types/todos.type';
 
 export const todosApi = {
-  syncTodos: async (todos: RawTodo[]) => {
+  syncTodos: async (todos: RawTodoBaseSchema[]) => {
     const response = await protectedClient.post('/todos/sync', { todos });
     return response.data;
   },

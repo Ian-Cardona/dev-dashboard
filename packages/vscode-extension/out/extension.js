@@ -62,6 +62,7 @@ const vscode = __importStar(require('vscode'));
 const scan_1 = require('./scan');
 function activate(context) {
   console.log('Thank you for using DevDashboard!');
+  vscode.window.showInformationMessage('DevDashboard Extension Activated!');
   const scanCommand = vscode.commands.registerCommand(
     'vscode-extension.scanTodos',
     async () => {
@@ -76,3 +77,4 @@ function activate(context) {
   context.subscriptions.push(scanCommand);
 }
 function deactivate() {}
+//# sourceMappingURL=extension.js.map

@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { UnauthorizedError } from '../utils/errors.utils';
 import { extractBearerToken, verifyJWT } from '../utils/jwt.utils';
-import { AuthorizationTokenPayload } from '../../../shared/src/types/auth.type';
-import { UserService } from '../services/user.service';
-import { UserModel } from '../models/user.model';
+import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
+import { UserService } from '../users/user.service';
+import { UserModel } from '../users/user.model';
 import { docClient } from '../config/dynamodb';
 
 const userService = UserService(UserModel(docClient));
@@ -30,7 +30,7 @@ export const authorizationMiddleware = async (
     }
 
     req.user = {
-      userId: user.userId,
+      userId: user.id,
       email: user.email,
     };
 

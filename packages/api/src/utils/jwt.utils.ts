@@ -1,7 +1,7 @@
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { ENV } from '../config/env_variables';
-import { AuthorizationTokenPayload } from '../../../shared/src/types/auth.type';
 import { Request } from 'express';
+import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
 
 export const generateJWT = (payload: AuthorizationTokenPayload): string => {
   if (!ENV.JWT_SECRET) {
