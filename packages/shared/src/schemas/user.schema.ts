@@ -19,7 +19,7 @@ export const passwordSchema = z
 
 // User Validation
 export const userSchema = z.object({
-  userId: z.uuid({ message: 'Invalid UUID' }),
+  id: z.uuid({ message: 'Invalid UUID' }),
   email: z.email({ message: 'Invalid email address' }),
   passwordHash: z.string({ message: 'Invalid password hash' }).trim(),
   firstName: z
@@ -67,7 +67,7 @@ export const userSchema = z.object({
 });
 
 export const userUpdateSchema = userSchema.omit({
-  userId: true,
+  id: true,
   createdAt: true,
   updatedAt: true,
   lastLoginAt: true,
@@ -84,7 +84,7 @@ export const userResponsePublicSchema = userSchema.omit({
   role: true,
 });
 
-export const parseUuidSchema = z.uuidv4({ message: 'Invalid UUID' });
+export const uuidSchema = z.uuidv4({ message: 'Invalid UUID' });
 export const emailSchema = z.email({ message: 'Invalid email' });
 export const isoDateTimeSchema = z.iso.datetime({
   message: 'Invalid ISO datetime',

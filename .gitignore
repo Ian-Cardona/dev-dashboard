@@ -1,5 +1,7 @@
 node_modules/
 packages/*/node_modules/
+packages/*/out
+packages/*/*/__tests__
 
 TODO
 README.md

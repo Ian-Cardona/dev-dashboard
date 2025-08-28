@@ -14,7 +14,7 @@ export const PredefinedTodoTypeEnum = z.enum([
 
 export const OtherTodoTypeEnum = z.literal('OTHER');
 
-const rawUndefinedTodoBaseSchema = z.object({
+export const rawTodoBaseSchema = z.object({
   type: z
     .string()
     .min(VALIDATION_CONSTANTS.TODO.CONTENT.MIN_LENGTH)
@@ -33,12 +33,12 @@ const rawUndefinedTodoBaseSchema = z.object({
     .max(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MAX),
 });
 
-const rawPredefinedTodoSchema = rawUndefinedTodoBaseSchema.extend({
+const unprocessedPredefinedTodoSchema = rawTodoBaseSchema.extend({
   type: PredefinedTodoTypeEnum,
   customTag: z.undefined().optional(),
 });
 
-const rawOtherTodoSchema = rawUndefinedTodoBaseSchema.extend({
+const unprocessedOtherTodoSchema = rawTodoBaseSchema.extend({
   type: z.literal('OTHER'),
   customTag: z
     .string()
@@ -47,9 +47,9 @@ const rawOtherTodoSchema = rawUndefinedTodoBaseSchema.extend({
     .regex(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.PATTERN),
 });
 
-export const rawTodoSchema = z.discriminatedUnion('type', [
-  rawPredefinedTodoSchema,
-  rawOtherTodoSchema,
+export const processedTodosSchema = z.discriminatedUnion('type', [
+  unprocessedPredefinedTodoSchema,
+  unprocessedOtherTodoSchema,
 ]);
 
 const todoCommonSchema = z.object({
@@ -59,10 +59,10 @@ const todoCommonSchema = z.object({
   syncId: z.uuidv4(),
 });
 
-export const todoSchema = rawTodoSchema.and(todoCommonSchema);
+export const todoSchema = rawTodoBaseSchema.and(todoCommonSchema);
 
 // Creation
-export const createTodoSchema = rawTodoSchema.and(
+export const createTodoSchema = rawTodoBaseSchema.and(
   todoCommonSchema.omit({ id: true, syncedAt: true })
 );
 
@@ -100,6 +100,6 @@ export const todoMetaSchema = z.object({
 // Full Information with Metadata
 export const todosInfoSchema = z.object({
   userId: z.uuidv4(),
-  data: z.array(todoSchema),
+  todos: z.array(todoSchema),
   meta: todoMetaSchema,
 });

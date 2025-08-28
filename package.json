@@ -13,15 +13,12 @@
     "dev:app": "cd packages/app && vite --config vite.config.ts",
     "dev:ext": "cd packages/vscode-extension && tsx src/extension.ts",
     "dev:shared": "npm run dev -w @dev-dashboard/shared",
-    "dev": "npm run dev:shared && npm run dev:api && npm run dev:app && npm run dev:ext",
-
+    "dev": "concurrently \"npm run dev:shared\" \"npm run dev:api\" \"npm run dev:app\" \"npm run dev:ext\"",
     "build": "npm run build -ws --if-present",
     "build:api": "cd packages/api && tsc -b tsconfig.build.json",
     "build:app": "cd packages/app && vite build",
     "build:ext": "cd packages/vscode-extension && tsc -b tsconfig.build.json",
-
     "clean": "rimraf packages/*/dist packages/*/out",
-
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -34,14 +31,15 @@
   "devDependencies": {
     "@eslint/js": "^9.31.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "concurrently": "^8.2.2",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
     "globals": "^16.3.0",
     "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.37.0",
-    "rimraf": "^6.0.1"
+    "typescript-eslint": "^8.37.0"
   }
 }
