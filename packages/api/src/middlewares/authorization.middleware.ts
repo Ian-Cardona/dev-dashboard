@@ -8,7 +8,6 @@ import { docClient } from '../config/dynamodb';
 
 const userService = UserService(UserModel(docClient));
 
-// TODO: Create test suite for this
 export const authorizationMiddleware = async (
   req: Request,
   res: Response,
@@ -16,12 +15,9 @@ export const authorizationMiddleware = async (
 ) => {
   try {
     const token = extractBearerToken(req);
-    console.log('Bearer:', token);
     const payload: AuthorizationTokenPayload = verifyJWT(token);
-    console.log('Payload:', payload);
 
     const user = await userService.findById(payload.userId);
-    console.log('User ID:', user);
     if (!user) {
       throw new UnauthorizedError('User account no longer exists');
     }
@@ -35,7 +31,7 @@ export const authorizationMiddleware = async (
     };
 
     next();
-  } catch {
-    next(new UnauthorizedError('Invalid or expired token'));
+  } catch (error) {
+    next(error);
   }
 };

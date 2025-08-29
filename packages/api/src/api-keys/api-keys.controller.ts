@@ -1,4 +1,4 @@
-import z from 'zod';
+// import z from 'zod';
 import { NextFunction, Request, Response } from 'express';
 import { IApiKeysService } from './api-keys.service';
 import { handleValidationError } from 'src/utils/validation-error.utils';
@@ -9,11 +9,12 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
     async create(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const description = z
-          .string()
-          .min(2)
-          .max(100)
-          .parse(req.body.description);
+        const description = 'test-api-key';
+        // const description = z
+        //   .string()
+        //   .min(2)
+        //   .max(100)
+        //   .parse(req.body.description);
 
         const result = await apiKeysService.create(userId, description);
         res.json(result);

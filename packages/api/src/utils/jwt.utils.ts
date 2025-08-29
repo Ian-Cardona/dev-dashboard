@@ -2,6 +2,7 @@ import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { ENV } from '../config/env_variables';
 import { Request } from 'express';
 import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
+import { UnauthorizedError } from './errors.utils';
 
 export const generateJWT = (payload: AuthorizationTokenPayload): string => {
   if (!ENV.JWT_SECRET) {
@@ -39,14 +40,15 @@ export const verifyJWT = (token: string): AuthorizationTokenPayload => {
 export const extractBearerToken = (req: Request): string => {
   const authHeader = req.headers['authorization'];
   if (!authHeader || Array.isArray(authHeader))
-    throw new Error('No authorization header');
+    throw new UnauthorizedError('No authorization header');
 
   const parts = authHeader.split(' ');
-  if (parts.length !== 2) throw new Error('Invalid authorization header');
+  if (parts.length !== 2)
+    throw new UnauthorizedError('Invalid authorization header');
 
   const [scheme, token] = parts;
   if (!/^Bearer$/i.test(scheme))
-    throw new Error('Invalid authorization header');
+    throw new UnauthorizedError('Invalid authorization header');
 
   return token;
 };

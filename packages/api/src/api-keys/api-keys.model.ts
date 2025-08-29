@@ -1,4 +1,8 @@
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+} from '@aws-sdk/lib-dynamodb';
 import { ENV } from '../config/env_variables';
 import { ApiKey } from '@dev-dashboard/shared';
 
@@ -26,8 +30,14 @@ export const ApiKeysModel: (
       return data;
     },
 
-    findById: async () => {
-      throw new Error('Not implemented');
+    findById: async (id: string) => {
+      const result = await docClient.send(
+        new GetCommand({
+          TableName: API_KEYS_TABLE,
+          Key: { id },
+        })
+      );
+      return result.Item as ApiKey | null;
     },
     findByUserId: async () => {
       throw new Error('Not implemented');

@@ -1,9 +1,9 @@
-import type { AuthorizationTokenPayload } from '../auth.type';
+import * as express from 'express';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: Pick<AuthorizationTokenPayload, 'userId' | 'email'>;
+      user?: { userId: string; email?: string };
     }
   }
 }
