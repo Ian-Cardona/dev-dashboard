@@ -7,5 +7,6 @@ export const apiKeySchema = z.object({
   createdAt: z.iso.datetime(),
   lastUsedAt: z.iso.datetime(),
   description: z.string().max(255).optional(),
+  expiresAt: z.iso.datetime(),
   isActive: z.boolean().default(true),
 });

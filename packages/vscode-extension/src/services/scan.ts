@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { todosApi } from './todosApi';
+import { todosApi } from '../tree/todosApi';
 import {
   PredefinedTodoTypeEnum,
   PredefinedTodoTypeEnumType,
   ProcessedTodos,
-  RawTodoBaseSchema,
+  RawTodo,
 } from '@dev-dashboard/shared';
 
 export const scanTodos = async () => {
@@ -26,7 +26,7 @@ export const scanTodos = async () => {
 
   const todoPromises = files.map(file => scanFileForTodos(file));
   const todoArrays = await Promise.all(todoPromises);
-  const rawUndefinedTodos: RawTodoBaseSchema[] = todoArrays.flat();
+  const rawUndefinedTodos: RawTodo[] = todoArrays.flat();
   const processedTodos: ProcessedTodos[] = processTodos(rawUndefinedTodos);
 
   console.log(`Found ${processedTodos.length} TODOs:`);
@@ -121,7 +121,7 @@ const getSourceFiles = async (rootPath: string): Promise<string[]> => {
   return files;
 };
 
-const processTodos = (todos: RawTodoBaseSchema[]): ProcessedTodos[] => {
+const processTodos = (todos: RawTodo[]): ProcessedTodos[] => {
   return todos.map(todo => {
     const isPredefined = PredefinedTodoTypeEnum.safeParse(todo.type).success;
 
@@ -141,15 +141,13 @@ const processTodos = (todos: RawTodoBaseSchema[]): ProcessedTodos[] => {
   });
 };
 
-const scanFileForTodos = async (
-  filePath: string
-): Promise<RawTodoBaseSchema[]> => {
+const scanFileForTodos = async (filePath: string): Promise<RawTodo[]> => {
   const todoLinePatterns = [
     /(?<!:)\s*\/\/\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
     /^\s*(?:\/\*+|\*)\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
   ];
 
-  const todos: RawTodoBaseSchema[] = [];
+  const todos: RawTodo[] = [];
 
   try {
     const content = await fs.promises.readFile(filePath, 'utf8');

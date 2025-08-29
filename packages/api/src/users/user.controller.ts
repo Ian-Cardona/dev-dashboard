@@ -1,11 +1,11 @@
+import z from 'zod';
 import { NextFunction, Request, Response } from 'express';
-import { IUserService } from '../services/user.service';
+import { IUserService } from './user.service';
 import {
   passwordUpdateSchema,
-  parseUuidSchema,
+  uuidSchema,
   userUpdateSchema,
-} from '../../../shared/src/schemas/user.schema';
-import z from 'zod';
+} from '@dev-dashboard/shared';
 
 export interface IUserController {
   getUserProfile: (
@@ -49,7 +49,7 @@ export const UserController = (userService: IUserService) => {
   return {
     async getUserProfile(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = parseUuidSchema.parse(req.user?.userId);
+        const userId = uuidSchema.parse(req.user?.userId);
         const result = await userService.findById(userId);
         res.json(result);
       } catch (error) {
@@ -59,7 +59,7 @@ export const UserController = (userService: IUserService) => {
 
     async updateUserAccount(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = parseUuidSchema.parse(req.user?.userId);
+        const userId = uuidSchema.parse(req.user?.userId);
         const updates = userUpdateSchema.parse(req.body);
         const result = await userService.update(userId, updates);
         res.json(result);
@@ -70,7 +70,7 @@ export const UserController = (userService: IUserService) => {
 
     async updateUserPassword(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = parseUuidSchema.parse(req.user?.userId);
+        const userId = uuidSchema.parse(req.user?.userId);
         const validatedData = passwordUpdateSchema.parse(req.body);
 
         await userService.updatePassword(userId, validatedData.newPassword);
@@ -86,8 +86,8 @@ export const UserController = (userService: IUserService) => {
       next: NextFunction
     ) {
       try {
-        const userId = parseUuidSchema.parse(req.user?.userId);
-        await userService.deactivateUser(userId);
+        const userId = uuidSchema.parse(req.user?.userId);
+        await userService.deactivate(userId);
         res.status(204).end();
       } catch (error) {
         handleValidationError(error, res, next, 'User deactivation failed');

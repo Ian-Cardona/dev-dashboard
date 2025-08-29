@@ -1,18 +1,21 @@
-import { IUserModel } from '../models/user.model';
-import { UserResponsePublic, User } from '../../../shared/src/types/user.type';
+import { IUserModel } from './user.model';
 import { ConflictError, NotFoundError } from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
 import bcrypt from 'bcryptjs';
 import { ENV } from '../config/env_variables';
-import { AuthenticationRegisterRequestPublicSchema } from '../../../shared/src/types/auth.type';
+import {
+  User,
+  UserResponsePublic,
+  AuthenticationRegisterRequestPublicSchema,
+} from '@dev-dashboard/shared';
 
 export interface IUserService {
   create(
     user: AuthenticationRegisterRequestPublicSchema
   ): Promise<UserResponsePublic>;
   findById(userId: string): Promise<UserResponsePublic>;
-  findByEmailForAuth(email: string): Promise<User>;
-  findByEmailForPublic(email: string): Promise<UserResponsePublic>;
+  findByEmailPrivate(email: string): Promise<User>;
+  findByEmailPublic(email: string): Promise<UserResponsePublic>;
   emailExists(email: string): Promise<boolean>;
   update(
     userId: string,
@@ -27,7 +30,7 @@ export interface IUserService {
     userId: string,
     passwordHash: string
   ): Promise<UserResponsePublic>;
-  deactivateUser(userId: string): Promise<UserResponsePublic>;
+  deactivate(userId: string): Promise<UserResponsePublic>;
 }
 
 export const UserService = (userModel: IUserModel): IUserService => {
@@ -38,13 +41,11 @@ export const UserService = (userModel: IUserModel): IUserService => {
       try {
         const { password, ...userWithoutPassword } = user;
 
-        const saltPassword = await bcrypt.genSalt(
-          Number(ENV.BCRYPT_SALT_ROUNDS_PW)
-        );
-        const hashedPassword = await bcrypt.hash(password, saltPassword);
+        const salt = await bcrypt.genSalt(Number(ENV.BCRYPT_SALT_ROUNDS_PW));
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         const result = await userModel.create({
-          userId: generateUUID(),
+          id: generateUUID(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           isActive: true,
@@ -55,7 +56,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
         // TODO: Fix the schemas to avoid manual object manipulation like this
         const responseUser: UserResponsePublic = {
-          userId: result.userId,
+          id: result.id,
           email: result.email,
           firstName: result.firstName,
           lastName: result.lastName,
@@ -77,7 +78,6 @@ export const UserService = (userModel: IUserModel): IUserService => {
     async findById(userId: string): Promise<UserResponsePublic> {
       try {
         const user = await userModel.findById(userId);
-
         if (!user) {
           throw new NotFoundError('User not found');
         }
@@ -93,7 +93,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async findByEmailForAuth(email: string): Promise<User> {
+    async findByEmailPrivate(email: string): Promise<User> {
       try {
         const user = await userModel.findByEmail(email);
 
@@ -110,7 +110,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async findByEmailForPublic(email: string): Promise<UserResponsePublic> {
+    async findByEmailPublic(email: string): Promise<UserResponsePublic> {
       try {
         const user = await userModel.findByEmail(email);
 
@@ -131,6 +131,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
     async emailExists(email: string): Promise<boolean> {
       try {
+        console.log('Email exists?', email);
         const user = await userModel.findByEmail(email);
         return user !== null;
       } catch (error) {
@@ -232,9 +233,9 @@ export const UserService = (userModel: IUserModel): IUserService => {
       }
     },
 
-    async deactivateUser(userId: string): Promise<UserResponsePublic> {
+    async deactivate(userId: string): Promise<UserResponsePublic> {
       try {
-        const result = await userModel.deactivateUser(userId);
+        const result = await userModel.deactivate(userId);
 
         if (!result) {
           throw new NotFoundError('User not found');

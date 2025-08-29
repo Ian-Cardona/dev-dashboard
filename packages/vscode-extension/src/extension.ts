@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { scanTodos } from './scan';
+import { scanTodos } from './services/scan';
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Thank you for using DevDashboard!');
