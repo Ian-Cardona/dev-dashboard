@@ -41,9 +41,9 @@ app.use(loggerMiddleware);
 
 const v1Router = express.Router();
 v1Router.use('/auth', authenticationRouter);
-v1Router.use('/todos', authorizationMiddleware, todoRouter);
+v1Router.use('/todos', todoRouter);
 v1Router.use('/user', authorizationMiddleware, userRouter);
-v1Router.use('/api-keys', authorizationMiddleware, apiKeysRouter);
+v1Router.use('/api-keys', apiKeysRouter);
 
 app.use('/v1', v1Router);
 
