@@ -42,8 +42,8 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
             {
               Put: {
                 TableName: EMAILS_TABLE,
-                Item: { emailId: user.email, id: user.id },
-                ConditionExpression: 'attribute_not_exists(emailId)',
+                Item: { email: user.email, id: user.id },
+                ConditionExpression: 'attribute_not_exists(email)',
               },
             },
           ],
