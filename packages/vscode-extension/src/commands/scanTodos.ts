@@ -1,15 +1,16 @@
 import * as vscode from 'vscode';
-import { postTodos } from '../services/post-todos';
+import { scanTodos } from '../services/scan-todos';
 import { DashboardProvider } from '../tree-providers/dashboard-provider';
 
-export const syncTodosCommand = async (
+export const scanAndSetTodosCommand = async (
   dashboardProvider: DashboardProvider
 ) => {
   try {
-    const todos = dashboardProvider.getTodos();
-    console.log('Todos', todos);
-    await postTodos(todos);
-    vscode.window.showInformationMessage(`Synced TODOs Successfully`);
+    const todos = await scanTodos();
+    dashboardProvider.setTodos(todos);
+    vscode.window.showInformationMessage(
+      `Scanned and found ${todos.length} TODOs.`
+    );
   } catch (error) {
     let errorMessage;
     console.error('Failed to scan and populate TODOs:', error);
@@ -18,6 +19,8 @@ export const syncTodosCommand = async (
     } else {
       errorMessage = 'Unknown error';
     }
-    vscode.window.showErrorMessage(`Failed to sync TODOs: ${errorMessage}`);
+    vscode.window.showErrorMessage(
+      `Failed to scan and populate TODOs: ${errorMessage}`
+    );
   }
 };
