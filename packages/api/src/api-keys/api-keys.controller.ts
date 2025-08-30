@@ -9,7 +9,7 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
     async create(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const description = 'test-api-key';
+        const description = 'dev-dashboard';
         // const description = z
         //   .string()
         //   .min(2)
