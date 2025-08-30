@@ -79,11 +79,17 @@ export const ApiKeysService = (
 
     async validate(plainTextKey: string): Promise<ApiKey> {
       const parts = plainTextKey.split(KEY_SEPARATOR);
-      if (parts.length < 3 || parts[0] !== KEY_PREFIX) {
+      if (
+        parts.length !== 4 ||
+        parts[0] !== KEY_PREFIX ||
+        parts[1] !== KEY_ID_PREFIX
+      ) {
         throw new UnauthorizedError('Invalid API key');
       }
-      const keyId = parts[1];
+      const keyId = `${parts[1]}${KEY_SEPARATOR}${parts[2]}`;
+
       const apiKey = await apiKeysModel.findById(keyId);
+
       if (!apiKey) {
         throw new UnauthorizedError('Invalid API key');
       }
@@ -93,10 +99,13 @@ export const ApiKeysService = (
       if (new Date(apiKey.expiresAt) < new Date()) {
         throw new UnauthorizedError('Invalid API key');
       }
+
       const isMatch = await bcrypt.compare(plainTextKey, apiKey.hash);
+
       if (!isMatch) {
         throw new UnauthorizedError('Invalid API key');
       }
+
       return apiKey;
     },
 
