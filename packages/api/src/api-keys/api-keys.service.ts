@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { ApiKey } from '@dev-dashboard/shared';
 import { IApiKeysModel } from './api-keys.model';
 import { UnauthorizedError } from 'src/utils/errors.utils';
+import { ENV } from 'src/config/env_variables';
 
 export interface IApiKeysService {
   create(
@@ -10,9 +11,9 @@ export interface IApiKeysService {
     description: string
   ): Promise<{
     id: string;
-    plainTextKey: string;
+    pkey: string;
   }>;
-  validate(plainTextKey: string): Promise<ApiKey>;
+  validate(pkey: string): Promise<ApiKey>;
   // findById(id: string): Promise<ApiKey | null>;
   // findByUserId(userId: string): Promise<ApiKey[]>;
   // revoke(id: string): Promise<void>;
@@ -26,20 +27,33 @@ const KEY_PREFIX = 'ddk';
 export const ApiKeysService = (
   apiKeysModel: IApiKeysModel
 ): IApiKeysService => {
+  const _preHashIfNeeded = (key: string): string => {
+    const byteLength = Buffer.byteLength(key, 'utf8');
+    if (byteLength > 72) {
+      return crypto.createHash('sha256').update(key, 'utf8').digest('hex');
+    }
+    return key;
+  };
+
   const _generateKeys = async (): Promise<{
     id: string;
-    plainTextKey: string;
+    pkey: string;
     hashedKey: string;
   }> => {
-    const keyId = `${KEY_ID_PREFIX}${KEY_SEPARATOR}${crypto.randomBytes(6).toString('hex')}`;
-    const secret = crypto.randomBytes(32).toString('hex');
+    const keyId = `${KEY_ID_PREFIX}${KEY_SEPARATOR}${crypto.randomBytes(4).toString('hex')}`;
+    const secret = crypto.randomBytes(24).toString('hex');
 
-    const plainTextKey = `${KEY_PREFIX}${KEY_SEPARATOR}${keyId}${KEY_SEPARATOR}${secret}`;
-    const hashedKey = await bcrypt.hash(plainTextKey, 12);
+    const pkey = `${KEY_PREFIX}${KEY_SEPARATOR}${keyId}${KEY_SEPARATOR}${secret}`;
+
+    const keyToHash = _preHashIfNeeded(pkey);
+    const hashedKey = await bcrypt.hash(
+      keyToHash,
+      Number(ENV.BCRYPT_SALT_ROUNDS_API_KEY)
+    );
 
     return {
       id: keyId,
-      plainTextKey,
+      pkey,
       hashedKey,
     };
   };
@@ -50,9 +64,9 @@ export const ApiKeysService = (
       description: string
     ): Promise<{
       id: string;
-      plainTextKey: string;
+      pkey: string;
     }> {
-      const { id, plainTextKey, hashedKey } = await _generateKeys();
+      const { id, pkey, hashedKey } = await _generateKeys();
 
       const createdAt = new Date();
       const expiresAt = new Date(
@@ -73,12 +87,17 @@ export const ApiKeysService = (
 
       return {
         id,
-        plainTextKey,
+        pkey,
       };
     },
 
-    async validate(plainTextKey: string): Promise<ApiKey> {
-      const parts = plainTextKey.split(KEY_SEPARATOR);
+    async validate(pkey: string): Promise<ApiKey> {
+      const byteLength = Buffer.byteLength(pkey, 'utf8');
+      if (byteLength > 72) {
+        throw new UnauthorizedError('Invalid API key');
+      }
+
+      const parts = pkey.split(KEY_SEPARATOR);
       if (
         parts.length !== 4 ||
         parts[0] !== KEY_PREFIX ||
@@ -100,7 +119,8 @@ export const ApiKeysService = (
         throw new UnauthorizedError('Invalid API key');
       }
 
-      const isMatch = await bcrypt.compare(plainTextKey, apiKey.hash);
+      const keyToCompare = _preHashIfNeeded(pkey);
+      const isMatch = await bcrypt.compare(keyToCompare, apiKey.hash);
 
       if (!isMatch) {
         throw new UnauthorizedError('Invalid API key');
