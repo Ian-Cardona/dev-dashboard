@@ -17,6 +17,7 @@ export const ENV = {
   // Bcrypt
   BCRYPT_SALT_ROUNDS_PW: process.env.BCRYPT_SALT_ROUNDS_PW || 12,
   BCRYPT_SALT_ROUNDS_RT: process.env.BCRYPT_SALT_ROUNDS_RT || 10,
+  BCRYPT_SALT_ROUNDS_API_KEY: process.env.BCRYPT_SALT_ROUNDS_API_KEY || 12,
   // Tables
   TODOS_TABLE: process.env.TODOS_TABLE || 'TODOS',
   USERS_TABLE: process.env.USERS_TABLE || 'USERS',

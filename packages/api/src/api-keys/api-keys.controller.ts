@@ -19,8 +19,18 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
         const result = await apiKeysService.create(userId, description);
         res.json(result);
       } catch (error) {
-        console.log('Error creating API key:', error);
         handleValidationError(error, res, next, 'Invalid API key data');
+      }
+    },
+
+    async checkConnection(req: Request, res: Response, next: NextFunction) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        if (userId) {
+          res.json({ message: 'API Key is valid' });
+        }
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid request data');
       }
     },
   };

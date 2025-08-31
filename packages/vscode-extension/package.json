@@ -27,12 +27,25 @@
     "views": {
       "devDashboard": [
         {
+          "id": "devDashboardOnboarding",
+          "name": "Welcome",
+          "type": "webview",
+          "contextualTitle": "Dev Dashboard - Welcome",
+          "when": "!devDashboard.hasApiKey"
+        },
+        {
           "id": "devDashboardMain",
-          "name": "Dashboard"
+          "name": "Dashboard",
+          "when": "devDashboard.hasApiKey"
         }
       ]
     },
     "commands": [
+      {
+        "command": "devDashboard.showOnboarding",
+        "title": "Show Onboarding",
+        "category": "Dev Dashboard"
+      },
       {
         "command": "vscode-extension.showWelcome",
         "title": "Welcome",
@@ -41,7 +54,8 @@
       {
         "command": "vscode-extension.showTodos",
         "title": "TODOs",
-        "icon": "$(checklist)"
+        "icon": "$(checklist)",
+        "when": "devDashboard.hasApiKey"
       },
       {
         "command": "vscode-extension.showApiConfig",
@@ -70,6 +84,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "devDashboard.showOnboarding",
+          "when": "view == devDashboardOnboarding",
+          "group": "navigation"
+        },
         {
           "command": "vscode-extension.showWelcome",
           "when": "view == devDashboardMain",

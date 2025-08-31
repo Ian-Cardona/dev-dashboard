@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 import { RawTodo } from '@dev-dashboard/shared';
-import { makeRelativePath } from '../../utils/make-file-relative';
+import { makeRelativePath } from '../../utils/path-manager';
 
 export const getRepositoryInfo = (gitRoot: string) => {
   try {

@@ -1,6 +1,7 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
-import { getApiKey } from '../utils/get-api-key';
 import * as vscode from 'vscode';
+import { getSecretKey } from '../utils/secret-key-manager';
+import { API_KEY } from '../utils/constants';
 
 // const baseURL = process.env.API_URL || 'http://localhost:3000';
 const baseURL = 'http://localhost:3000/v1';
@@ -20,7 +21,7 @@ protectedClient.interceptors.request.use(
       'iancardona.dev-dashboard'
     );
     const context = extension?.exports?.extensionContext;
-    const apiKey = context ? await getApiKey(context) : undefined;
+    const apiKey = context ? await getSecretKey(context, API_KEY) : undefined;
     if (apiKey) {
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${apiKey}`;
@@ -32,8 +33,7 @@ protectedClient.interceptors.request.use(
 export const setupProtectedClient = (context: vscode.ExtensionContext) => {
   protectedClient.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
-      const apiKey = await getApiKey(context);
-      console.log('ApiKey', apiKey);
+      const apiKey = await getSecretKey(context, API_KEY);
       if (apiKey) {
         config.headers = config.headers ?? {};
         config.headers.Authorization = `Bearer ${apiKey}`;
