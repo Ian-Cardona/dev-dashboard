@@ -31,6 +31,20 @@ export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
     if (element) {
       return Promise.resolve([]);
     }
+    if (this.todos.length === 0) {
+      const placeholder = new TodoItem('No TODOs found. Run Scan Todos.', {
+        content: '',
+        filePath: '',
+        lineNumber: 0,
+        type: 'OTHER',
+        customTag: 'placeholder',
+      });
+      return Promise.resolve([placeholder]);
+    }
     return Promise.resolve(this.todos);
+  }
+
+  refresh(): void {
+    this._onDidChangeTreeData.fire();
   }
 }

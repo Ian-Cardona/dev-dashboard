@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import { setSecretKey } from '../utils/secret-key-manager';
+import { API_KEY } from '../utils/constants';
 
 export const setApiKeyCommand = async (context: vscode.ExtensionContext) => {
   try {
@@ -14,7 +16,7 @@ export const setApiKeyCommand = async (context: vscode.ExtensionContext) => {
       );
       return;
     }
-    await context.secrets.store('devDashboardApiKey', apiKey);
+    await setSecretKey(context, API_KEY, apiKey);
     vscode.window.showInformationMessage('API key saved successfully.');
   } catch (error) {
     let errorMessage;

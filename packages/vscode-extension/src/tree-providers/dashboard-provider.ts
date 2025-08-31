@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ProcessedTodos } from '@dev-dashboard/shared';
 
-type PageType = 'welcome' | 'apiConfig' | 'todos' | 'settings';
+type PageType = 'welcome' | 'todos' | 'settings';
 
 export class DashboardProvider
   implements vscode.TreeDataProvider<vscode.TreeItem>
@@ -13,10 +13,21 @@ export class DashboardProvider
 
   private currentPage: PageType = 'welcome';
   private todos: ProcessedTodos[] = [];
+  private hasApiKey: boolean = false;
 
   constructor(private context: vscode.ExtensionContext) {
-    const hasApiKey = this.context.globalState.get<string>('apiKey');
-    this.currentPage = hasApiKey ? 'todos' : 'welcome';
+    this.initialize();
+  }
+
+  private async initialize() {
+    this.hasApiKey = await this.hasValidApiKey();
+    this.currentPage = this.hasApiKey ? 'todos' : 'welcome';
+    this.refresh();
+  }
+
+  private async hasValidApiKey(): Promise<boolean> {
+    const apiKey = await this.context.secrets.get('devDashboardApiKey');
+    return !!apiKey;
   }
 
   showPage(page: PageType): void {
@@ -50,84 +61,60 @@ export class DashboardProvider
     switch (this.currentPage) {
       case 'welcome':
         return this.getWelcomeItems();
-      case 'apiConfig':
-        return this.getApiConfigItems();
+      case 'todos':
+        return this.getTodosItems();
       default:
         return [];
     }
   }
 
   private getWelcomeItems(): vscode.TreeItem[] {
-    const hasApiKey = this.context.globalState.get<string>('apiKey');
-
     return [
       {
         label: '👋 Welcome to Dev Dashboard!',
         collapsibleState: vscode.TreeItemCollapsibleState.None,
       },
       {
-        label: hasApiKey
+        label: this.hasApiKey
           ? '✅ Step 1: API Key Configured'
           : '🔑 Step 1: Configure API Key',
         collapsibleState: vscode.TreeItemCollapsibleState.None,
-        command: hasApiKey
+        command: this.hasApiKey
           ? undefined
           : {
               command: 'vscode-extension.setApiKey',
               title: 'Set API Key',
             },
-        description: hasApiKey ? 'Complete' : 'Required',
+        description: this.hasApiKey ? 'Complete' : 'Required',
       },
       {
-        label: hasApiKey
-          ? '📋 Step 2: Start Using TODOs'
-          : '📋 Step 2: Start Using TODOs',
+        label: '📋 Step 2: Start Using TODOs',
         collapsibleState: vscode.TreeItemCollapsibleState.None,
-        command: hasApiKey
+        command: this.hasApiKey
           ? {
               command: 'vscode-extension.showTodos',
               title: 'Go to TODOs',
             }
           : undefined,
-        description: hasApiKey ? 'Ready' : 'Locked',
+        description: this.hasApiKey ? 'Ready' : 'Locked',
       },
     ];
   }
 
-  private getApiConfigItems(): vscode.TreeItem[] {
-    const apiKey = this.context.globalState.get<string>('apiKey');
-
-    if (apiKey) {
+  private getTodosItems(): vscode.TreeItem[] {
+    if (this.todos.length === 0) {
       return [
         {
-          label: '✅ API Key Configured',
+          label: 'No TODOs found.',
           collapsibleState: vscode.TreeItemCollapsibleState.None,
-          description: `***${apiKey.slice(-4)}`,
-        },
-        {
-          label: '🔄 Update API Key',
-          collapsibleState: vscode.TreeItemCollapsibleState.None,
-          command: {
-            command: 'vscode-extension.setApiKey',
-            title: 'Update API Key',
-          },
-        },
-      ];
-    } else {
-      return [
-        {
-          label: '❌ No API Key Set',
-          collapsibleState: vscode.TreeItemCollapsibleState.None,
-        },
-        {
-          label: '🔑 Add API Key',
-          collapsibleState: vscode.TreeItemCollapsibleState.None,
-          command: {
-            command: 'vscode-extension.setApiKey',
-            title: 'Set API Key',
-          },
         },
       ];
     }
+    return this.todos.map(todo => {
+      return new vscode.TreeItem(
+        todo.content,
+        vscode.TreeItemCollapsibleState.None
+      );
+    });
   }
 }
