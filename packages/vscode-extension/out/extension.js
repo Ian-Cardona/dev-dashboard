@@ -40,7 +40,7 @@ const setApiKeys_1 = require("./commands/setApiKeys");
 const scanTodos_1 = require("./commands/scanTodos");
 const syncTodos_1 = require("./commands/syncTodos");
 const api_1 = require("./lib/api");
-const dashboard_provider_1 = require("./tree-providers/dashboard-provider");
+const todos_provider_1 = require("./tree-providers/todos-provider");
 const secret_key_manager_1 = require("./utils/secret-key-manager");
 const constants_1 = require("./utils/constants");
 const onboarding_provider_1 = require("./webviews/onboarding/onboarding-provider");
@@ -56,15 +56,12 @@ async function activate(context) {
     else {
         (0, api_1.setupProtectedClient)(context);
     }
-    const dashboardProvider = new dashboard_provider_1.DashboardProvider(context);
-    const mainTreeView = vscode.window.createTreeView('devDashboardMain', {
-        treeDataProvider: dashboardProvider,
+    // Create TodosProvider directly
+    const todosProvider = new todos_provider_1.TodosProvider();
+    const todosTreeView = vscode.window.createTreeView('devDashboardMain', {
+        treeDataProvider: todosProvider,
     });
     vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !needsOnboarding);
-    if (!needsOnboarding) {
-        dashboardProvider.showPage('todos');
-    }
-    const showWelcomeCmd = vscode.commands.registerCommand('vscode-extension.showWelcome', () => { });
     const showTodosSubscription = vscode.commands.registerCommand('vscode-extension.showTodos', async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
         if (!hasApiKey) {
@@ -72,7 +69,7 @@ async function activate(context) {
             vscode.commands.executeCommand('devDashboardOnboarding.focus');
             return;
         }
-        dashboardProvider.showPage('todos');
+        vscode.commands.executeCommand('devDashboardMain.focus');
     });
     const scanTodosSubscription = vscode.commands.registerCommand('vscode-extension.scanTodos', async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
@@ -81,7 +78,7 @@ async function activate(context) {
             vscode.commands.executeCommand('devDashboardOnboarding.focus');
             return;
         }
-        await (0, scanTodos_1.scanAndSetTodosCommand)(dashboardProvider);
+        await (0, scanTodos_1.scanAndSetTodosCommand)(todosProvider);
     });
     const syncTodosSubscription = vscode.commands.registerCommand('vscode-extension.syncTodos', async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
@@ -90,21 +87,25 @@ async function activate(context) {
             vscode.commands.executeCommand('devDashboardOnboarding.focus');
             return;
         }
-        await (0, syncTodos_1.syncTodosCommand)(dashboardProvider);
+        await (0, syncTodos_1.syncTodosCommand)(todosProvider);
+    });
+    const resetSecretsCmd = vscode.commands.registerCommand('vscode-extension.resetSecrets', async () => {
+        await context.secrets.delete(constants_1.API_KEY);
+        vscode.window.showInformationMessage('All extension secrets cleared.');
     });
     const setApiKeySubscription = vscode.commands.registerCommand('vscode-extension.setApiKey', async () => {
         await (0, setApiKeys_1.setApiKeyCommand)(context);
-        dashboardProvider.refresh();
+        todosProvider.refresh();
         const stillNeedsOnboarding = await (0, should_show_onboarding_1.shouldShowOnboarding)(context);
         vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !stillNeedsOnboarding);
     });
-    context.subscriptions.push(mainTreeView, showWelcomeCmd, showTodosSubscription, scanTodosSubscription, syncTodosSubscription, setApiKeySubscription);
+    context.subscriptions.push(todosTreeView, showTodosSubscription, scanTodosSubscription, syncTodosSubscription, resetSecretsCmd, setApiKeySubscription);
     const onDidSaveTextDocumentSubscription = vscode.workspace.onDidSaveTextDocument(async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
         if (!hasApiKey) {
             return;
         }
-        await (0, scanTodos_1.scanAndSetTodosCommand)(dashboardProvider);
+        await (0, scanTodos_1.scanAndSetTodosCommand)(todosProvider);
     });
     context.subscriptions.push(onDidSaveTextDocumentSubscription);
 }

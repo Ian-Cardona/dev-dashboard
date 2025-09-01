@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import { postTodos } from '../services/post-todos';
-import { DashboardProvider } from '../tree-providers/dashboard-provider';
+import { TodosProvider } from '../tree-providers/todos-provider';
 
-export const syncTodosCommand = async (
-  dashboardProvider: DashboardProvider
-) => {
+export const syncTodosCommand = async (todosProvider: TodosProvider) => {
   try {
-    const todos = dashboardProvider.getTodos();
+    const todos = todosProvider.getTodos();
     console.log('Todos', todos);
     await postTodos(todos);
     vscode.window.showInformationMessage(`Synced TODOs Successfully`);

@@ -88,17 +88,17 @@
         }
       });
 
-      function showError(element, message) {
+      const showError = (element, message) => {
         element.textContent = message;
         element.classList.remove('hidden');
-      }
+      };
 
-      function clearErrors() {
+      const clearErrors = () => {
         inputErrorMessage.classList.add('hidden');
         submitErrorMessage.classList.add('hidden');
-      }
+      };
 
-      function setLoadingState(isLoading) {
+      const setLoadingState = isLoading => {
         if (isLoading) {
           submitButton.textContent = 'Validating...';
           submitButton.disabled = true;
@@ -108,9 +108,9 @@
           submitButton.disabled = false;
           submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
         }
-      }
+      };
 
-      function updateStatus(text, status) {
+      const updateStatus = (text, status) => {
         setLoadingState(status === 'loading');
 
         if (status === 'error') {
@@ -121,7 +121,7 @@
           submitButton.classList.add('bg-green-600');
           submitButton.classList.remove('bg-sky-600');
         }
-      }
+      };
     })();
   </script>
 </html>

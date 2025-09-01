@@ -11,7 +11,12 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onView:devDashboardOnboarding",
+    "onView:devDashboardMain",
+    "onCommand:vscode-extension.setApiKey",
+    "onCommand:vscode-extension.resetSecrets",
+    "onCommand:vscode-extension.scanTodos",
+    "onCommand:vscode-extension.syncTodos"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -29,44 +34,17 @@
         {
           "id": "devDashboardOnboarding",
           "name": "Welcome",
-          "type": "webview",
           "contextualTitle": "Dev Dashboard - Welcome",
           "when": "!devDashboard.hasApiKey"
         },
         {
           "id": "devDashboardMain",
-          "name": "Dashboard",
+          "name": "TODOs",
           "when": "devDashboard.hasApiKey"
         }
       ]
     },
     "commands": [
-      {
-        "command": "devDashboard.showOnboarding",
-        "title": "Show Onboarding",
-        "category": "Dev Dashboard"
-      },
-      {
-        "command": "vscode-extension.showWelcome",
-        "title": "Welcome",
-        "icon": "$(home)"
-      },
-      {
-        "command": "vscode-extension.showTodos",
-        "title": "TODOs",
-        "icon": "$(checklist)",
-        "when": "devDashboard.hasApiKey"
-      },
-      {
-        "command": "vscode-extension.showApiConfig",
-        "title": "API Config",
-        "icon": "$(key)"
-      },
-      {
-        "command": "vscode-extension.showSettings",
-        "title": "Settings",
-        "icon": "$(gear)"
-      },
       {
         "command": "vscode-extension.scanTodos",
         "title": "Scan TODOs",
@@ -80,43 +58,22 @@
       {
         "command": "vscode-extension.setApiKey",
         "title": "Set API Key"
+      },
+      {
+        "command": "vscode-extension.resetSecrets",
+        "title": "Reset Secrets"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "devDashboard.showOnboarding",
-          "when": "view == devDashboardOnboarding",
-          "group": "navigation"
-        },
-        {
-          "command": "vscode-extension.showWelcome",
-          "when": "view == devDashboardMain",
-          "group": "navigation@1"
-        },
-        {
-          "command": "vscode-extension.showApiConfig",
-          "when": "view == devDashboardMain",
-          "group": "navigation@2"
-        },
-        {
-          "command": "vscode-extension.showTodos",
-          "when": "view == devDashboardMain && config.devDashboard.hasApiKey",
-          "group": "navigation@3"
-        },
-        {
-          "command": "vscode-extension.showSettings",
-          "when": "view == devDashboardMain",
-          "group": "navigation@4"
-        },
-        {
           "command": "vscode-extension.scanTodos",
-          "when": "view == devDashboardMain && devDashboard.currentPage == 'todos'",
+          "when": "view == devDashboardMain && devDashboard.hasApiKey",
           "group": "actions@1"
         },
         {
           "command": "vscode-extension.syncTodos",
-          "when": "view == devDashboardMain && devDashboard.currentPage == 'todos'",
+          "when": "view == devDashboardMain && devDashboard.hasApiKey",
           "group": "actions@2"
         }
       ]

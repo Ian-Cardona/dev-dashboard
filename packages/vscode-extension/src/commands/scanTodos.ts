@@ -1,13 +1,11 @@
 import * as vscode from 'vscode';
 import { scanTodos } from '../services/scan-todos';
-import { DashboardProvider } from '../tree-providers/dashboard-provider';
+import { TodosProvider } from '../tree-providers/todos-provider';
 
-export const scanAndSetTodosCommand = async (
-  dashboardProvider: DashboardProvider
-) => {
+export const scanAndSetTodosCommand = async (todosProvider: TodosProvider) => {
   try {
     const todos = await scanTodos();
-    dashboardProvider.setTodos(todos);
+    todosProvider.setTodos(todos);
     vscode.window.showInformationMessage(
       `Scanned and found ${todos.length} TODOs.`
     );

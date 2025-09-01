@@ -1,21 +1,17 @@
 import * as vscode from 'vscode';
 import { ProcessedTodos } from '@dev-dashboard/shared';
-import { TodoItem } from '../todos/todos-item';
 
-export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
+export class TodosProvider implements vscode.TreeDataProvider<string> {
   private _onDidChangeTreeData: vscode.EventEmitter<
-    TodoItem | undefined | null | void
-  > = new vscode.EventEmitter<TodoItem | undefined | null | void>();
-  readonly onDidChangeTreeData: vscode.Event<
-    TodoItem | undefined | null | void
-  > = this._onDidChangeTreeData.event;
+    string | undefined | null | void
+  > = new vscode.EventEmitter<string | undefined | null | void>();
+  readonly onDidChangeTreeData: vscode.Event<string | undefined | null | void> =
+    this._onDidChangeTreeData.event;
 
-  private todos: TodoItem[] = [];
   private _processedTodos: ProcessedTodos[] = [];
 
   setTodos(todos: ProcessedTodos[]) {
     this._processedTodos = todos;
-    this.todos = todos.map(item => new TodoItem(item.content, item));
     this._onDidChangeTreeData.fire();
   }
 
@@ -23,25 +19,21 @@ export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
     return this._processedTodos;
   }
 
-  getTreeItem(element: TodoItem): vscode.TreeItem {
-    return element;
+  getTreeItem(element: string): vscode.TreeItem {
+    return new vscode.TreeItem(element);
   }
 
-  getChildren(element?: TodoItem): Thenable<TodoItem[]> {
-    if (element) {
-      return Promise.resolve([]);
+  getChildren(): Thenable<string[]> {
+    if (this._processedTodos.length === 0) {
+      return Promise.resolve([
+        'No TODOs found - Click "Scan TODOs" to search your workspace',
+      ]);
     }
-    if (this.todos.length === 0) {
-      const placeholder = new TodoItem('No TODOs found. Run Scan Todos.', {
-        content: '',
-        filePath: '',
-        lineNumber: 0,
-        type: 'OTHER',
-        customTag: 'placeholder',
-      });
-      return Promise.resolve([placeholder]);
-    }
-    return Promise.resolve(this.todos);
+
+    const todoStrings = this._processedTodos.map(
+      todo => `${todo.type}: ${todo.content}`
+    );
+    return Promise.resolve(todoStrings);
   }
 
   refresh(): void {
