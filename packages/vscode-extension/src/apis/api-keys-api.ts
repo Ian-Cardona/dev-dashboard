@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 export const apiKeysApi = {
-  checkConnection: async (apiKey?: string) => {
-    const headers = apiKey ? { Authorization: `Bearer ${apiKey}` } : {};
+  check: async (key?: string) => {
+    const headers = key ? { Authorization: `Bearer ${key}` } : {};
 
     // FIXME: Make this dynamic API endpoint
     const response = await axios.get('/api-keys/check', {

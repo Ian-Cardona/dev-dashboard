@@ -15,20 +15,20 @@ export const protectedClient = axios.create({
   withCredentials: true,
 });
 
-protectedClient.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
-    const extension = vscode.extensions.getExtension(
-      'iancardona.dev-dashboard'
-    );
-    const context = extension?.exports?.extensionContext;
-    const apiKey = context ? await getSecretKey(context, API_KEY) : undefined;
-    if (apiKey) {
-      config.headers = config.headers ?? {};
-      config.headers.Authorization = `Bearer ${apiKey}`;
-    }
-    return config;
-  }
-);
+// protectedClient.interceptors.request.use(
+//   async (config: InternalAxiosRequestConfig) => {
+//     const extension = vscode.extensions.getExtension(
+//       'iancardona.dev-dashboard'
+//     );
+//     const context = extension?.exports?.extensionContext;
+//     const apiKey = context ? await getSecretKey(context, API_KEY) : undefined;
+//     if (apiKey) {
+//       config.headers = config.headers ?? {};
+//       config.headers.Authorization = `Bearer ${apiKey}`;
+//     }
+//     return config;
+//   }~
+// );
 
 export const setupProtectedClient = (context: vscode.ExtensionContext) => {
   protectedClient.interceptors.request.use(

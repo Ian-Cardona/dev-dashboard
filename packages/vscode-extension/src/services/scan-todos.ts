@@ -1,7 +1,12 @@
 import * as vscode from 'vscode';
 import { ProcessedTodos, RawTodo } from '@dev-dashboard/shared';
-import { getSourceFiles, processTodos, scanFile } from './scan';
-import { findPivotRoot, makeRelativePathTodo } from './scan/repository';
+import {
+  findPivotRoot,
+  getSourceFiles,
+  makeRelativePathTodo,
+  processTodos,
+  scanFile,
+} from './scan';
 
 export const scanTodos = async () => {
   try {
@@ -24,11 +29,9 @@ export const scanTodos = async () => {
       makeRelativePathTodo(todo, pivotRoot)
     );
 
-    const processedTodos: ProcessedTodos[] = processTodos(
-      todosWithRelativePaths
-    );
+    const todos: ProcessedTodos[] = processTodos(todosWithRelativePaths);
 
-    return processedTodos;
+    return todos;
   } catch (error) {
     let errorMessage;
     if (error instanceof Error) {
