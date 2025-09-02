@@ -4,19 +4,19 @@ import { API_KEY } from '../utils/constants';
 
 export const setApiKeyCommand = async (context: vscode.ExtensionContext) => {
   try {
-    const apiKey = await vscode.window.showInputBox({
+    const key = await vscode.window.showInputBox({
       prompt: 'Enter your API key',
       placeHolder: 'API Key',
       ignoreFocusOut: true,
       password: true,
     });
-    if (!apiKey) {
+    if (!key) {
       vscode.window.showWarningMessage(
         'No API key entered. Operation cancelled.'
       );
       return;
     }
-    await setSecretKey(context, API_KEY, apiKey);
+    await setSecretKey(context, API_KEY, key);
     vscode.window.showInformationMessage('API key saved successfully.');
   } catch (error) {
     let errorMessage;

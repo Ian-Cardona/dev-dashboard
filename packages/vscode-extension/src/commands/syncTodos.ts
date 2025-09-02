@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { postTodos } from '../services/post-todos';
-import { TodosProvider } from '../tree-providers/todos-provider';
+import { TodosProvider } from '../webviews/todos/todos-provider';
 
-export const syncTodosCommand = async (todosProvider: TodosProvider) => {
+export const postTodosCommand = async (todosProvider: TodosProvider) => {
   try {
     const todos = todosProvider.getTodos();
     console.log('Todos', todos);

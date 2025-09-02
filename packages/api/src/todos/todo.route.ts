@@ -21,7 +21,7 @@ router.get(
 );
 router.get(
   '/:syncId',
-  apiKeysMiddleware,
+  authorizationMiddleware,
   controllerInstance.findByUserIdAndSyncId
 );
 

@@ -2,21 +2,17 @@
   "name": "dev-dashboard",
   "displayName": "Dev Dashboard",
   "publisher": "iancardona",
-  "description": "",
+  "description": "Scan and post TODO comments from your workspace with an external service.",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.103.0"
+    "vscode": "^1.85.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
     "onView:devDashboardOnboarding",
-    "onView:devDashboardMain",
-    "onCommand:vscode-extension.setApiKey",
-    "onCommand:vscode-extension.resetSecrets",
-    "onCommand:vscode-extension.scanTodos",
-    "onCommand:vscode-extension.syncTodos"
+    "onView:devDashboardMain"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -34,7 +30,8 @@
         {
           "id": "devDashboardOnboarding",
           "name": "Welcome",
-          "contextualTitle": "Dev Dashboard - Welcome",
+          "type": "webview",
+          "contextualTitle": "Dev Dashboard",
           "when": "!devDashboard.hasApiKey"
         },
         {
@@ -46,35 +43,43 @@
     },
     "commands": [
       {
-        "command": "vscode-extension.scanTodos",
+        "command": "dev-dashboard.scanTodos",
         "title": "Scan TODOs",
         "icon": "$(search)"
       },
       {
-        "command": "vscode-extension.syncTodos",
-        "title": "Sync TODOs",
-        "icon": "$(sync)"
+        "command": "dev-dashboard.postTodos",
+        "title": "Post TODOs",
+        "icon": "$(cloud-upload)"
       },
       {
-        "command": "vscode-extension.setApiKey",
+        "command": "dev-dashboard.setApiKey",
         "title": "Set API Key"
       },
       {
-        "command": "vscode-extension.resetSecrets",
+        "command": "dev-dashboard.resetSecrets",
         "title": "Reset Secrets"
+      },
+      {
+        "command": "dev-dashboard.openTodo",
+        "title": "Open Todo"
+      },
+      {
+        "command": "dev-dashboard.showTodos",
+        "title": "Show TODOs"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "vscode-extension.scanTodos",
-          "when": "view == devDashboardMain && devDashboard.hasApiKey",
-          "group": "actions@1"
+          "command": "dev-dashboard.scanTodos",
+          "when": "view == devDashboardMain",
+          "group": "navigation@1"
         },
         {
-          "command": "vscode-extension.syncTodos",
-          "when": "view == devDashboardMain && devDashboard.hasApiKey",
-          "group": "actions@2"
+          "command": "dev-dashboard.postTodos",
+          "when": "view == devDashboardMain",
+          "group": "navigation@2"
         }
       ]
     }
@@ -85,7 +90,7 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/vscode": "^1.103.0"
+    "@types/vscode": "^1.85.0"
   },
   "dependencies": {
     "@dev-dashboard/shared": "1.0.0",

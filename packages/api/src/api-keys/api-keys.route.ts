@@ -13,7 +13,7 @@ const modelInstance = ApiKeysModel(docClient);
 const serviceInstance = ApiKeysService(modelInstance);
 const controllerInstance = ApiKeysController(serviceInstance);
 
-router.post('/', authorizationMiddleware, controllerInstance.create);
-router.get('/check', apiKeysMiddleware, controllerInstance.checkConnection);
+router.post('/create', authorizationMiddleware, controllerInstance.create);
+router.get('/check', apiKeysMiddleware, controllerInstance.check);
 
 export default router;

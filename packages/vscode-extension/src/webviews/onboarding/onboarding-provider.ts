@@ -54,7 +54,7 @@ export class OnboardingProvider implements vscode.WebviewViewProvider {
         });
 
         setTimeout(() => {
-          vscode.commands.executeCommand('vscode-extension.showTodos');
+          vscode.commands.executeCommand('dev-dashboard.showTodos');
         }, 1000);
       } else {
         webviewView.webview.postMessage({

@@ -33,21 +33,31 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.activate = activate;
-exports.deactivate = deactivate;
+exports.deactivate = exports.activate = void 0;
 const vscode = __importStar(require("vscode"));
-const setApiKeys_1 = require("./commands/setApiKeys");
-const scanTodos_1 = require("./commands/scanTodos");
-const syncTodos_1 = require("./commands/syncTodos");
+const setApiKey_1 = require("./commands/setApiKey");
+const scanSetTodos_1 = require("./commands/scanSetTodos");
 const api_1 = require("./lib/api");
-const todos_provider_1 = require("./tree-providers/todos-provider");
 const secret_key_manager_1 = require("./utils/secret-key-manager");
 const constants_1 = require("./utils/constants");
 const onboarding_provider_1 = require("./webviews/onboarding/onboarding-provider");
 const should_show_onboarding_1 = require("./services/should-show-onboarding");
-async function activate(context) {
+const todos_provider_1 = require("./webviews/todos/todos-provider");
+const syncTodos_1 = require("./commands/syncTodos");
+const activate = async (context) => {
     vscode.window.showInformationMessage('Thank you for using DevDashboard!');
+    const todosProvider = new todos_provider_1.TodosProvider();
+    await initializeUI(context);
+    registerCommands(context, todosProvider);
+    registerEventListeners(context, todosProvider);
+    context.subscriptions.push(vscode.window.createTreeView('devDashboardMain', {
+        treeDataProvider: todosProvider,
+    }));
+};
+exports.activate = activate;
+const initializeUI = async (context) => {
     const needsOnboarding = await (0, should_show_onboarding_1.shouldShowOnboarding)(context);
+    vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !needsOnboarding);
     if (needsOnboarding) {
         const onboardingProvider = new onboarding_provider_1.OnboardingProvider(context);
         context.subscriptions.push(vscode.window.registerWebviewViewProvider(onboarding_provider_1.OnboardingProvider.viewType, onboardingProvider));
@@ -56,58 +66,52 @@ async function activate(context) {
     else {
         (0, api_1.setupProtectedClient)(context);
     }
-    // Create TodosProvider directly
-    const todosProvider = new todos_provider_1.TodosProvider();
-    const todosTreeView = vscode.window.createTreeView('devDashboardMain', {
-        treeDataProvider: todosProvider,
-    });
-    vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !needsOnboarding);
-    const showTodosSubscription = vscode.commands.registerCommand('vscode-extension.showTodos', async () => {
+};
+const registerCommands = (context, todosProvider) => {
+    const withApiKeyGuard = (commandHandler) => async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
         if (!hasApiKey) {
-            vscode.window.showWarningMessage('Please configure your API key first');
+            vscode.window.showWarningMessage('Please configure your API key first.');
             vscode.commands.executeCommand('devDashboardOnboarding.focus');
             return;
         }
-        vscode.commands.executeCommand('devDashboardMain.focus');
-    });
-    const scanTodosSubscription = vscode.commands.registerCommand('vscode-extension.scanTodos', async () => {
-        const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
-        if (!hasApiKey) {
-            vscode.window.showWarningMessage('Please configure your API key first');
-            vscode.commands.executeCommand('devDashboardOnboarding.focus');
-            return;
-        }
-        await (0, scanTodos_1.scanAndSetTodosCommand)(todosProvider);
-    });
-    const syncTodosSubscription = vscode.commands.registerCommand('vscode-extension.syncTodos', async () => {
-        const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
-        if (!hasApiKey) {
-            vscode.window.showWarningMessage('Please configure your API key first');
-            vscode.commands.executeCommand('devDashboardOnboarding.focus');
-            return;
-        }
-        await (0, syncTodos_1.syncTodosCommand)(todosProvider);
-    });
-    const resetSecretsCmd = vscode.commands.registerCommand('vscode-extension.resetSecrets', async () => {
-        await context.secrets.delete(constants_1.API_KEY);
-        vscode.window.showInformationMessage('All extension secrets cleared.');
-    });
-    const setApiKeySubscription = vscode.commands.registerCommand('vscode-extension.setApiKey', async () => {
-        await (0, setApiKeys_1.setApiKeyCommand)(context);
+        await commandHandler();
+    };
+    context.subscriptions.push(vscode.commands.registerCommand('dev-dashboard.scanTodos', withApiKeyGuard(() => (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.postTodos', withApiKeyGuard(() => (0, syncTodos_1.postTodosCommand)(todosProvider))), 
+    // vscode.commands.registerCommand(
+    //   'dev-dashboard.showTodos',
+    //   withApiKeyGuard(async () => {
+    //     vscode.commands.executeCommand('devDashboardMain.focus');
+    //   })
+    // ),
+    vscode.commands.registerCommand('dev-dashboard.showTodos', async () => {
+        // Update context first
+        await vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', true);
+        // Small delay to let context update
+        setTimeout(() => {
+            vscode.commands.executeCommand('devDashboardMain.focus');
+        }, 100);
+    }), vscode.commands.registerCommand('dev-dashboard.setApiKey', async () => {
+        await (0, setApiKey_1.setApiKeyCommand)(context);
         todosProvider.refresh();
-        const stillNeedsOnboarding = await (0, should_show_onboarding_1.shouldShowOnboarding)(context);
-        vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !stillNeedsOnboarding);
-    });
-    context.subscriptions.push(todosTreeView, showTodosSubscription, scanTodosSubscription, syncTodosSubscription, resetSecretsCmd, setApiKeySubscription);
-    const onDidSaveTextDocumentSubscription = vscode.workspace.onDidSaveTextDocument(async () => {
-        const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
-        if (!hasApiKey) {
-            return;
+        const needsOnboarding = await (0, should_show_onboarding_1.shouldShowOnboarding)(context);
+        vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !needsOnboarding);
+    }), vscode.commands.registerCommand('dev-dashboard.resetSecrets', async () => {
+        await (0, secret_key_manager_1.clearSecretKey)(context, constants_1.API_KEY);
+        const selection = await vscode.window.showInformationMessage('Secrets cleared. A reload is required to switch to the onboarding view.', 'Reload Window');
+        if (selection === 'Reload Window') {
+            vscode.commands.executeCommand('workbench.action.reloadWindow');
         }
-        await (0, scanTodos_1.scanAndSetTodosCommand)(todosProvider);
-    });
-    context.subscriptions.push(onDidSaveTextDocumentSubscription);
-}
-function deactivate() { }
+    }));
+};
+const registerEventListeners = (context, todosProvider) => {
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(async () => {
+        const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
+        if (hasApiKey) {
+            await (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider);
+        }
+    }));
+};
+const deactivate = () => { };
+exports.deactivate = deactivate;
 //# sourceMappingURL=extension.js.map

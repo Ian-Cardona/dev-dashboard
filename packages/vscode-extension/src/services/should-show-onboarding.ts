@@ -7,12 +7,12 @@ export const shouldShowOnboarding = async (
   context: vscode.ExtensionContext
 ): Promise<boolean> => {
   try {
-    const storedApiKey = await getSecretKey(context, API_KEY);
-    if (!storedApiKey) {
+    const storedKey = await getSecretKey(context, API_KEY);
+    if (!storedKey) {
       return true;
     }
 
-    const isValidFormat = z.string().safeParse(storedApiKey).success;
+    const isValidFormat = z.string().safeParse(storedKey).success;
     if (!isValidFormat) {
       await clearSecretKey(context, API_KEY);
       return true;

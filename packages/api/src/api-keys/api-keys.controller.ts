@@ -23,7 +23,7 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
       }
     },
 
-    async checkConnection(req: Request, res: Response, next: NextFunction) {
+    async check(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
         if (userId) {
