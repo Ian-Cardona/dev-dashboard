@@ -41,6 +41,13 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "devDashboardMain",
+        "contents": "No TODOs found in your workspace.\n\nAdd comments like `// TODO: fix this` or `// FIXME: update this` to your code files.\n\n[Scan for TODOs](command:dev-dashboard.scanTodos)\n\nSupported formats:\n• TODO\n• FIXME\n• HACK\n• NOTE\n• BUG",
+        "when": "devDashboard.hasApiKey"
+      }
+    ],
     "commands": [
       {
         "command": "dev-dashboard.scanTodos",

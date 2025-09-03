@@ -1,12 +1,10 @@
 import * as fs from 'fs';
 import { RawTodo } from '@dev-dashboard/shared';
 
-export const scanFile = async (filePath: string): Promise<RawTodo[]> => {
-  const todoLinePatterns = [
-    /(?<!:)\s*\/\/\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
-    /^\s*(?:\/\*+|\*)\s*@?([A-Za-z][A-Za-z0-9_-]{0,31})\s*(?:[:\\-]\s*|\s+)(.+)$/i,
-  ];
-
+export const scanFile = async (
+  filePath: string,
+  projectName: string
+): Promise<RawTodo[]> => {
   const todos: RawTodo[] = [];
 
   try {
@@ -14,17 +12,61 @@ export const scanFile = async (filePath: string): Promise<RawTodo[]> => {
     const lines = content.split('\n');
 
     lines.forEach((line, index) => {
-      for (const pattern of todoLinePatterns) {
-        const match = line.match(pattern);
-        if (match) {
-          const rawContent = match[2].replace(/\s*\*\/\s*$/, '');
+      // Known tags (TODO, FIXME, etc.) - uppercase only, followed by colon or dash
+      const knownMatch =
+        line.match(/^\s*\/\/\s*(TODO|FIXME|HACK|NOTE|BUG|XXX)[:\\-]\s*(.+)$/) ||
+        line.match(
+          /^\s*(?:\/\*+|\*)\s*(TODO|FIXME|HACK|NOTE|BUG|XXX)[:\\-]\s*(.+)$/
+        );
+
+      if (knownMatch) {
+        const rawContent = knownMatch[2].replace(/\s*\*\/\s*$/, '');
+        todos.push({
+          type: knownMatch[1].toUpperCase(),
+          content: rawContent.trim(),
+          filePath,
+          lineNumber: index + 1,
+          projectName,
+        });
+        return;
+      }
+
+      // Custom tags - all caps words 2-20 letters, no @, followed by colon or dash
+      const customMatch =
+        line.match(/^\s*\/\/\s*([A-Z]{2,20})[:\\-]\s*(.+)$/) ||
+        line.match(/^\s*(?:\/\*+|\*)\s*([A-Z]{2,20})[:\\-]\s*(.+)$/);
+
+      if (customMatch) {
+        const tag = customMatch[1];
+        // Exclude common words like IMPORT or other known non-tags
+        if (
+          ![
+            'IMPORT',
+            'EXPORT',
+            'FROM',
+            'IF',
+            'ELSE',
+            'FOR',
+            'WHILE',
+            'RETURN',
+            'CONST',
+            'LET',
+            'VAR',
+            'FUNCTION',
+            'CLASS',
+            'INTERFACE',
+            'TYPE',
+          ].includes(tag)
+        ) {
+          const rawContent = customMatch[2].replace(/\s*\*\/\s*$/, '');
           todos.push({
-            type: match[1].toUpperCase(),
+            type: 'OTHER',
+            customTag: tag.toUpperCase(),
             content: rawContent.trim(),
             filePath,
             lineNumber: index + 1,
-          });
-          break;
+            projectName,
+          } as RawTodo);
         }
       }
     });

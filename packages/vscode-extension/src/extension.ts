@@ -22,6 +22,15 @@ export const activate = async (context: vscode.ExtensionContext) => {
       treeDataProvider: todosProvider,
     })
   );
+
+  const hasApiKey = await getSecretKey(context, API_KEY);
+  if (hasApiKey) {
+    try {
+      await scanSetTodosCommand(todosProvider);
+    } catch (error) {
+      console.error('Failed to scan TODOs on activation:', error);
+    }
+  }
 };
 
 const initializeUI = async (context: vscode.ExtensionContext) => {
@@ -71,26 +80,28 @@ const registerCommands = (
       'dev-dashboard.postTodos',
       withApiKeyGuard(() => postTodosCommand(todosProvider))
     ),
-    // vscode.commands.registerCommand(
-    //   'dev-dashboard.showTodos',
-    //   withApiKeyGuard(async () => {
-    //     vscode.commands.executeCommand('devDashboardMain.focus');
-    //   })
-    // ),
+    vscode.commands.registerCommand(
+      'dev-dashboard.showTodos',
+      withApiKeyGuard(async () => {
+        const hasApiKey = await getSecretKey(context, API_KEY);
+        if (hasApiKey) {
+          vscode.commands.executeCommand('devDashboardMain.focus');
+        } else {
+          vscode.window.showWarningMessage(
+            'Please configure your API key first.'
+          );
+          vscode.commands.executeCommand('devDashboardOnboarding.focus');
+        }
+      })
+    ),
 
-    vscode.commands.registerCommand('dev-dashboard.showTodos', async () => {
-      // Update context first
-      await vscode.commands.executeCommand(
-        'setContext',
-        'devDashboard.hasApiKey',
-        true
-      );
-
-      // Small delay to let context update
-      setTimeout(() => {
-        vscode.commands.executeCommand('devDashboardMain.focus');
-      }, 100);
-    }),
+    // vscode.commands.registerCommand('dev-dashboard.showTodos', async () => {
+    //   await vscode.commands
+    //     .executeCommand('setContext', 'devDashboard.hasApiKey', true)
+    //     .then(() => {
+    //       vscode.commands.executeCommand('devDashboardMain.focus');
+    //     });
+    // }),
 
     vscode.commands.registerCommand('dev-dashboard.setApiKey', async () => {
       await setApiKeyCommand(context);
