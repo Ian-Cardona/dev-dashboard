@@ -36,7 +36,7 @@ export const VALIDATION_CONSTANTS = {
     CONTENT: {
       MIN_LENGTH: 1,
       MAX_LENGTH: 500,
-      MESSAGE: 'Content must be between 1-500 characters',
+      MESSAGE: 'Content must be between 1-255 characters',
     },
     FILE_PATH: {
       MAX_LENGTH: 260,
@@ -49,6 +49,11 @@ export const VALIDATION_CONSTANTS = {
       MIN: 1,
       MAX: 100000,
       MESSAGE: 'Line number must be between 1-100000',
+    },
+    PROJECT_NAME: {
+      MIN_LENGTH: 1,
+      MAX_LENGTH: 255,
+      MESSAGE: 'Project name must be between 1-255 characters',
     },
     CUSTOM_TAG: {
       MIN_LENGTH: 1,

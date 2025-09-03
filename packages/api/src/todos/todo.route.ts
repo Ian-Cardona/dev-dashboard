@@ -20,6 +20,11 @@ router.get(
   controllerInstance.findLatestByUserId
 );
 router.get(
+  '/',
+  authorizationMiddleware,
+  controllerInstance.findTodosInfoByUserId
+);
+router.get(
   '/:syncId',
   authorizationMiddleware,
   controllerInstance.findByUserIdAndSyncId

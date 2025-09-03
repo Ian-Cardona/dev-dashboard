@@ -95,12 +95,11 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
       return result.Items as Todo[];
     },
 
-    // TODO: Improve on this later on once you've learned databases
     async findLatestByUserId(userId: string): Promise<Todo[]> {
-      const latestSync = await docClient.send(
+      const latestItemQuery = await docClient.send(
         new QueryCommand({
           TableName: TODOS_TABLE,
-          IndexName: 'UserSyncIndex',
+          IndexName: 'UserLatestSyncIndex',
           KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: { ':userId': userId },
           ScanIndexForward: false,
@@ -108,11 +107,11 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!latestSync.Items || latestSync.Items.length === 0) {
+      if (!latestItemQuery.Items || latestItemQuery.Items.length === 0) {
         return [];
       }
 
-      const latestSyncId = latestSync.Items[0].syncId;
+      const latestSyncId = latestItemQuery.Items[0].syncId;
 
       const result = await docClient.send(
         new QueryCommand({

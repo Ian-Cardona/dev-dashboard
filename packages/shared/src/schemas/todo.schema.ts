@@ -31,6 +31,10 @@ export const rawTodoBaseSchema = z.object({
     .number()
     .min(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MIN)
     .max(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MAX),
+  projectName: z
+    .string()
+    .min(1)
+    .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH),
 });
 
 const unprocessedPredefinedTodoSchema = rawTodoBaseSchema.extend({
