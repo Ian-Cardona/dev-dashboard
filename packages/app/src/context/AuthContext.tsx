@@ -8,7 +8,7 @@ import {
 import { authApi } from '../lib/auth';
 import { isAxiosError } from 'axios';
 import type { UserResponsePublic } from '../../../shared/src/types/user.type';
-import LoadingSpinner from '../components/LoadingSpinner';
+import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { userApi } from '../lib/user';
 
 type State = {
