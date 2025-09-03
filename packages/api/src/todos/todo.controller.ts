@@ -53,7 +53,7 @@ export const TodoController = (todoService: ITodoService) => {
       next: NextFunction
     ) {
       try {
-        const userId = z.uuidv4().parse(req.params.userId);
+        const userId = uuidSchema.parse(req.user?.userId);
         const result = await todoService.findByUserId(userId);
 
         res.json(result);

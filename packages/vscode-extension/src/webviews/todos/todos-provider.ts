@@ -29,15 +29,6 @@ export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
   }
 
   getChildren(): Thenable<TodoItem[]> {
-    if (this._processedTodos.length === 0) {
-      const fallbackTodo: ProcessedTodos = {
-        content: 'No TODOs found',
-        filePath: '',
-        lineNumber: 0,
-        type: 'TODO',
-      };
-      return Promise.resolve([new TodoItem(fallbackTodo)]);
-    }
     return Promise.resolve(
       this._processedTodos.map(todo => new TodoItem(todo))
     );

@@ -11,7 +11,7 @@ import {
   RefreshTokenRecordAndPlain,
   RefreshToken,
 } from '@dev-dashboard/shared';
-import { IUserService } from '../../users/user.service';
+import { IUserService } from '../../user/user.service';
 import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
 import {
   ConflictError,

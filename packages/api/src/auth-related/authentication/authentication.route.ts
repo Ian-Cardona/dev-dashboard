@@ -5,9 +5,9 @@ import { AuthenticationService } from './authentication.service';
 import { AuthenticationController } from './authentication.controller';
 import { IAuthenticationService } from './authentication.service';
 
-import { UserModel } from '../../users/user.model';
+import { UserModel } from '../../user/user.model';
 import { RefreshTokenModel } from '../refresh-token/refresh-token.model';
-import { UserService } from '../../users/user.service';
+import { UserService } from '../../user/user.service';
 import { RefreshTokenService } from '../refresh-token/refresh-token.service';
 
 const router = Router();

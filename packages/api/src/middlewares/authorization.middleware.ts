@@ -2,8 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import { UnauthorizedError } from '../utils/errors.utils';
 import { extractBearerToken, verifyJWT } from '../utils/jwt.utils';
 import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
-import { UserService } from '../users/user.service';
-import { UserModel } from '../users/user.model';
+import { UserService } from '../user/user.service';
+import { UserModel } from '../user/user.model';
 import { docClient } from '../config/dynamodb';
 
 const userService = UserService(UserModel(docClient));

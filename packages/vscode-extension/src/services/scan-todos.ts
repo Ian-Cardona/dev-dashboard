@@ -17,16 +17,16 @@ export const scanTodos = async () => {
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
     const workspacePath = workspaceFolder.uri.fsPath;
 
-    const { pivotRoot } = findPivotRoot(workspacePath);
+    const { pivotRoot, projectName } = findPivotRoot(workspacePath);
 
     const files = await getSourceFiles(workspacePath);
 
-    const todoPromises = files.map(file => scanFile(file));
+    const todoPromises = files.map(file => scanFile(file, projectName));
     const todoArrays = await Promise.all(todoPromises);
     const rawTodos: RawTodo[] = todoArrays.flat();
 
     const todosWithRelativePaths = rawTodos.map(todo =>
-      makeRelativePathTodo(todo, pivotRoot)
+      makeRelativePathTodo({ ...todo }, pivotRoot)
     );
 
     const todos: ProcessedTodos[] = processTodos(todosWithRelativePaths);

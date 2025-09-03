@@ -53,6 +53,15 @@ const activate = async (context) => {
     context.subscriptions.push(vscode.window.createTreeView('devDashboardMain', {
         treeDataProvider: todosProvider,
     }));
+    const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
+    if (hasApiKey) {
+        try {
+            await (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider);
+        }
+        catch (error) {
+            console.error('Failed to scan TODOs on activation:', error);
+        }
+    }
 };
 exports.activate = activate;
 const initializeUI = async (context) => {
@@ -77,21 +86,24 @@ const registerCommands = (context, todosProvider) => {
         }
         await commandHandler();
     };
-    context.subscriptions.push(vscode.commands.registerCommand('dev-dashboard.scanTodos', withApiKeyGuard(() => (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.postTodos', withApiKeyGuard(() => (0, syncTodos_1.postTodosCommand)(todosProvider))), 
-    // vscode.commands.registerCommand(
-    //   'dev-dashboard.showTodos',
-    //   withApiKeyGuard(async () => {
-    //     vscode.commands.executeCommand('devDashboardMain.focus');
-    //   })
-    // ),
-    vscode.commands.registerCommand('dev-dashboard.showTodos', async () => {
-        // Update context first
-        await vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', true);
-        // Small delay to let context update
-        setTimeout(() => {
+    context.subscriptions.push(vscode.commands.registerCommand('dev-dashboard.scanTodos', withApiKeyGuard(() => (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.postTodos', withApiKeyGuard(() => (0, syncTodos_1.postTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.showTodos', withApiKeyGuard(async () => {
+        const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
+        if (hasApiKey) {
             vscode.commands.executeCommand('devDashboardMain.focus');
-        }, 100);
-    }), vscode.commands.registerCommand('dev-dashboard.setApiKey', async () => {
+        }
+        else {
+            vscode.window.showWarningMessage('Please configure your API key first.');
+            vscode.commands.executeCommand('devDashboardOnboarding.focus');
+        }
+    })), 
+    // vscode.commands.registerCommand('dev-dashboard.showTodos', async () => {
+    //   await vscode.commands
+    //     .executeCommand('setContext', 'devDashboard.hasApiKey', true)
+    //     .then(() => {
+    //       vscode.commands.executeCommand('devDashboardMain.focus');
+    //     });
+    // }),
+    vscode.commands.registerCommand('dev-dashboard.setApiKey', async () => {
         await (0, setApiKey_1.setApiKeyCommand)(context);
         todosProvider.refresh();
         const needsOnboarding = await (0, should_show_onboarding_1.shouldShowOnboarding)(context);

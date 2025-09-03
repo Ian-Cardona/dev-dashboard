@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 
 import authenticationRouter from './auth-related/authentication/authentication.route';
 import todoRouter from './todos/todo.route';
-import userRouter from './users/user.route';
+import userRouter from './user/user.route';
 import apiKeysRouter from './api-keys/api-keys.route';
 
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
