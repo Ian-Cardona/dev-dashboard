@@ -1,14 +1,9 @@
-import Todos from '../features/dashboard/Todos';
-import { useAuth } from '../hooks/useAuth';
+import Todos from '../features/dashboard/todos/Todos';
 
 const DashboardPage = () => {
-  const { state } = useAuth();
-
   return (
     <div>
       <h1>Dashboard</h1>
-      <p>Logged in as: {state.authUser?.email || 'No user'}</p>
-      <p>User status: {state.authUser?.isActive ? 'Active' : 'Inactive'}</p>
       <Todos />
     </div>
   );

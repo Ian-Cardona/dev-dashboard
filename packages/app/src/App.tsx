@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router';
 import { PublicRoute, ProtectedRoute } from './components/routes/Routes';
 import { LoginPage, DashboardPage, RegisterPage } from './pages';
 import { Navigate } from 'react-router';
-import { AppLayout } from './components/layout/AppLayout';
+import AppLayout from './components/layout/AppLayout';
 
 function App() {
   return (
