@@ -11,6 +11,7 @@ import {
   TodoStatusEnum,
   updateTodoSchema,
   rawTodoBaseSchema,
+  projectNamesSchema,
 } from '../schemas/todo.schema';
 
 export type TodoPriorityEnumType = z.infer<typeof TodoPriorityEnum>;
@@ -26,3 +27,5 @@ export type UpdateTodo = z.infer<typeof updateTodoSchema>;
 
 export type TodoMeta = z.infer<typeof todoMetaSchema>;
 export type TodosInfo = z.infer<typeof todosInfoSchema>;
+
+export type ProjectNames = z.infer<typeof projectNamesSchema>;

@@ -25,6 +25,21 @@ router.get(
   controllerInstance.findTodosInfoByUserId
 );
 router.get(
+  '/recent',
+  authorizationMiddleware,
+  controllerInstance.findRecentByUserId
+);
+router.get(
+  '/projects',
+  authorizationMiddleware,
+  controllerInstance.findProjectsByUserId
+);
+router.get(
+  '/projects/:projectName',
+  authorizationMiddleware,
+  controllerInstance.findByUserIdAndProjectName
+);
+router.get(
   '/:syncId',
   authorizationMiddleware,
   controllerInstance.findByUserIdAndSyncId

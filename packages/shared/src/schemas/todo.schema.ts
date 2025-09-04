@@ -107,3 +107,11 @@ export const todosInfoSchema = z.object({
   todos: z.array(todoSchema),
   meta: todoMetaSchema,
 });
+
+export const projectNamesSchema = z.object({
+  projects: z
+    .array(
+      z.string().min(1).max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH)
+    )
+    .max(155),
+});
