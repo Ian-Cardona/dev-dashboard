@@ -7,7 +7,7 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ENV } from '../config/env_variables';
-import { Todo } from '@dev-dashboard/shared';
+import { Todo, ProjectNames } from '@dev-dashboard/shared';
 
 const TODOS_TABLE = ENV.TODOS_TABLE;
 
@@ -17,6 +17,13 @@ export interface ITodoModel {
   findByUserId(userId: string): Promise<Todo[]>;
   findByUserIdAndSyncId(userId: string, syncId: string): Promise<Todo[]>;
   findLatestByUserId(userId: string): Promise<Todo[]>;
+  findRecentByUserId(userId: string, limit?: number): Promise<Todo[]>;
+  findProjectsByUserId(userId: string): Promise<ProjectNames>;
+  findByUserIdAndProject(
+    userId: string,
+    projectName: string,
+    limit?: number
+  ): Promise<Todo[]>;
   update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
@@ -126,6 +133,96 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
       );
 
       return (result.Items ?? []) as Todo[];
+    },
+
+    async findRecentByUserId(userId: string, limit = 5): Promise<Todo[]> {
+      const latestSyncsQuery = await docClient.send(
+        new QueryCommand({
+          TableName: TODOS_TABLE,
+          IndexName: 'UserLatestSyncIndex',
+          KeyConditionExpression: 'userId = :userId',
+          ExpressionAttributeValues: { ':userId': userId },
+          ScanIndexForward: false,
+          Limit: limit,
+        })
+      );
+
+      console.log('Latest Syncs', latestSyncsQuery.Items);
+
+      const syncIds = Array.from(
+        new Set((latestSyncsQuery.Items ?? []).map(item => item.syncId))
+      );
+
+      if (syncIds.length === 0) {
+        return [];
+      }
+
+      const results: Todo[] = [];
+
+      for (const syncId of syncIds) {
+        const query = await docClient.send(
+          new QueryCommand({
+            TableName: TODOS_TABLE,
+            IndexName: 'UserSyncIndex',
+            KeyConditionExpression: 'userId = :userId AND syncId = :syncId',
+            ExpressionAttributeValues: {
+              ':userId': userId,
+              ':syncId': syncId,
+            },
+          })
+        );
+        if (query.Items) {
+          results.push(...(query.Items as Todo[]));
+        }
+      }
+
+      return results;
+    },
+
+    async findProjectsByUserId(userId: string): Promise<ProjectNames> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: TODOS_TABLE,
+          IndexName: 'UserProjectIndex',
+          KeyConditionExpression: 'userId = :userId',
+          ExpressionAttributeValues: { ':userId': userId },
+          ProjectionExpression: 'projectName',
+        })
+      );
+      if (!result.Items || !Array.isArray(result.Items)) {
+        return { projects: [] };
+      }
+      const projectNames = result.Items.map(item => item.projectName).filter(
+        (name): name is string => typeof name === 'string'
+      );
+      return { projects: Array.from(new Set(projectNames)) };
+    },
+
+    async findByUserIdAndProject(
+      userId: string,
+      projectName: string,
+      limit = 100
+    ): Promise<Todo[]> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: TODOS_TABLE,
+          IndexName: 'UserProjectIndex',
+          KeyConditionExpression:
+            'userId = :userId AND projectName = :projectName',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+            ':projectName': projectName,
+          },
+          ScanIndexForward: false,
+          Limit: limit,
+        })
+      );
+
+      if (!result.Items || !Array.isArray(result.Items)) {
+        return [];
+      }
+
+      return result.Items as Todo[];
     },
 
     async update(id: string, userId: string, updates: Partial<Todo>) {

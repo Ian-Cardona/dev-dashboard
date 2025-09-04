@@ -96,6 +96,56 @@ export const TodoController = (todoService: ITodoService) => {
       }
     },
 
+    async findRecentByUserId(req: Request, res: Response, next: NextFunction) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await todoService.findRecentByUserId(userId);
+
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid user ID format');
+      }
+    },
+
+    async findProjectsByUserId(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await todoService.findProjectsByUserId(userId);
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid user ID format');
+      }
+    },
+
+    async findByUserIdAndProjectName(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const projectName = z.string().min(1).parse(req.params.projectName);
+
+        const result = await todoService.findByUserIdAndProject(
+          userId,
+          projectName
+        );
+
+        res.json(result);
+      } catch (error) {
+        handleValidationError(
+          error,
+          res,
+          next,
+          'Invalid user ID or project name format'
+        );
+      }
+    },
+
     // async updateTodo(req: Request, res: Response, next: NextFunction) {
     //   try {
     //     const userId = z.uuidv4().parse(req.params.userId);

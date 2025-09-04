@@ -9,6 +9,7 @@ import {
   TodosInfo,
   todoSchema,
   RawTodo,
+  ProjectNames,
 } from '@dev-dashboard/shared';
 
 export interface ITodoService {
@@ -17,6 +18,13 @@ export interface ITodoService {
   findByUserId(userId: string): Promise<TodosInfo>;
   findByUserIdAndSyncId(userId: string, syncId: string): Promise<TodosInfo>;
   findLatestByUserId(userId: string): Promise<TodosInfo>;
+  findRecentByUserId(userId: string, limit?: number): Promise<TodosInfo>;
+  findProjectsByUserId(userId: string): Promise<ProjectNames>;
+  findByUserIdAndProject(
+    userId: string,
+    projectName: string,
+    limit?: number
+  ): Promise<TodosInfo>;
   update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
   delete(id: string, userId: string): Promise<void>;
 }
@@ -165,6 +173,84 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
         }
 
         throw new Error('Failed to retrieve tasks');
+      }
+    },
+
+    async findRecentByUserId(
+      userId: string,
+      limit: number = 5
+    ): Promise<TodosInfo> {
+      try {
+        const todos = await TodoModel.findRecentByUserId(userId, limit);
+        const scannedFiles = new Set(todos.map(item => item.filePath)).size;
+
+        const meta: TodoMeta = {
+          userId,
+          totalCount: todos.length,
+          lastScanAt: new Date().toISOString(),
+          scannedFiles,
+        };
+
+        const todosInfo: TodosInfo = {
+          userId,
+          todos,
+          meta,
+        };
+
+        return todosInfo;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+
+        throw new Error('Failed to retrieve tasks');
+      }
+    },
+
+    async findProjectsByUserId(userId: string): Promise<ProjectNames> {
+      try {
+        const projects = await TodoModel.findProjectsByUserId(userId);
+        return projects;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('Failed to retrieve projects');
+      }
+    },
+
+    async findByUserIdAndProject(
+      userId: string,
+      projectName: string,
+      limit: number = 100
+    ): Promise<TodosInfo> {
+      try {
+        const todos = await TodoModel.findByUserIdAndProject(
+          userId,
+          projectName,
+          limit
+        );
+        const scannedFiles = new Set(todos.map(item => item.filePath)).size;
+
+        const meta: TodoMeta = {
+          userId,
+          totalCount: todos.length,
+          lastScanAt: new Date().toISOString(),
+          scannedFiles,
+        };
+
+        const todosInfo: TodosInfo = {
+          userId,
+          todos,
+          meta,
+        };
+
+        return todosInfo;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error('Failed to retrieve tasks by project');
       }
     },
 
