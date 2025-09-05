@@ -2,7 +2,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { IApiKeysService } from './api-keys.service';
 import { handleValidationError } from 'src/utils/validation-error.utils';
-import { uuidSchema } from '@dev-dashboard/shared';
+import { ApiKeyPublic, uuidSchema } from '@dev-dashboard/shared';
 
 export const ApiKeysController = (apiKeysService: IApiKeysService) => {
   return {
@@ -16,7 +16,10 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
         //   .max(100)
         //   .parse(req.body.description);
 
-        const result = await apiKeysService.create(userId, description);
+        const result: ApiKeyPublic = await apiKeysService.create(
+          userId,
+          description
+        );
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid API key data');

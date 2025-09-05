@@ -1,6 +1,5 @@
 import z from 'zod';
 import {
-  createTodoSchema,
   todoMetaSchema,
   OtherTodoTypeEnum,
   PredefinedTodoTypeEnum,
@@ -9,9 +8,10 @@ import {
   todoSchema,
   todosInfoSchema,
   TodoStatusEnum,
-  updateTodoSchema,
   rawTodoBaseSchema,
   projectNamesSchema,
+  todoBatchSchema,
+  rawTodoBatchSchema,
 } from '../schemas/todo.schema';
 
 export type TodoPriorityEnumType = z.infer<typeof TodoPriorityEnum>;
@@ -22,8 +22,9 @@ export type OtherTodoTypeEnumType = z.infer<typeof OtherTodoTypeEnum>;
 export type RawTodo = z.infer<typeof rawTodoBaseSchema>;
 export type ProcessedTodos = z.infer<typeof processedTodosSchema>;
 export type Todo = z.infer<typeof todoSchema>;
-export type CreateTodo = z.infer<typeof createTodoSchema>;
-export type UpdateTodo = z.infer<typeof updateTodoSchema>;
+
+export type RawTodoBatch = z.infer<typeof rawTodoBatchSchema>;
+export type TodoBatch = z.infer<typeof todoBatchSchema>;
 
 export type TodoMeta = z.infer<typeof todoMetaSchema>;
 export type TodosInfo = z.infer<typeof todosInfoSchema>;
