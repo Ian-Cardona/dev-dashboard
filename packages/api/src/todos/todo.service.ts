@@ -1,20 +1,18 @@
 import { ITodoModel } from './todo.model';
 import { generateUUID } from '../utils/uuid.utils';
-import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { NotFoundError } from '../utils/errors.utils';
 import {
-  CreateTodo,
   TodoMeta,
-  Todo,
-  TodosInfo,
-  todoSchema,
-  RawTodo,
+  TodoBatch,
+  rawTodoBatchSchema,
   ProjectNames,
+  TodosInfo,
+  RawTodoBatch,
+  RawTodo,
+  Todo,
 } from '@dev-dashboard/shared';
 
 export interface ITodoService {
-  sync(userId: string, data: RawTodo[]): Promise<TodosInfo>;
-  create(data: CreateTodo): Promise<Todo>;
+  create(userId: string, batch: RawTodoBatch): Promise<TodosInfo>;
   findByUserId(userId: string): Promise<TodosInfo>;
   findByUserIdAndSyncId(userId: string, syncId: string): Promise<TodosInfo>;
   findLatestByUserId(userId: string): Promise<TodosInfo>;
@@ -25,50 +23,63 @@ export interface ITodoService {
     projectName: string,
     limit?: number
   ): Promise<TodosInfo>;
-  update(id: string, userId: string, updates: Partial<Todo>): Promise<void>;
-  delete(id: string, userId: string): Promise<void>;
+  update(
+    syncId: string,
+    userId: string,
+    updates: Partial<TodoBatch>
+  ): Promise<void>;
+  delete(syncId: string, userId: string): Promise<void>;
 }
 
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
-  const processRawTodo = async (
-    userId: string,
-    syncId: string,
-    item: RawTodo
-  ): Promise<Todo> => {
-    return todoSchema.parse({
-      ...item,
-      userId,
-      id: generateUUID(),
-      syncedAt: new Date().toISOString(),
-      syncId,
-    });
+  const transformTodos = async (todos: RawTodo[]): Promise<Todo[]> => {
+    return Promise.all(
+      todos.map(todo => ({
+        id: generateUUID(),
+        resolved: false,
+        ...todo,
+      }))
+    );
   };
 
   return {
-    async sync(userId: string, data: RawTodo[]): Promise<TodosInfo> {
+    async create(userId: string, rawBatch: RawTodoBatch): Promise<TodosInfo> {
       try {
-        const id = generateUUID();
-        const todos = await Promise.all(
-          data.map(item => processRawTodo(userId, id, item))
-        );
-        await TodoModel.batchCreate(todos);
+        const validatedBatch = rawTodoBatchSchema.parse(rawBatch);
+        const { todos, projectName, userId } = validatedBatch;
 
-        const scannedFiles = new Set(data.map(item => item.filePath)).size;
+        const todosToSave = await transformTodos(todos);
+
+        const syncId = generateUUID();
+        const syncedAt = new Date().toISOString();
+
+        const batchToDb: TodoBatch = {
+          userId,
+          syncId,
+          syncedAt,
+          projectName,
+          todos: todosToSave,
+        };
+
+        await TodoModel.create(batchToDb);
+
+        const scannedFiles = new Set(todosToSave.map(item => item.filePath))
+          .size;
 
         const meta: TodoMeta = {
           userId,
-          totalCount: todos.length,
-          lastScanAt: new Date().toISOString(),
+          totalCount: todosToSave.length,
+          lastScanAt: syncedAt,
           scannedFiles,
         };
 
-        const todosInfo: TodosInfo = {
+        const batchInfo: TodosInfo = {
           userId,
-          todos,
+          todosBatch: batchToDb,
           meta,
         };
 
-        return todosInfo;
+        return batchInfo;
       } catch (error) {
         console.log(error);
         if (error instanceof Error) throw error;
@@ -76,37 +87,24 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async create(data: CreateTodo): Promise<Todo> {
-      try {
-        const todo: Todo = {
-          ...data,
-          id: generateUUID(),
-          syncedAt: new Date().toISOString(),
-        };
-
-        return await TodoModel.create(todo);
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
-
-        throw new Error('Failed to create task');
-      }
-    },
-
     async findByUserId(userId: string): Promise<TodosInfo> {
       try {
-        const todos = await TodoModel.findByUserId(userId);
+        const batch = await TodoModel.findByUserId(userId);
+
+        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
+          .size;
+
+        const meta: TodoMeta = {
+          userId,
+          totalCount: batch.todos.length,
+          lastScanAt: new Date().toISOString(),
+          scannedFiles,
+        };
 
         return {
           userId,
-          todos,
-          meta: {
-            userId,
-            totalCount: todos.length,
-            lastScanAt: new Date().toISOString(),
-            scannedFiles: 0,
-          },
+          batch,
+          meta,
         };
       } catch (error) {
         if (error instanceof Error) {
@@ -122,23 +120,22 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       syncId: string
     ): Promise<TodosInfo> {
       try {
-        const todos = await TodoModel.findByUserIdAndSyncId(userId, syncId);
-        const scannedFiles = new Set(todos.map(item => item.filePath)).size;
+        const batch = await TodoModel.findByUserIdAndSyncId(userId, syncId);
+        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
+          .size;
 
         const meta: TodoMeta = {
           userId,
-          totalCount: todos.length,
+          totalCount: batch.todos.length,
           lastScanAt: new Date().toISOString(),
           scannedFiles,
         };
 
-        const todosInfo: TodosInfo = {
+        return {
           userId,
-          todos,
+          batch,
           meta,
         };
-
-        return todosInfo;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -150,23 +147,22 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
 
     async findLatestByUserId(userId: string): Promise<TodosInfo> {
       try {
-        const todos = await TodoModel.findLatestByUserId(userId);
-        const scannedFiles = new Set(todos.map(item => item.filePath)).size;
+        const batch = await TodoModel.findLatestByUserId(userId);
+        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
+          .size;
 
         const meta: TodoMeta = {
           userId,
-          totalCount: todos.length,
+          totalCount: batch.todos.length,
           lastScanAt: new Date().toISOString(),
           scannedFiles,
         };
 
-        const todosInfo: TodosInfo = {
+        return {
           userId,
-          todos,
+          batch,
           meta,
         };
-
-        return todosInfo;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -181,23 +177,22 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       limit: number = 5
     ): Promise<TodosInfo> {
       try {
-        const todos = await TodoModel.findRecentByUserId(userId, limit);
-        const scannedFiles = new Set(todos.map(item => item.filePath)).size;
+        const batch = await TodoModel.findRecentByUserId(userId, limit);
+        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
+          .size;
 
         const meta: TodoMeta = {
           userId,
-          totalCount: todos.length,
+          totalCount: batch.todos.length,
           lastScanAt: new Date().toISOString(),
           scannedFiles,
         };
 
-        const todosInfo: TodosInfo = {
+        return {
           userId,
-          todos,
+          batch,
           meta,
         };
-
-        return todosInfo;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -225,27 +220,26 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       limit: number = 100
     ): Promise<TodosInfo> {
       try {
-        const todos = await TodoModel.findByUserIdAndProject(
+        const batch = await TodoModel.findByUserIdAndProject(
           userId,
           projectName,
           limit
         );
-        const scannedFiles = new Set(todos.map(item => item.filePath)).size;
+        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
+          .size;
 
         const meta: TodoMeta = {
           userId,
-          totalCount: todos.length,
+          totalCount: batch.todos.length,
           lastScanAt: new Date().toISOString(),
           scannedFiles,
         };
 
-        const todosInfo: TodosInfo = {
+        return {
           userId,
-          todos,
+          batch,
           meta,
         };
-
-        return todosInfo;
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -254,36 +248,36 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async update(id: string, userId: string, updates: Partial<Todo>) {
-      try {
-        await TodoModel.update(id, userId, updates);
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
+    // async update(syncId: string, userId: string, updates: Partial<TodoBatch>) {
+    //   try {
+    //     await TodoModel.update(syncId, userId, updates);
+    //   } catch (error) {
+    //     if (error instanceof Error) {
+    //       throw error;
+    //     }
 
-        if (error instanceof ConditionalCheckFailedException) {
-          throw new NotFoundError(`Task with ID not found.`);
-        }
+    //     if (error instanceof ConditionalCheckFailedException) {
+    //       throw new NotFoundError(`Task batch with syncId not found.`);
+    //     }
 
-        throw new Error('Could not update the task.');
-      }
-    },
+    //     throw new Error('Could not update the task batch.');
+    //   }
+    // },
 
-    async delete(id: string, userId: string): Promise<void> {
-      try {
-        await TodoModel.delete(id, userId);
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
+    // async delete(syncId: string, userId: string): Promise<void> {
+    //   try {
+    //     await TodoModel.delete(syncId, userId);
+    //   } catch (error) {
+    //     if (error instanceof Error) {
+    //       throw error;
+    //     }
 
-        if (error instanceof ConditionalCheckFailedException) {
-          throw new NotFoundError(`Task with ID not found.`);
-        }
+    //     if (error instanceof ConditionalCheckFailedException) {
+    //       throw new NotFoundError(`Task batch with syncId not found.`);
+    //     }
 
-        throw new Error('Could not delete the task.');
-      }
-    },
+    //     throw new Error('Could not delete the task batch.');
+    //   }
+    // },
   };
 };

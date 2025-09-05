@@ -20,7 +20,7 @@ export const ApiKeysModel: (
   docClient: DynamoDBDocumentClient
 ) => IApiKeysModel = docClient => {
   return {
-    async create(data: ApiKey): ReturnType<IApiKeysModel['create']> {
+    async create(data: ApiKey): Promise<ApiKey> {
       await docClient.send(
         new PutCommand({
           TableName: API_KEYS_TABLE,

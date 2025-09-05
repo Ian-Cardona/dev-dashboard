@@ -3,7 +3,7 @@ import * as todosApi from '../api/todosApi';
 
 export const useQueryLatestTodos = () => {
   return useQuery({
-    queryKey: ['todos'],
+    queryKey: ['todos', 'latest'],
     queryFn: () => todosApi.getLatest(),
   });
 };

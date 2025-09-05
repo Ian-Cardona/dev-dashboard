@@ -10,3 +10,8 @@ export const apiKeySchema = z.object({
   expiresAt: z.iso.datetime(),
   isActive: z.boolean().default(true),
 });
+
+export const apiKeyPublicSchema = z.object({
+  id: z.string().min(1).max(36),
+  pkey: z.string().min(1).max(255),
+});

@@ -31,10 +31,6 @@ export const rawTodoBaseSchema = z.object({
     .number()
     .min(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MIN)
     .max(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MAX),
-  projectName: z
-    .string()
-    .min(1)
-    .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH),
 });
 
 const unprocessedPredefinedTodoSchema = rawTodoBaseSchema.extend({
@@ -57,34 +53,30 @@ export const processedTodosSchema = z.discriminatedUnion('type', [
 ]);
 
 const todoCommonSchema = z.object({
-  userId: z.uuidv4(),
   id: z.uuidv4(),
-  syncedAt: z.iso.datetime({ offset: true }),
-  syncId: z.uuidv4(),
+  resolved: z.boolean().default(false),
+});
+
+export const rawTodoBatchSchema = z.object({
+  userId: z.uuidv4(),
+  projectName: z
+    .string()
+    .min(1)
+    .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH),
+  todos: z.array(rawTodoBaseSchema),
 });
 
 export const todoSchema = rawTodoBaseSchema.and(todoCommonSchema);
 
-// Creation
-export const createTodoSchema = rawTodoBaseSchema.and(
-  todoCommonSchema.omit({ id: true, syncedAt: true })
-);
-
-// Update
-export const updateTodoSchema = z.object({
-  ...todoCommonSchema,
-  filePath: z
+export const todoBatchSchema = z.object({
+  userId: z.uuidv4(),
+  syncId: z.uuidv4(),
+  syncedAt: z.iso.datetime({ offset: true }),
+  projectName: z
     .string()
-    .max(VALIDATION_CONSTANTS.TODO.FILE_PATH.MAX_LENGTH)
-    .regex(VALIDATION_CONSTANTS.TODO.FILE_PATH.PATTERN),
-  lineNumber: z
-    .number()
-    .min(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MIN)
-    .max(VALIDATION_CONSTANTS.TODO.LINE_NUMBER.MAX),
-  content: z
-    .string()
-    .min(VALIDATION_CONSTANTS.TODO.CONTENT.MIN_LENGTH)
-    .max(VALIDATION_CONSTANTS.TODO.CONTENT.MAX_LENGTH),
+    .min(1)
+    .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH),
+  todos: z.array(todoSchema),
 });
 
 // Metadata
@@ -104,7 +96,7 @@ export const todoMetaSchema = z.object({
 // Full Information with Metadata
 export const todosInfoSchema = z.object({
   userId: z.uuidv4(),
-  todos: z.array(todoSchema),
+  todosBatch: todoBatchSchema,
   meta: todoMetaSchema,
 });
 
