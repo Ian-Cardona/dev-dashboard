@@ -3,7 +3,7 @@ import * as todosApi from '../api/todosApi';
 
 export const useQueryProjectNames = () => {
   return useQuery({
-    queryKey: ['projectNames'],
+    queryKey: ['todos', 'project', 'names'],
     queryFn: () => todosApi.getProjectNames(),
   });
 };

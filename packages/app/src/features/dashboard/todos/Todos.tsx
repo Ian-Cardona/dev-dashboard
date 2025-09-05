@@ -3,9 +3,13 @@ import { useQueryLatestTodos } from './hooks/useQueryLatestTodos.ts';
 import { useQueryProjectNames } from './hooks/useQueryProjectNames.ts';
 import { useQueryProjectTodos } from './hooks/useQueryProjectTodos.ts';
 import { TodosToolbar, TodosByProject } from './components';
+import { filterTodosByTime } from './utils/filters.ts';
 
 const Todos = () => {
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(-1);
+  const [timeFilter, setTimeFilter] = useState<
+    'all' | 'today' | 'yesterday' | 'last7'
+  >('all');
 
   const { data: projectNames } = useQueryProjectNames();
 
@@ -15,6 +19,7 @@ const Todos = () => {
       : projectNames?.projects[selectedProjectIndex] || null;
 
   const latestQuery = useQueryLatestTodos();
+
   const projectQuery = useQueryProjectTodos(currentProject || '');
 
   const activeQuery = selectedProjectIndex === -1 ? latestQuery : projectQuery;
@@ -37,15 +42,27 @@ const Todos = () => {
     return projectNames?.projects[selectedProjectIndex] || 'Project';
   };
 
+  const filteredTodos = filterTodosByTime(timeFilter, data.todos);
+
   return (
     <div>
       <h2>Your Todos - {getDisplayTitle()}</h2>
+      <select
+        value={timeFilter}
+        onChange={e => setTimeFilter(e.target.value as any)}
+        style={{ marginBottom: '1rem' }}
+      >
+        <option value="all">All</option>
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+        <option value="last7">Last 7 Days</option>
+      </select>
       <TodosToolbar
         projects={projectNames?.projects || []}
         selectedProjectIndex={selectedProjectIndex}
         setSelectedProjectIndex={setSelectedProjectIndex}
       />
-      <TodosByProject todos={data.todos} />
+      <TodosByProject todos={filteredTodos} />
     </div>
   );
 };
