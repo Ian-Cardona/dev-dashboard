@@ -19,8 +19,6 @@ export const useRegisterMutation = () => {
       });
       localStorage.setItem('accessToken', data.accessToken);
       navigate('/dashboard');
-
-      // TODO: Set user data in context
     },
     onError: error => {
       console.error('Register failed:', error);

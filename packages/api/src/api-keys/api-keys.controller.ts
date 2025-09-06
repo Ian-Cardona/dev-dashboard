@@ -36,5 +36,15 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
         handleValidationError(error, res, next, 'Invalid request data');
       }
     },
+
+    async findByUserId(req: Request, res: Response, next: NextFunction) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await apiKeysService.findByUserId(userId);
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid User ID format');
+      }
+    },
   };
 };

@@ -3,7 +3,6 @@ import { generateUUID } from '../utils/uuid.utils';
 import {
   TodoMeta,
   TodoBatch,
-  rawTodoBatchSchema,
   ProjectNames,
   TodosInfo,
   RawTodoBatch,
@@ -15,7 +14,7 @@ export interface ITodoService {
   create(userId: string, batch: RawTodoBatch): Promise<TodosInfo>;
   findByUserId(userId: string): Promise<TodosInfo>;
   findByUserIdAndSyncId(userId: string, syncId: string): Promise<TodosInfo>;
-  findLatestByUserId(userId: string): Promise<TodosInfo>;
+  findLatestByUserId(userId: string): Promise<TodosInfo | null>;
   findRecentByUserId(userId: string, limit?: number): Promise<TodosInfo>;
   findProjectsByUserId(userId: string): Promise<ProjectNames>;
   findByUserIdAndProject(
@@ -23,63 +22,65 @@ export interface ITodoService {
     projectName: string,
     limit?: number
   ): Promise<TodosInfo>;
-  update(
-    syncId: string,
-    userId: string,
-    updates: Partial<TodoBatch>
-  ): Promise<void>;
-  delete(syncId: string, userId: string): Promise<void>;
 }
 
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
-  const transformTodos = async (todos: RawTodo[]): Promise<Todo[]> => {
-    return Promise.all(
-      todos.map(todo => ({
-        id: generateUUID(),
-        resolved: false,
-        ...todo,
-      }))
-    );
+  const transformTodos = (todos: RawTodo[]): Todo[] => {
+    return todos.map(todo => ({
+      id: generateUUID(),
+      resolved: false,
+      ...todo,
+    }));
+  };
+
+  const createTodosInfoResponse = (
+    userId: string,
+    batches: TodoBatch[]
+  ): TodosInfo => {
+    const allTodos = batches.flatMap(batch => batch.todos);
+
+    const scannedFiles = new Set(allTodos.map(todo => todo.filePath)).size;
+
+    const lastScanAt =
+      batches.length > 0
+        ? batches.reduce((latest, current) =>
+            new Date(latest.syncedAt) > new Date(current.syncedAt)
+              ? latest
+              : current
+          ).syncedAt
+        : new Date(0).toISOString();
+
+    const meta: TodoMeta = {
+      totalCount: allTodos.length,
+      lastScanAt,
+      scannedFiles,
+    };
+
+    return {
+      userId,
+      todosBatches: batches,
+      meta,
+    };
   };
 
   return {
     async create(userId: string, rawBatch: RawTodoBatch): Promise<TodosInfo> {
       try {
-        const validatedBatch = rawTodoBatchSchema.parse(rawBatch);
-        const { todos, projectName, userId } = validatedBatch;
+        const { todos, projectName } = rawBatch;
 
-        const todosToSave = await transformTodos(todos);
-
-        const syncId = generateUUID();
-        const syncedAt = new Date().toISOString();
+        const todosToSave = transformTodos(todos);
 
         const batchToDb: TodoBatch = {
           userId,
-          syncId,
-          syncedAt,
+          syncId: generateUUID(),
+          syncedAt: new Date().toISOString(),
           projectName,
           todos: todosToSave,
         };
 
         await TodoModel.create(batchToDb);
 
-        const scannedFiles = new Set(todosToSave.map(item => item.filePath))
-          .size;
-
-        const meta: TodoMeta = {
-          userId,
-          totalCount: todosToSave.length,
-          lastScanAt: syncedAt,
-          scannedFiles,
-        };
-
-        const batchInfo: TodosInfo = {
-          userId,
-          todosBatch: batchToDb,
-          meta,
-        };
-
-        return batchInfo;
+        return createTodosInfoResponse(userId, [batchToDb]);
       } catch (error) {
         console.log(error);
         if (error instanceof Error) throw error;
@@ -89,23 +90,9 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
 
     async findByUserId(userId: string): Promise<TodosInfo> {
       try {
-        const batch = await TodoModel.findByUserId(userId);
+        const batches = await TodoModel.findByUserId(userId);
 
-        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
-          .size;
-
-        const meta: TodoMeta = {
-          userId,
-          totalCount: batch.todos.length,
-          lastScanAt: new Date().toISOString(),
-          scannedFiles,
-        };
-
-        return {
-          userId,
-          batch,
-          meta,
-        };
+        return createTodosInfoResponse(userId, batches);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -121,21 +108,11 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
     ): Promise<TodosInfo> {
       try {
         const batch = await TodoModel.findByUserIdAndSyncId(userId, syncId);
-        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
-          .size;
+        if (!batch) {
+          return createTodosInfoResponse(userId, []);
+        }
 
-        const meta: TodoMeta = {
-          userId,
-          totalCount: batch.todos.length,
-          lastScanAt: new Date().toISOString(),
-          scannedFiles,
-        };
-
-        return {
-          userId,
-          batch,
-          meta,
-        };
+        return createTodosInfoResponse(userId, [batch]);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -145,24 +122,12 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async findLatestByUserId(userId: string): Promise<TodosInfo> {
+    async findLatestByUserId(userId: string): Promise<TodosInfo | null> {
       try {
         const batch = await TodoModel.findLatestByUserId(userId);
-        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
-          .size;
+        if (!batch) return null;
 
-        const meta: TodoMeta = {
-          userId,
-          totalCount: batch.todos.length,
-          lastScanAt: new Date().toISOString(),
-          scannedFiles,
-        };
-
-        return {
-          userId,
-          batch,
-          meta,
-        };
+        return createTodosInfoResponse(userId, [batch]);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -174,42 +139,22 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
 
     async findRecentByUserId(
       userId: string,
-      limit: number = 5
+      limit: number = 10
     ): Promise<TodosInfo> {
       try {
-        const batch = await TodoModel.findRecentByUserId(userId, limit);
-        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
-          .size;
-
-        const meta: TodoMeta = {
-          userId,
-          totalCount: batch.todos.length,
-          lastScanAt: new Date().toISOString(),
-          scannedFiles,
-        };
-
-        return {
-          userId,
-          batch,
-          meta,
-        };
+        const batches = await TodoModel.findRecentByUserId(userId, limit);
+        return createTodosInfoResponse(userId, batches);
       } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
-
+        if (error instanceof Error) throw error;
         throw new Error('Failed to retrieve tasks');
       }
     },
 
     async findProjectsByUserId(userId: string): Promise<ProjectNames> {
       try {
-        const projects = await TodoModel.findProjectsByUserId(userId);
-        return projects;
+        return await TodoModel.findProjectsByUserId(userId);
       } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
+        if (error instanceof Error) throw error;
         throw new Error('Failed to retrieve projects');
       }
     },
@@ -220,26 +165,12 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       limit: number = 100
     ): Promise<TodosInfo> {
       try {
-        const batch = await TodoModel.findByUserIdAndProject(
+        const batches = await TodoModel.findByUserIdAndProject(
           userId,
           projectName,
           limit
         );
-        const scannedFiles = new Set(batch.todos.map(item => item.filePath))
-          .size;
-
-        const meta: TodoMeta = {
-          userId,
-          totalCount: batch.todos.length,
-          lastScanAt: new Date().toISOString(),
-          scannedFiles,
-        };
-
-        return {
-          userId,
-          batch,
-          meta,
-        };
+        return createTodosInfoResponse(userId, batches);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -247,37 +178,5 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
         throw new Error('Failed to retrieve tasks by project');
       }
     },
-
-    // async update(syncId: string, userId: string, updates: Partial<TodoBatch>) {
-    //   try {
-    //     await TodoModel.update(syncId, userId, updates);
-    //   } catch (error) {
-    //     if (error instanceof Error) {
-    //       throw error;
-    //     }
-
-    //     if (error instanceof ConditionalCheckFailedException) {
-    //       throw new NotFoundError(`Task batch with syncId not found.`);
-    //     }
-
-    //     throw new Error('Could not update the task batch.');
-    //   }
-    // },
-
-    // async delete(syncId: string, userId: string): Promise<void> {
-    //   try {
-    //     await TodoModel.delete(syncId, userId);
-    //   } catch (error) {
-    //     if (error instanceof Error) {
-    //       throw error;
-    //     }
-
-    //     if (error instanceof ConditionalCheckFailedException) {
-    //       throw new NotFoundError(`Task batch with syncId not found.`);
-    //     }
-
-    //     throw new Error('Could not delete the task batch.');
-    //   }
-    // },
   };
 };

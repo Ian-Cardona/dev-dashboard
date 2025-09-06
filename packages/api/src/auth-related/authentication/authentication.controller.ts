@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import z from 'zod';
 import {
   AuthenticationLoginRequestPublicSchema,
   AuthenticationRefreshRequestPrivateSchema,
@@ -12,6 +11,7 @@ import {
 } from '@dev-dashboard/shared';
 import { IAuthenticationService } from './authentication.service';
 import { ENV } from '../../config/env_variables';
+import { handleValidationError } from 'src/utils/validation-error.utils';
 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
@@ -46,20 +46,6 @@ export interface IAuthenticationController {
 export const AuthenticationController = (
   authService: IAuthenticationService
 ) => {
-  const handleValidationError = (
-    error: unknown,
-    res: Response,
-    next: NextFunction,
-    message: string
-  ) => {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: message,
-      });
-    }
-    next(error);
-  };
-
   return {
     async registerUser(req: Request, res: Response, next: NextFunction) {
       try {

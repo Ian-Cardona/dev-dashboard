@@ -7,7 +7,7 @@ import { API_KEY } from './utils/constants';
 import { OnboardingProvider } from './webviews/onboarding/onboarding-provider';
 import { shouldShowOnboarding } from './services/should-show-onboarding';
 import { TodosProvider } from './webviews/todos/todos-provider';
-import { postTodosCommand } from './commands/syncTodos';
+import { sendTodosCommand } from './commands/sendTodos';
 
 export const activate = async (context: vscode.ExtensionContext) => {
   vscode.window.showInformationMessage('Thank you for using DevDashboard!');
@@ -77,8 +77,8 @@ const registerCommands = (
       withApiKeyGuard(() => scanSetTodosCommand(todosProvider))
     ),
     vscode.commands.registerCommand(
-      'dev-dashboard.postTodos',
-      withApiKeyGuard(() => postTodosCommand(todosProvider))
+      'dev-dashboard.sendTodos',
+      withApiKeyGuard(() => sendTodosCommand(todosProvider))
     ),
     vscode.commands.registerCommand(
       'dev-dashboard.showTodos',

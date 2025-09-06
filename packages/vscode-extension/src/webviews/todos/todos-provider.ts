@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ProcessedTodos } from '@dev-dashboard/shared';
+import { ProcessedTodo } from '@dev-dashboard/shared';
 import { TodoItem } from './todo-item';
 
 export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
@@ -9,19 +9,29 @@ export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
   readonly onDidChangeTreeData: vscode.Event<TodoItem | undefined | void> =
     this._onDidChangeTreeData.event;
 
-  private _processedTodos: ProcessedTodos[] = [];
+  private _ProcessedTodo: ProcessedTodo[] = [];
+  private _projectName: string = '';
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
 
-  setTodos(todos: ProcessedTodos[]): void {
-    this._processedTodos = todos;
+  setProjectName(projectName: string): void {
+    this._projectName = projectName;
     this.refresh();
   }
 
-  getTodos(): ProcessedTodos[] {
-    return this._processedTodos;
+  getProjectName(): string {
+    return this._projectName;
+  }
+
+  setTodos(todos: ProcessedTodo[]): void {
+    this._ProcessedTodo = todos;
+    this.refresh();
+  }
+
+  getTodos(): ProcessedTodo[] {
+    return this._ProcessedTodo;
   }
 
   getTreeItem(element: TodoItem): vscode.TreeItem {
@@ -29,8 +39,6 @@ export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
   }
 
   getChildren(): Thenable<TodoItem[]> {
-    return Promise.resolve(
-      this._processedTodos.map(todo => new TodoItem(todo))
-    );
+    return Promise.resolve(this._ProcessedTodo.map(todo => new TodoItem(todo)));
   }
 }

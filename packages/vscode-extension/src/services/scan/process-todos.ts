@@ -1,11 +1,11 @@
 import {
   PredefinedTodoTypeEnum,
   PredefinedTodoTypeEnumType,
-  ProcessedTodos,
+  ProcessedTodo,
   RawTodo,
 } from '@dev-dashboard/shared';
 
-export const processTodos = (todos: RawTodo[]): ProcessedTodos[] => {
+export const tagTodos = (todos: RawTodo[]): ProcessedTodo[] => {
   return todos.map(todo => {
     const isPredefined = PredefinedTodoTypeEnum.safeParse(todo.type).success;
 

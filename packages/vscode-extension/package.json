@@ -2,7 +2,7 @@
   "name": "dev-dashboard",
   "displayName": "Dev Dashboard",
   "publisher": "iancardona",
-  "description": "Scan and post TODO comments from your workspace with an external service.",
+  "description": "Scan and send TODO comments from your workspace to your dashboard.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
@@ -55,8 +55,8 @@
         "icon": "$(search)"
       },
       {
-        "command": "dev-dashboard.postTodos",
-        "title": "Post TODOs",
+        "command": "dev-dashboard.sendTodos",
+        "title": "Send TODOs",
         "icon": "$(cloud-upload)"
       },
       {
@@ -84,7 +84,7 @@
           "group": "navigation@1"
         },
         {
-          "command": "dev-dashboard.postTodos",
+          "command": "dev-dashboard.sendTodos",
           "when": "view == devDashboardMain",
           "group": "navigation@2"
         }

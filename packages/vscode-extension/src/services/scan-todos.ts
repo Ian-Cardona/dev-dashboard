@@ -1,14 +1,17 @@
 import * as vscode from 'vscode';
-import { ProcessedTodos, RawTodo } from '@dev-dashboard/shared';
+import { ProcessedTodo, RawTodo } from '@dev-dashboard/shared';
 import {
   findPivotRoot,
   getSourceFiles,
   makeRelativePathTodo,
-  processTodos,
+  tagTodos,
   scanFile,
 } from './scan';
 
-export const scanTodos = async () => {
+export const scanTodos = async (): Promise<{
+  todos: ProcessedTodo[];
+  projectName: string;
+}> => {
   try {
     if (!vscode.workspace.workspaceFolders) {
       throw new Error('No workspace folder is open.');
@@ -21,7 +24,7 @@ export const scanTodos = async () => {
 
     const files = await getSourceFiles(workspacePath);
 
-    const todoPromises = files.map(file => scanFile(file, projectName));
+    const todoPromises = files.map(file => scanFile(file));
     const todoArrays = await Promise.all(todoPromises);
     const rawTodos: RawTodo[] = todoArrays.flat();
 
@@ -29,9 +32,9 @@ export const scanTodos = async () => {
       makeRelativePathTodo({ ...todo }, pivotRoot)
     );
 
-    const todos: ProcessedTodos[] = processTodos(todosWithRelativePaths);
+    const todos: ProcessedTodo[] = tagTodos(todosWithRelativePaths);
 
-    return todos;
+    return { todos, projectName };
   } catch (error) {
     let errorMessage;
     if (error instanceof Error) {

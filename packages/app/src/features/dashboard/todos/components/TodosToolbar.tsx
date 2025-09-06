@@ -1,63 +1,45 @@
-import React from 'react';
+interface TodosToolbarProps {
+  title: string;
+  onGoLeft: () => void;
+  onGoRight: () => void;
+  canGoLeft: boolean;
+  canGoRight: boolean;
+}
 
-type TodosToolbarProps = {
-  projects: string[];
-  selectedProjectIndex: number; // -1 = Latest, 0+ = project index
-  setSelectedProjectIndex: (index: number) => void;
-};
-
-export const TodosToolbar: React.FC<TodosToolbarProps> = ({
-  projects,
-  selectedProjectIndex,
-  setSelectedProjectIndex,
-}) => {
-  const canGoLeft = selectedProjectIndex > -1;
-  const canGoRight = selectedProjectIndex < projects.length - 1;
-
-  const goLeft = () => {
-    if (canGoLeft) {
-      setSelectedProjectIndex(selectedProjectIndex - 1);
-    }
-  };
-
-  const goRight = () => {
-    if (canGoRight) {
-      setSelectedProjectIndex(selectedProjectIndex + 1);
-    }
-  };
-
-  const getDisplayTitle = () => {
-    if (selectedProjectIndex === -1) return 'Latest';
-    return projects[selectedProjectIndex] || 'Project';
-  };
-
+export const TodosToolbar = ({
+  title,
+  onGoLeft,
+  onGoRight,
+  canGoLeft,
+  canGoRight,
+}: TodosToolbarProps) => {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '1rem',
-      }}
-    >
+    <div className="flex shrink-0 items-center justify-center mb-4">
+      // TODO: Use icons and fix spacing
       <button
-        onClick={goLeft}
+        onClick={onGoLeft}
         disabled={!canGoLeft}
-        style={{ opacity: canGoLeft ? 1 : 0.3 }}
+        className={`flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-fg)]/20 transition-colors ${
+          canGoLeft
+            ? 'hover:bg-[var(--color-fg)]/5'
+            : 'cursor-not-allowed opacity-50'
+        }`}
+        aria-label="Previous Project"
       >
         ←
       </button>
-
-      <span
-        style={{ fontWeight: 'bold', minWidth: '120px', textAlign: 'center' }}
-      >
-        {getDisplayTitle()}
+      <span className="min-w-[160px] select-none text-center text-lg font-semibold text-[var(--color-fg)]">
+        {title}
       </span>
-
       <button
-        onClick={goRight}
+        onClick={onGoRight}
         disabled={!canGoRight}
-        style={{ opacity: canGoRight ? 1 : 0.3 }}
+        className={`flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--color-fg)]/20 transition-colors ${
+          canGoRight
+            ? 'hover:bg-[var(--color-fg)]/5'
+            : 'cursor-not-allowed opacity-50'
+        }`}
+        aria-label="Next Project"
       >
         →
       </button>
