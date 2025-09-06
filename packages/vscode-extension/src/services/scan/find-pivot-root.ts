@@ -6,7 +6,6 @@ export const findPivotRoot = (
 ): {
   pivotRoot: string;
   projectName: string;
-  // pivotType: 'git' | 'workspace';
 } => {
   const gitRoot = findGitRoot(workspacePath);
 
@@ -14,13 +13,11 @@ export const findPivotRoot = (
     return {
       pivotRoot: gitRoot,
       projectName: path.basename(gitRoot),
-      // pivotType: 'git',
     };
   }
 
   return {
     pivotRoot: workspacePath,
     projectName: path.basename(workspacePath),
-    // pivotType: 'workspace',
   };
 };

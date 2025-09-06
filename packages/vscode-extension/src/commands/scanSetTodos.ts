@@ -4,8 +4,9 @@ import { TodosProvider } from '../webviews/todos/todos-provider';
 
 export const scanSetTodosCommand = async (todosProvider: TodosProvider) => {
   try {
-    const todos = await scanTodos();
+    const { todos, projectName } = await scanTodos();
     todosProvider.setTodos(todos);
+    todosProvider.setProjectName(projectName);
     vscode.window.showInformationMessage(
       `Scanned and found ${todos.length} TODOs.`
     );

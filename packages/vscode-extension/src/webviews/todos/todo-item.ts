@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { ProcessedTodos } from '@dev-dashboard/shared';
+import { ProcessedTodo } from '@dev-dashboard/shared';
 import { getIconForType } from './get-icon-for-type';
 import { resolveFilePath } from './resolve-file-path';
 
 export class TodoItem extends vscode.TreeItem {
-  constructor(todo: ProcessedTodos) {
+  constructor(todo: ProcessedTodo) {
     const tag = todo.type === 'OTHER' ? todo.customTag : todo.type;
     const label = `${tag}: ${todo.content}`;
     super(label);

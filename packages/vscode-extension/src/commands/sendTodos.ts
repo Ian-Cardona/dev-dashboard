@@ -1,12 +1,15 @@
 import * as vscode from 'vscode';
 import { postTodos } from '../services/post-todos';
 import { TodosProvider } from '../webviews/todos/todos-provider';
+import { batchTodos } from '../services/send/batch-todos';
 
-export const postTodosCommand = async (todosProvider: TodosProvider) => {
+export const sendTodosCommand = async (todosProvider: TodosProvider) => {
   try {
     const todos = todosProvider.getTodos();
-    console.log('Todos', todos);
-    await postTodos(todos);
+    const projectName = todosProvider.getProjectName();
+    const batch = batchTodos(todos, projectName);
+
+    await postTodos(batch);
     vscode.window.showInformationMessage(`Synced TODOs Successfully`);
   } catch (error) {
     let errorMessage;

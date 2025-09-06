@@ -1,10 +1,7 @@
 import * as fs from 'fs';
 import { RawTodo } from '@dev-dashboard/shared';
 
-export const scanFile = async (
-  filePath: string,
-  projectName: string
-): Promise<RawTodo[]> => {
+export const scanFile = async (filePath: string): Promise<RawTodo[]> => {
   const todos: RawTodo[] = [];
 
   try {
@@ -26,7 +23,6 @@ export const scanFile = async (
           content: rawContent.trim(),
           filePath,
           lineNumber: index + 1,
-          projectName,
         });
         return;
       }
@@ -65,7 +61,6 @@ export const scanFile = async (
             content: rawContent.trim(),
             filePath,
             lineNumber: index + 1,
-            projectName,
           } as RawTodo);
         }
       }

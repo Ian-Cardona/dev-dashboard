@@ -43,7 +43,7 @@ const constants_1 = require("./utils/constants");
 const onboarding_provider_1 = require("./webviews/onboarding/onboarding-provider");
 const should_show_onboarding_1 = require("./services/should-show-onboarding");
 const todos_provider_1 = require("./webviews/todos/todos-provider");
-const syncTodos_1 = require("./commands/syncTodos");
+const sendTodos_1 = require("./commands/sendTodos");
 const activate = async (context) => {
     vscode.window.showInformationMessage('Thank you for using DevDashboard!');
     const todosProvider = new todos_provider_1.TodosProvider();
@@ -86,7 +86,7 @@ const registerCommands = (context, todosProvider) => {
         }
         await commandHandler();
     };
-    context.subscriptions.push(vscode.commands.registerCommand('dev-dashboard.scanTodos', withApiKeyGuard(() => (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.postTodos', withApiKeyGuard(() => (0, syncTodos_1.postTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.showTodos', withApiKeyGuard(async () => {
+    context.subscriptions.push(vscode.commands.registerCommand('dev-dashboard.scanTodos', withApiKeyGuard(() => (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.sendTodos', withApiKeyGuard(() => (0, sendTodos_1.sendTodosCommand)(todosProvider))), vscode.commands.registerCommand('dev-dashboard.showTodos', withApiKeyGuard(async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
         if (hasApiKey) {
             vscode.commands.executeCommand('devDashboardMain.focus');

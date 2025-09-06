@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { ProcessedTodos } from '@dev-dashboard/shared';
+import { ProcessedTodo } from '@dev-dashboard/shared';
 import { findGitRoot } from '../../utils/repository-manager';
 
 export const resolveFilePath = (
-  todo: ProcessedTodos & { projectName?: string }
+  todo: ProcessedTodo & { projectName?: string }
 ): string => {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (!workspaceRoot) return todo.filePath;
