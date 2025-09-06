@@ -1,8 +1,24 @@
 import z from 'zod';
 import { VALIDATION_CONSTANTS } from '../constants/validations';
 
-export const TodoPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
-export const TodoStatusEnum = z.enum(['todo', 'in-progress', 'done']);
+export const TodoReasonEnum = z.enum([
+  'done',
+  'moved',
+  'not_needed',
+  'done_by_others',
+  'blocked',
+  'refactored',
+  'moved_elsewhere',
+  'duplicate',
+  'obsolete',
+  'invalid',
+  'wont_fix',
+  'out_of_scope',
+  'implemented',
+  'cannot_reproduce',
+  'not_reproducible',
+]);
+
 export const PredefinedTodoTypeEnum = z.enum([
   'TODO',
   'FIXME',
@@ -47,7 +63,7 @@ const unprocessedOtherTodoSchema = rawTodoBaseSchema.extend({
     .regex(VALIDATION_CONSTANTS.TODO.CUSTOM_TAG.PATTERN),
 });
 
-export const processedTodosSchema = z.discriminatedUnion('type', [
+export const processedTodoSchema = z.discriminatedUnion('type', [
   unprocessedPredefinedTodoSchema,
   unprocessedOtherTodoSchema,
 ]);
@@ -55,10 +71,10 @@ export const processedTodosSchema = z.discriminatedUnion('type', [
 const todoCommonSchema = z.object({
   id: z.uuidv4(),
   resolved: z.boolean().default(false),
+  reason: TodoReasonEnum.optional(),
 });
 
 export const rawTodoBatchSchema = z.object({
-  userId: z.uuidv4(),
   projectName: z
     .string()
     .min(1)
@@ -81,7 +97,6 @@ export const todoBatchSchema = z.object({
 
 // Metadata
 export const todoMetaSchema = z.object({
-  userId: z.uuidv4(),
   totalCount: z
     .number()
     .min(VALIDATION_CONSTANTS.TODO.META.MIN_COUNT)
@@ -96,7 +111,7 @@ export const todoMetaSchema = z.object({
 // Full Information with Metadata
 export const todosInfoSchema = z.object({
   userId: z.uuidv4(),
-  todosBatch: todoBatchSchema,
+  todosBatches: z.array(todoBatchSchema),
   meta: todoMetaSchema,
 });
 
@@ -106,4 +121,17 @@ export const projectNamesSchema = z.object({
       z.string().min(1).max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH)
     )
     .max(155),
+});
+
+export const flattenedTodosInfoSchema = z.object({
+  id: z.uuidv4(),
+  type: z.string(),
+  content: z.string(),
+  filePath: z.string(),
+  lineNumber: z.number(),
+  resolved: z.boolean(),
+  syncedAt: z.string(),
+  projectName: z.string(),
+  userId: z.string(),
+  syncId: z.string(),
 });

@@ -13,16 +13,13 @@ const modelInstance = TodoModel(docClient);
 const serviceInstance = TodoService(modelInstance);
 const controllerInstance = TodoController(serviceInstance);
 
-router.post('/', apiKeysMiddleware, controllerInstance.syncTodos);
+router.post('/', apiKeysMiddleware, controllerInstance.createBatch);
+router.get('/', authorizationMiddleware, controllerInstance.findByUserId);
+
 router.get(
   '/latest',
   authorizationMiddleware,
   controllerInstance.findLatestByUserId
-);
-router.get(
-  '/',
-  authorizationMiddleware,
-  controllerInstance.findTodosInfoByUserId
 );
 router.get(
   '/recent',
@@ -39,6 +36,7 @@ router.get(
   authorizationMiddleware,
   controllerInstance.findByUserIdAndProjectName
 );
+
 router.get(
   '/:syncId',
   authorizationMiddleware,

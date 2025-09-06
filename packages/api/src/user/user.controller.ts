@@ -1,4 +1,3 @@
-import z from 'zod';
 import { NextFunction, Request, Response } from 'express';
 import { IUserService } from './user.service';
 import {
@@ -6,6 +5,7 @@ import {
   uuidSchema,
   userUpdateSchema,
 } from '@dev-dashboard/shared';
+import { handleValidationError } from 'src/utils/validation-error.utils';
 
 export interface IUserController {
   getUserProfile: (
@@ -31,21 +31,6 @@ export interface IUserController {
 }
 
 export const UserController = (userService: IUserService) => {
-  const handleValidationError = (
-    error: unknown,
-    res: Response,
-    next: NextFunction,
-    message: string
-  ) => {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: message,
-        details: error.issues,
-      });
-    }
-    next(error);
-  };
-
   return {
     async getUserProfile(req: Request, res: Response, next: NextFunction) {
       try {

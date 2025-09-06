@@ -9,7 +9,7 @@ export interface IApiKeysService {
   create(userId: string, description: string): Promise<ApiKeyPublic>;
   validate(pkey: string): Promise<ApiKey>;
   // findById(id: string): Promise<ApiKey | null>;
-  // findByUserId(userId: string): Promise<ApiKey[]>;
+  findByUserId(userId: string): Promise<ApiKey[]>;
   // revoke(id: string): Promise<void>;
   // updateLastUsed(id: string, timestamp: string): Promise<ApiKey>;
 }
@@ -121,9 +121,14 @@ export const ApiKeysService = (
     //   // Implementation here
     // },
 
-    // async findByUserId(userId: string): Promise<ApiKey[]> {
-    //   // Implementation here
-    // },
+    async findByUserId(userId: string): Promise<ApiKey[]> {
+      try {
+        return apiKeysModel.findByUserId(userId);
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error('Failed to retrieve API keys');
+      }
+    },
 
     // async revoke(id: string): Promise<void> {
     //   // Implementation here

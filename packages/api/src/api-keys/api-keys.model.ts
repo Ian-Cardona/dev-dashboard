@@ -2,6 +2,7 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
+  UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ENV } from '../config/env_variables';
 import { ApiKey } from '@dev-dashboard/shared';
@@ -39,12 +40,30 @@ export const ApiKeysModel: (
       );
       return result.Item as ApiKey | null;
     },
-    findByUserId: async () => {
-      throw new Error('Not implemented');
+
+    findByUserId: async (userId: string) => {
+      const result = await docClient.send(
+        new GetCommand({
+          TableName: API_KEYS_TABLE,
+          Key: { userId },
+        })
+      );
+      return result.Item as ApiKey[];
     },
-    revoke: async () => {
-      throw new Error('Not implemented');
+
+    revoke: async (id: string) => {
+      await docClient.send(
+        new UpdateCommand({
+          TableName: API_KEYS_TABLE,
+          Key: { id },
+          UpdateExpression: 'SET isActive = :isActive',
+          ExpressionAttributeValues: {
+            ':isActive': false,
+          },
+        })
+      );
     },
+
     updateLastUsed: async () => {
       throw new Error('Not implemented');
     },

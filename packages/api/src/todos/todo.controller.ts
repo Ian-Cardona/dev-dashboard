@@ -2,63 +2,34 @@ import z from 'zod';
 import { NextFunction, Request, Response } from 'express';
 import { ITodoService } from './todo.service';
 import {
-  rawTodoBaseSchema,
-  createTodoSchema,
+  rawTodoBatchSchema,
   uuidSchema,
+  VALIDATION_CONSTANTS,
 } from '@dev-dashboard/shared';
+import { handleValidationError } from 'src/utils/validation-error.utils';
 
 export const TodoController = (todoService: ITodoService) => {
-  const handleValidationError = (
-    error: unknown,
-    res: Response,
-    next: NextFunction,
-    message: string
-  ) => {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: message,
-        details: error.issues,
-      });
-    }
-    next(error);
-  };
-
   return {
-    async syncTodos(req: Request, res: Response, next: NextFunction) {
+    async createBatch(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const rawTodos = z.array(rawTodoBaseSchema).parse(req.body.todos);
+        const rawBatch = rawTodoBatchSchema.parse(req.body);
 
-        const result = await todoService.sync(userId, rawTodos);
+        const result = await todoService.create(userId, rawBatch);
         res.json(result);
       } catch (error) {
-        console.log('Error syncing todos:', error);
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid input format');
       }
     },
 
-    async createTodo(req: Request, res: Response, next: NextFunction) {
-      try {
-        const validatedData = createTodoSchema.parse(req.body);
-        const result = await todoService.create(validatedData);
-        res.status(201).json(result);
-      } catch (error) {
-        handleValidationError(error, res, next, 'Invalid code task data');
-      }
-    },
-
-    async findTodosInfoByUserId(
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ) {
+    async findByUserId(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
         const result = await todoService.findByUserId(userId);
 
         res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid User ID format');
       }
     },
 
@@ -72,7 +43,6 @@ export const TodoController = (todoService: ITodoService) => {
         const syncId = uuidSchema.parse(req.params.syncId);
 
         const result = await todoService.findByUserIdAndSyncId(userId, syncId);
-        console.log('Result:', result);
 
         res.json(result);
       } catch (error) {
@@ -80,7 +50,7 @@ export const TodoController = (todoService: ITodoService) => {
           error,
           res,
           next,
-          'Invalid user ID or sync ID format'
+          'Invalid User ID or Sync ID format'
         );
       }
     },
@@ -92,7 +62,7 @@ export const TodoController = (todoService: ITodoService) => {
 
         res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid User ID format');
       }
     },
 
@@ -103,7 +73,7 @@ export const TodoController = (todoService: ITodoService) => {
 
         res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid User ID format');
       }
     },
 
@@ -117,7 +87,7 @@ export const TodoController = (todoService: ITodoService) => {
         const result = await todoService.findProjectsByUserId(userId);
         res.json(result);
       } catch (error) {
-        handleValidationError(error, res, next, 'Invalid user ID format');
+        handleValidationError(error, res, next, 'Invalid User ID format');
       }
     },
 
@@ -128,7 +98,11 @@ export const TodoController = (todoService: ITodoService) => {
     ) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const projectName = z.string().min(1).parse(req.params.projectName);
+        const projectName = z
+          .string()
+          .min(1)
+          .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH)
+          .parse(req.params.projectName);
 
         const result = await todoService.findByUserIdAndProject(
           userId,
@@ -141,34 +115,8 @@ export const TodoController = (todoService: ITodoService) => {
           error,
           res,
           next,
-          'Invalid user ID or project name format'
+          'Invalid User ID format or project name format'
         );
-      }
-    },
-
-    // async updateTodo(req: Request, res: Response, next: NextFunction) {
-    //   try {
-    //     const userId = z.uuidv4().parse(req.params.userId);
-    //     const id = z.uuidv4().parse(req.params.id);
-
-    //     const updates = updateTodoSchema.parse(req.body);
-    //     await todoService.update(id, userId, updates);
-    //     res.status(204).end();
-    //   } catch (error) {
-    //     handleValidationError(error, res, next, 'Invalid code task data');
-    //   }
-    // },
-
-    async deleteTodo(req: Request, res: Response, next: NextFunction) {
-      try {
-        const userId = z.uuidv4().parse(req.params.userId);
-        const id = z.uuidv4().parse(req.params.id);
-
-        await todoService.delete(id, userId);
-
-        res.status(204).end();
-      } catch (error) {
-        handleValidationError(error, res, next, 'Invalid code task data');
       }
     },
   };
