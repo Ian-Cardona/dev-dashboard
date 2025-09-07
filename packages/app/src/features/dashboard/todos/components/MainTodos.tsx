@@ -58,7 +58,7 @@ export const MainTodos = () => {
   };
 
   return (
-    <section className="rounded-2xl border py-4 h-full flex flex-col">
+    <section className="rounded-4xl border py-4 h-full flex flex-col">
       <TodosToolbar
         title={displayTitle}
         onGoLeft={goLeft}

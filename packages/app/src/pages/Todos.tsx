@@ -7,9 +7,13 @@ const TodosPage = () => {
       <div className="grid grid-cols-2 grid-rows-2 gap-4 h-screen">
         <LatestTodos />
 
-        <MainTodos />
+        <section className="row-span-2">
+          <MainTodos />
+        </section>
 
-        <section className="p-2 border rounded">Bottom Left Content</section>
+        <section className="p-2 border rounded-4xl">
+          Bottom Left Content
+        </section>
       </div>
     </div>
   );
