@@ -70,8 +70,6 @@ export const processedTodoSchema = z.discriminatedUnion('type', [
 
 const todoCommonSchema = z.object({
   id: z.uuidv4(),
-  resolved: z.boolean().default(false),
-  reason: TodoReasonEnum.optional(),
 });
 
 export const rawTodoBatchSchema = z.object({
@@ -135,3 +133,20 @@ export const flattenedTodosInfoSchema = z.object({
   userId: z.string(),
   syncId: z.string(),
 });
+
+export const createResolutionRequestSchema = z.object({
+  id: z.uuidv4(),
+  syncId: z.uuidv4(),
+  reason: TodoReasonEnum.optional(),
+});
+
+const todoResolutionCommonSchema = z.object({
+  userId: z.uuidv4(),
+  createdAt: z.iso.datetime(),
+  resolved: z.boolean().default(false),
+  resolvedAt: z.iso.datetime().optional(),
+});
+
+export const todoResolutionSchema = todoSchema
+  .and(todoResolutionCommonSchema)
+  .and(createResolutionRequestSchema);

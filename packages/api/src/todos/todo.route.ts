@@ -38,6 +38,17 @@ router.get(
 );
 
 router.get(
+  '/resolutions/pending',
+  authorizationMiddleware,
+  controllerInstance.findPendingResolutionsByUserId
+);
+router.post(
+  '/resolutions',
+  authorizationMiddleware,
+  controllerInstance.createResolution
+);
+
+router.get(
   '/:syncId',
   authorizationMiddleware,
   controllerInstance.findByUserIdAndSyncId

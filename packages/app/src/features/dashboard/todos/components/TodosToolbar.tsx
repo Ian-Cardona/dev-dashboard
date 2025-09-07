@@ -5,7 +5,7 @@ interface TodosToolbarProps {
   canGoLeft: boolean;
   canGoRight: boolean;
 }
-
+// TODO: Use icons and fix spacing
 export const TodosToolbar = ({
   title,
   onGoLeft,
@@ -15,7 +15,6 @@ export const TodosToolbar = ({
 }: TodosToolbarProps) => {
   return (
     <div className="flex shrink-0 items-center justify-center mb-4">
-      // TODO: Use icons and fix spacing
       <button
         onClick={onGoLeft}
         disabled={!canGoLeft}

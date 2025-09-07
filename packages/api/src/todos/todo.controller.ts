@@ -2,6 +2,7 @@ import z from 'zod';
 import { NextFunction, Request, Response } from 'express';
 import { ITodoService } from './todo.service';
 import {
+  createResolutionRequestSchema,
   rawTodoBatchSchema,
   uuidSchema,
   VALIDATION_CONSTANTS,
@@ -117,6 +118,32 @@ export const TodoController = (todoService: ITodoService) => {
           next,
           'Invalid User ID format or project name format'
         );
+      }
+    },
+
+    async findPendingResolutionsByUserId(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await todoService.findPendingResolutionsByUserId(userId);
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid User ID format');
+      }
+    },
+
+    async createResolution(req: Request, res: Response, next: NextFunction) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const resolution = createResolutionRequestSchema.parse(req.body);
+
+        const result = await todoService.createResolution(userId, resolution);
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid resolution format');
       }
     },
   };

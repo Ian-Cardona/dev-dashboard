@@ -6,7 +6,7 @@ export const LatestTodos = () => {
 
   if (isLoading) {
     return (
-      <section className="rounded-2xl border p-4">
+      <section className="rounded-4xl border p-4">
         Loading latest todos...
       </section>
     );
@@ -14,7 +14,7 @@ export const LatestTodos = () => {
 
   if (isError) {
     return (
-      <section className="rounded-2xl border p-4">
+      <section className="rounded-4xl border p-4">
         Error loading latest todos.
       </section>
     );
@@ -22,14 +22,14 @@ export const LatestTodos = () => {
 
   if (!data) {
     return (
-      <section className="rounded-2xl border p-4">
+      <section className="rounded-4xl border p-4">
         No latest todos found.
       </section>
     );
   }
 
   return (
-    <section className="rounded-2xl border py-4 h-full flex flex-col">
+    <section className="rounded-4xl border py-4 h-full flex flex-col">
       <h2 className="text-lg font-semibold mb-4 mx-4">Latest</h2>
       <TodosTable batch={data?.todosBatches || []} />
     </section>

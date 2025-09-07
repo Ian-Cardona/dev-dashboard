@@ -18,10 +18,16 @@ export const ENV = {
   BCRYPT_SALT_ROUNDS_PW: process.env.BCRYPT_SALT_ROUNDS_PW || 12,
   BCRYPT_SALT_ROUNDS_RT: process.env.BCRYPT_SALT_ROUNDS_RT || 10,
   BCRYPT_SALT_ROUNDS_API_KEY: process.env.BCRYPT_SALT_ROUNDS_API_KEY || 12,
-  // Tables
+
+  // Todo Related Tables
   TODOS_TABLE: process.env.TODOS_TABLE || 'TODOS',
+  RESOLUTIONS_TABLE: process.env.RESOLUTIONS_TABLE || 'RESOLUTIONS',
+
+  // Users Related Tables
   USERS_TABLE: process.env.USERS_TABLE || 'USERS',
   EMAILS_TABLE: process.env.EMAILS_TABLE || 'EMAILS',
+
+  // Token Related Tables
   REFRESH_TOKENS_TABLE: process.env.REFRESH_TOKENS_TABLE || 'REFRESH_TOKENS',
   API_KEYS_TABLE: process.env.API_KEYS_TABLE || 'API_KEYS',
   // Audience

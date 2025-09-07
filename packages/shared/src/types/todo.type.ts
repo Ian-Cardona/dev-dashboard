@@ -12,6 +12,8 @@ import {
   todoBatchSchema,
   rawTodoBatchSchema,
   flattenedTodosInfoSchema,
+  todoResolutionSchema,
+  createResolutionRequestSchema,
 } from '../schemas/todo.schema';
 
 export type TodoReasonEnumType = z.infer<typeof TodoReasonEnum>;
@@ -27,6 +29,12 @@ export type TodoBatch = z.infer<typeof todoBatchSchema>;
 
 export type TodoMeta = z.infer<typeof todoMetaSchema>;
 export type TodosInfo = z.infer<typeof todosInfoSchema>;
-export type FlattenedTodo = z.infer<typeof flattenedTodosInfoSchema>;
 
 export type ProjectNames = z.infer<typeof projectNamesSchema>;
+export type FlattenedTodo = z.infer<typeof flattenedTodosInfoSchema>;
+
+// Resolution Related
+export type TodoResolution = z.infer<typeof todoResolutionSchema>;
+export type CreateResolutionRequest = z.infer<
+  typeof createResolutionRequestSchema
+>;

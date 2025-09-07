@@ -1,5 +1,6 @@
 import type { FlattenedTodo, TodoBatch } from '@dev-dashboard/shared';
 import { useMemo, useState } from 'react';
+import { TodosTableRow } from './TodosTableRow';
 
 interface TodosTableProps {
   batch: TodoBatch[];
@@ -115,10 +116,10 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
 
   return (
     <div className="flex-1 overflow-auto">
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full table-fixed border-collapse text-sm">
         <thead className="sticky">
           <tr className="border-b">
-            <th className="p-4 text-left font-semibold uppercase tracking-wider">
+            <th className="w-36 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <button
@@ -130,7 +131,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
                     {typeFilter === '' ? 'Type' : typeFilter}
                   </button>
                   {showTypeDropdown && (
-                    <div className="absolute z-10 mt-2 w-32 rounded-lg border bg-[var(--color-bg)] p-2 shadow-md">
+                    <div className="absolute z-10 mt-2 w-32 rounded-lg border bg-[var(--color-bg)] shadow-md">
                       <div
                         className={`cursor-pointer rounded-md px-4 py-2 hover:bg-[var(--color-fg)]/5 ${
                           typeFilter === '' ? 'font-semibold' : ''
@@ -168,7 +169,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
                 </button>
               </div>
             </th>
-            <th className="px-4 py-4 text-left  font-semibold uppercase tracking-wider ">
+            <th className="whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
               <button
                 onClick={() => handleSort('content')}
                 className="flex cursor-pointer select-none items-center gap-2"
@@ -178,7 +179,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
                 Content {getSortIcon('content')}
               </button>
             </th>
-            <th className="px-4 py-4 text-left  font-semibold uppercase tracking-wider ">
+            <th className="w-32 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
               <button
                 onClick={toggleResolvedFilter}
                 className="flex cursor-pointer select-none items-center gap-2"
@@ -189,7 +190,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
               </button>
             </th>
             {showDateFilter && (
-              <th className="px-4 py-4 text-left  font-semibold uppercase tracking-wider ">
+              <th className="w-48 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
                 <button
                   onClick={() => handleSort('date')}
                   className="flex cursor-pointer select-none items-center gap-2"
@@ -203,43 +204,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
         </thead>
         <tbody>
           {filteredAndSortedTodos.map(todo => (
-            <tr
-              key={todo.id}
-              className="border-b border-[var(--color-fg)]/10 hover:bg-[var(--color-fg)]/[0.03]"
-            >
-              <td className="px-4 py-4 align-middle">
-                <span
-                  className={`rounded-full px-2 py-1  font-medium ${
-                    todo.type === 'TODO'
-                      ? 'bg-[var(--color-primary)] text-[var(--color-bg)]'
-                      : todo.type === 'FIXME'
-                        ? 'bg-[var(--color-error)] text-[var(--color-bg)]'
-                        : todo.type === 'HACK'
-                          ? 'bg-[var(--color-fg)]/[0.1] text-[var(--color-fg)]/[0.8]'
-                          : 'bg-[var(--color-fg)]/[0.1] text-[var(--color-fg)]/[0.8]'
-                  }`}
-                >
-                  {todo.type}
-                </span>
-              </td>
-              <td className="max-w-xs truncate px-4 py-4 align-middle">
-                {todo.content}
-              </td>
-              <td className="px-4 py-4 align-middle">
-                <span
-                  className={`rounded-full px-2 py-1  font-medium ${
-                    todo.resolved
-                      ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                      : 'bg-[var(--color-fg)]/[0.1] text-[var(--color-fg)]/[0.8]'
-                  }`}
-                >
-                  {todo.resolved ? 'Yes' : 'No'}
-                </span>
-              </td>
-              {showDateFilter && (
-                <td className="px-4 py-4 align-middle  ">{todo.syncedAt}</td>
-              )}
-            </tr>
+            <TodosTableRow todo={todo} showDateFilter={showDateFilter} />
           ))}
         </tbody>
       </table>
