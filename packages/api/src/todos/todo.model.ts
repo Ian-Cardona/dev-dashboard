@@ -4,9 +4,10 @@ import {
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ENV } from '../config/env_variables';
-import { ProjectNames, TodoBatch } from '@dev-dashboard/shared';
+import { ProjectNames, TodoBatch, TodoResolution } from '@dev-dashboard/shared';
 
 const TODOS_TABLE = ENV.TODOS_TABLE;
+const RESOLUTIONS_TABLE = ENV.RESOLUTIONS_TABLE;
 
 export interface ITodoModel {
   create(batch: TodoBatch): Promise<TodoBatch>;
@@ -23,6 +24,8 @@ export interface ITodoModel {
     projectName: string,
     limit?: number
   ): Promise<TodoBatch[]>;
+  findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
+  createResolution(resolution: TodoResolution): Promise<TodoResolution>;
 }
 
 export const TodoModel = (docClient: DynamoDBDocumentClient) => {
@@ -163,6 +166,40 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         a.syncedAt < b.syncedAt ? 1 : a.syncedAt > b.syncedAt ? -1 : 0
       );
       return items.slice(0, limit);
+    },
+
+    async findPendingResolutionsByUserId(
+      userId: string
+    ): Promise<TodoResolution[]> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: RESOLUTIONS_TABLE,
+          KeyConditionExpression: 'userId = :userId',
+          FilterExpression: 'resolved = :resolved',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+            ':resolved': false,
+          },
+        })
+      );
+
+      if (!result.Items || !Array.isArray(result.Items)) {
+        return [];
+      }
+
+      return result.Items as TodoResolution[];
+    },
+
+    async createResolution(
+      resolution: TodoResolution
+    ): Promise<TodoResolution> {
+      await docClient.send(
+        new PutCommand({
+          TableName: RESOLUTIONS_TABLE,
+          Item: resolution,
+        })
+      );
+      return resolution;
     },
   };
 };

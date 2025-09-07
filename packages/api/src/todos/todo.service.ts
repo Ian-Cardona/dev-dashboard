@@ -8,6 +8,8 @@ import {
   RawTodoBatch,
   RawTodo,
   Todo,
+  TodoResolution,
+  CreateResolutionRequest,
 } from '@dev-dashboard/shared';
 
 export interface ITodoService {
@@ -22,6 +24,11 @@ export interface ITodoService {
     projectName: string,
     limit?: number
   ): Promise<TodosInfo>;
+  findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
+  createResolution(
+    userId: string,
+    partialResolution: CreateResolutionRequest
+  ): Promise<TodoResolution>;
 }
 
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
@@ -61,6 +68,38 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       todosBatches: batches,
       meta,
     };
+  };
+
+  const createResolutionToSave = async (
+    userId: string,
+    partialResolution: CreateResolutionRequest
+  ): Promise<TodoResolution> => {
+    const batch = await TodoModel.findByUserIdAndSyncId(
+      userId,
+      partialResolution.syncId
+    );
+
+    if (!batch) {
+      throw new Error('Batch not found');
+    }
+
+    const todo = batch.todos.find(t => t.id === partialResolution.id);
+
+    if (!todo) {
+      throw new Error('Todo not found in the specified batch');
+    }
+
+    const resolution: TodoResolution = {
+      ...todo,
+      userId,
+      syncId: partialResolution.syncId,
+      createdAt: new Date().toISOString(),
+      resolved: true,
+      resolvedAt: new Date().toISOString(),
+      reason: partialResolution.reason,
+    };
+
+    return resolution;
   };
 
   return {
@@ -176,6 +215,33 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
           throw error;
         }
         throw new Error('Failed to retrieve tasks by project');
+      }
+    },
+
+    async findPendingResolutionsByUserId(
+      userId: string
+    ): Promise<TodoResolution[]> {
+      try {
+        return await TodoModel.findPendingResolutionsByUserId(userId);
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error('Failed to retrieve pending resolutions');
+      }
+    },
+
+    async createResolution(
+      userId: string,
+      partialResolution: CreateResolutionRequest
+    ): Promise<TodoResolution> {
+      try {
+        const resolution = await createResolutionToSave(
+          userId,
+          partialResolution
+        );
+        return await TodoModel.createResolution(resolution);
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error('Failed to create resolution');
       }
     },
   };
