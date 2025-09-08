@@ -121,6 +121,30 @@ export const TodoController = (todoService: ITodoService) => {
       }
     },
 
+    async compareLatestBatches(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const projectName = z
+          .string()
+          .min(1)
+          .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH)
+          .parse(req.params.projectName);
+
+        const result = await todoService.compareLatestBatches(
+          userId,
+          projectName
+        );
+
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid User ID format');
+      }
+    },
+
     async findPendingResolutionsByUserId(
       req: Request,
       res: Response,

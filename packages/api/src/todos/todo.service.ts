@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { ITodoModel } from './todo.model';
 import { generateUUID } from '../utils/uuid.utils';
 import {
@@ -12,6 +13,12 @@ import {
   CreateResolutionRequest,
 } from '@dev-dashboard/shared';
 
+type ComparisonResult = {
+  missing: Todo[];
+  new: Todo[];
+  persisted: Todo[];
+};
+
 export interface ITodoService {
   create(userId: string, batch: RawTodoBatch): Promise<TodosInfo>;
   findByUserId(userId: string): Promise<TodosInfo>;
@@ -25,51 +32,65 @@ export interface ITodoService {
     limit?: number
   ): Promise<TodosInfo>;
   findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
+  compareLatestBatches(
+    userId: string,
+    projectName: string,
+    limit?: number
+  ): Promise<ComparisonResult>;
   createResolution(
     userId: string,
     partialResolution: CreateResolutionRequest
   ): Promise<TodoResolution>;
 }
 
+const createTodosInfoResponse = (
+  userId: string,
+  batches: TodoBatch[]
+): TodosInfo => {
+  const allTodos = batches.flatMap(batch => batch.todos);
+
+  const scannedFiles = new Set(allTodos.map(todo => todo.filePath)).size;
+
+  const lastScanAt =
+    batches.length > 0
+      ? batches.reduce((latest, current) =>
+          new Date(latest.syncedAt) > new Date(current.syncedAt)
+            ? latest
+            : current
+        ).syncedAt
+      : new Date(0).toISOString();
+
+  const meta: TodoMeta = {
+    totalCount: allTodos.length,
+    lastScanAt,
+    scannedFiles,
+  };
+
+  return {
+    userId,
+    todosBatches: batches,
+    meta,
+  };
+};
+
+const generateDeterministicId = (
+  projectName: string,
+  todo: RawTodo
+): string => {
+  const normalizedContent = todo.content.trim().replace(/\s+/g, ' ');
+
+  const base = `${projectName}|${todo.filePath}|${normalizedContent}`;
+  return crypto.createHash('sha256').update(base).digest('hex');
+};
+
+const transformTodos = (projectName: string, todos: RawTodo[]): Todo[] => {
+  return todos.map(todo => ({
+    id: generateDeterministicId(projectName, todo),
+    ...todo,
+  }));
+};
+
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
-  const transformTodos = (todos: RawTodo[]): Todo[] => {
-    return todos.map(todo => ({
-      id: generateUUID(),
-      resolved: false,
-      ...todo,
-    }));
-  };
-
-  const createTodosInfoResponse = (
-    userId: string,
-    batches: TodoBatch[]
-  ): TodosInfo => {
-    const allTodos = batches.flatMap(batch => batch.todos);
-
-    const scannedFiles = new Set(allTodos.map(todo => todo.filePath)).size;
-
-    const lastScanAt =
-      batches.length > 0
-        ? batches.reduce((latest, current) =>
-            new Date(latest.syncedAt) > new Date(current.syncedAt)
-              ? latest
-              : current
-          ).syncedAt
-        : new Date(0).toISOString();
-
-    const meta: TodoMeta = {
-      totalCount: allTodos.length,
-      lastScanAt,
-      scannedFiles,
-    };
-
-    return {
-      userId,
-      todosBatches: batches,
-      meta,
-    };
-  };
-
   const createResolutionToSave = async (
     userId: string,
     partialResolution: CreateResolutionRequest
@@ -107,7 +128,7 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       try {
         const { todos, projectName } = rawBatch;
 
-        const todosToSave = transformTodos(todos);
+        const todosToSave = transformTodos(projectName, todos);
 
         const batchToDb: TodoBatch = {
           userId,
@@ -218,14 +239,45 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async findPendingResolutionsByUserId(
-      userId: string
-    ): Promise<TodoResolution[]> {
+    async compareLatestBatches(
+      userId: string,
+      projectName: string,
+      limit: number = 2
+    ): Promise<ComparisonResult> {
       try {
-        return await TodoModel.findPendingResolutionsByUserId(userId);
+        const batches = await TodoModel.findByUserIdAndProject(
+          userId,
+          projectName
+        );
+
+        const sortedBatches = batches.sort(
+          (a, b) =>
+            new Date(b.syncedAt).getTime() - new Date(a.syncedAt).getTime()
+        );
+
+        if (!sortedBatches || sortedBatches.length < limit) {
+          return { missing: [], new: [], persisted: [] };
+        }
+
+        const latestBatch = sortedBatches[0];
+        const prevBatch = sortedBatches[1];
+
+        const latestIds = new Set(latestBatch.todos.map(t => t.id));
+        const prevIds = new Set(prevBatch.todos.map(t => t.id));
+
+        const missing = prevBatch.todos.filter(t => !latestIds.has(t.id));
+
+        const newTodos = latestBatch.todos.filter(t => !prevIds.has(t.id));
+
+        const persisted = latestBatch.todos.filter(t => prevIds.has(t.id));
+        return {
+          missing,
+          new: newTodos,
+          persisted,
+        };
       } catch (error) {
         if (error instanceof Error) throw error;
-        throw new Error('Failed to retrieve pending resolutions');
+        throw new Error('Failed to compare latest batches');
       }
     },
 
@@ -242,6 +294,17 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       } catch (error) {
         if (error instanceof Error) throw error;
         throw new Error('Failed to create resolution');
+      }
+    },
+
+    async findPendingResolutionsByUserId(
+      userId: string
+    ): Promise<TodoResolution[]> {
+      try {
+        return await TodoModel.findPendingResolutionsByUserId(userId);
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error('Failed to retrieve pending resolutions');
       }
     },
   };

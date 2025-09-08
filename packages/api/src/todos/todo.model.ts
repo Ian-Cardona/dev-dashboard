@@ -154,6 +154,8 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
             ':userId': userId,
             ':projectName': projectName,
           },
+          ScanIndexForward: false,
+          Limit: limit,
         })
       );
 
@@ -161,11 +163,7 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         return [];
       }
 
-      const items = result.Items as TodoBatch[];
-      items.sort((a, b) =>
-        a.syncedAt < b.syncedAt ? 1 : a.syncedAt > b.syncedAt ? -1 : 0
-      );
-      return items.slice(0, limit);
+      return result.Items as TodoBatch[];
     },
 
     async findPendingResolutionsByUserId(
