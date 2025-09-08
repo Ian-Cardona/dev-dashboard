@@ -47,6 +47,11 @@ router.post(
   authorizationMiddleware,
   controllerInstance.createResolution
 );
+router.get(
+  '/resolutions/compare/:projectName',
+  authorizationMiddleware,
+  controllerInstance.compareLatestBatches
+);
 
 router.get(
   '/:syncId',
