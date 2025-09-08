@@ -9,6 +9,7 @@ import { shouldShowOnboarding } from './services/should-show-onboarding';
 import { TodosProvider } from './webviews/todos/todos-provider';
 import { sendTodosCommand } from './commands/sendTodos';
 
+//TODO: Fix the scaning and fetching
 export const activate = async (context: vscode.ExtensionContext) => {
   vscode.window.showInformationMessage('Thank you for using DevDashboard!');
 
