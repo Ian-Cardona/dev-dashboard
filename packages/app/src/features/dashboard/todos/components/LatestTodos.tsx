@@ -1,8 +1,11 @@
 import { useQueryLatestTodos } from '../hooks/useQueryLatestTodos';
+import { useQueryPendingResolutions } from '../hooks/useQueryPendingResolutions';
 import { TodosTable } from './TodosTable';
 
 export const LatestTodos = () => {
   const { data, isLoading, isError } = useQueryLatestTodos();
+  const { data: pending, refetch: refetchPending } =
+    useQueryPendingResolutions();
 
   if (isLoading) {
     return (
@@ -30,7 +33,18 @@ export const LatestTodos = () => {
 
   return (
     <section className="rounded-4xl border py-4 h-full flex flex-col">
-      <h2 className="text-lg font-semibold mb-4 mx-4">Latest</h2>
+      <div className="flex justify-between mb-4 mx-4">
+        <h2 className="text-lg font-semibold">Latest</h2>
+        <button
+          className="p-2 rounded-md border hover:bg-gray-100 transition"
+          onClick={async () => {
+            const { data } = await refetchPending();
+            console.log('Pending resolutions:', data);
+          }}
+        >
+          Action
+        </button>
+      </div>
       <TodosTable batch={data?.todosBatches || []} />
     </section>
   );
