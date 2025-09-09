@@ -44,6 +44,7 @@ const onboarding_provider_1 = require("./webviews/onboarding/onboarding-provider
 const should_show_onboarding_1 = require("./services/should-show-onboarding");
 const todos_provider_1 = require("./webviews/todos/todos-provider");
 const sendTodos_1 = require("./commands/sendTodos");
+//TODO: Fix the scaning and fetching
 const activate = async (context) => {
     vscode.window.showInformationMessage('Thank you for using DevDashboard!');
     const todosProvider = new todos_provider_1.TodosProvider();
