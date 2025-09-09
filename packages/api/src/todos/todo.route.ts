@@ -43,14 +43,9 @@ router.get(
   controllerInstance.findPendingResolutionsByUserId
 );
 router.post(
-  '/resolutions',
+  '/resolutions/resolve',
   authorizationMiddleware,
-  controllerInstance.createResolution
-);
-router.get(
-  '/resolutions/compare/:projectName',
-  authorizationMiddleware,
-  controllerInstance.compareLatestBatches
+  controllerInstance.resolveResolutions
 );
 
 router.get(

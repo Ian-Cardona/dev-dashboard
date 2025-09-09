@@ -10,13 +10,15 @@ import {
   RawTodo,
   Todo,
   TodoResolution,
-  CreateResolutionRequest,
+  CreateResolution,
 } from '@dev-dashboard/shared';
 
 type ComparisonResult = {
   missing: Todo[];
   new: Todo[];
   persisted: Todo[];
+  prevBatchSyncId?: string;
+  latestBatchSyncId?: string;
 };
 
 export interface ITodoService {
@@ -31,16 +33,21 @@ export interface ITodoService {
     projectName: string,
     limit?: number
   ): Promise<TodosInfo>;
-  findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
   compareLatestBatches(
     userId: string,
     projectName: string,
     limit?: number
   ): Promise<ComparisonResult>;
-  createResolution(
+  identifyMissingAndCreateResolutions(
     userId: string,
-    partialResolution: CreateResolutionRequest
-  ): Promise<TodoResolution>;
+    projectName: string,
+    limit?: number
+  ): Promise<TodoResolution[]>;
+  findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
+  resolveResolutions(
+    userId: string,
+    resolveRequests: CreateResolution[]
+  ): Promise<TodoResolution[]>;
 }
 
 const createTodosInfoResponse = (
@@ -91,43 +98,10 @@ const transformTodos = (projectName: string, todos: RawTodo[]): Todo[] => {
 };
 
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
-  const createResolutionToSave = async (
-    userId: string,
-    partialResolution: CreateResolutionRequest
-  ): Promise<TodoResolution> => {
-    const batch = await TodoModel.findByUserIdAndSyncId(
-      userId,
-      partialResolution.syncId
-    );
-
-    if (!batch) {
-      throw new Error('Batch not found');
-    }
-
-    const todo = batch.todos.find(t => t.id === partialResolution.id);
-
-    if (!todo) {
-      throw new Error('Todo not found in the specified batch');
-    }
-
-    const resolution: TodoResolution = {
-      ...todo,
-      userId,
-      syncId: partialResolution.syncId,
-      createdAt: new Date().toISOString(),
-      resolved: true,
-      resolvedAt: new Date().toISOString(),
-      reason: partialResolution.reason,
-    };
-
-    return resolution;
-  };
-
   return {
     async create(userId: string, rawBatch: RawTodoBatch): Promise<TodosInfo> {
       try {
         const { todos, projectName } = rawBatch;
-
         const todosToSave = transformTodos(projectName, todos);
 
         const batchToDb: TodoBatch = {
@@ -139,8 +113,23 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
         };
 
         await TodoModel.create(batchToDb);
+        const response = createTodosInfoResponse(userId, [batchToDb]);
 
-        return createTodosInfoResponse(userId, [batchToDb]);
+        process.nextTick(async () => {
+          try {
+            await this.identifyMissingAndCreateResolutions(userId, projectName);
+            console.log(
+              `Successfully identified missing todos for ${projectName}`
+            );
+          } catch (error) {
+            console.error(
+              `Failed to identify missing todos for ${projectName}:`,
+              error
+            );
+          }
+        });
+
+        return response;
       } catch (error) {
         console.log(error);
         if (error instanceof Error) throw error;
@@ -249,7 +238,6 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
           userId,
           projectName
         );
-
         const sortedBatches = batches.sort(
           (a, b) =>
             new Date(b.syncedAt).getTime() - new Date(a.syncedAt).getTime()
@@ -266,14 +254,15 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
         const prevIds = new Set(prevBatch.todos.map(t => t.id));
 
         const missing = prevBatch.todos.filter(t => !latestIds.has(t.id));
-
         const newTodos = latestBatch.todos.filter(t => !prevIds.has(t.id));
-
         const persisted = latestBatch.todos.filter(t => prevIds.has(t.id));
+
         return {
           missing,
           new: newTodos,
           persisted,
+          prevBatchSyncId: prevBatch.syncId,
+          latestBatchSyncId: latestBatch.syncId,
         };
       } catch (error) {
         if (error instanceof Error) throw error;
@@ -281,19 +270,93 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async createResolution(
+    async identifyMissingAndCreateResolutions(
       userId: string,
-      partialResolution: CreateResolutionRequest
-    ): Promise<TodoResolution> {
+      projectName: string,
+      limit: number = 2
+    ): Promise<TodoResolution[]> {
       try {
-        const resolution = await createResolutionToSave(
+        const comparison = await this.compareLatestBatches(
           userId,
-          partialResolution
+          projectName,
+          limit
         );
-        return await TodoModel.createResolution(resolution);
+
+        if (!comparison.missing?.length || !comparison.prevBatchSyncId) {
+          return [];
+        }
+
+        const existingPending =
+          await this.findPendingResolutionsByUserId(userId);
+        const existingIds = new Set(existingPending.map(r => r.id));
+
+        const newMissingTodos = comparison.missing.filter(
+          todo => !existingIds.has(todo.id)
+        );
+
+        if (!newMissingTodos.length) {
+          return [];
+        }
+
+        const resolutions: TodoResolution[] = newMissingTodos.map(todo => {
+          if (!todo.id || !todo.content || !todo.filePath) {
+            throw new Error(
+              `Invalid todo data: missing required fields for todo ${todo.id}`
+            );
+          }
+
+          return {
+            ...todo,
+            userId,
+            syncId: comparison.prevBatchSyncId!,
+            createdAt: new Date().toISOString(),
+            resolved: false,
+          };
+        });
+
+        return await TodoModel.createResolutions(resolutions);
       } catch (error) {
         if (error instanceof Error) throw error;
-        throw new Error('Failed to create resolution');
+        throw new Error(
+          'Failed to identify missing todos and create resolutions'
+        );
+      }
+    },
+
+    async resolveResolutions(
+      userId: string,
+      resolveRequests: CreateResolution[]
+    ): Promise<TodoResolution[]> {
+      try {
+        const pendingResolutions =
+          await this.findPendingResolutionsByUserId(userId);
+        const pendingMap = new Map(
+          pendingResolutions.filter(r => !r.resolved).map(r => [r.id, r])
+        );
+
+        const resolvedResolutions: TodoResolution[] = [];
+
+        for (const resolveRequest of resolveRequests) {
+          const targetResolution = pendingMap.get(resolveRequest.id);
+
+          if (!targetResolution) {
+            continue;
+          }
+
+          const resolvedResolution: TodoResolution = {
+            ...targetResolution,
+            resolved: true,
+            resolvedAt: new Date().toISOString(),
+            reason: resolveRequest.reason,
+          };
+
+          resolvedResolutions.push(resolvedResolution);
+        }
+
+        return await TodoModel.createResolutions(resolvedResolutions);
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error('Failed to resolve missing todo');
       }
     },
 
@@ -301,8 +364,11 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       userId: string
     ): Promise<TodoResolution[]> {
       try {
-        return await TodoModel.findPendingResolutionsByUserId(userId);
+        const resolutions =
+          await TodoModel.findPendingResolutionsByUserId(userId);
+        return resolutions;
       } catch (error) {
+        console.error('Error in findPendingResolutionsByUserId:', error);
         if (error instanceof Error) throw error;
         throw new Error('Failed to retrieve pending resolutions');
       }

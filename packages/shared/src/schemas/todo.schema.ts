@@ -68,8 +68,14 @@ export const processedTodoSchema = z.discriminatedUnion('type', [
   unprocessedOtherTodoSchema,
 ]);
 
+// Accepts either a UUID or a 64-character hex digest
+export const todoIdSchema = z.union([
+  z.string().uuid(),
+  z.string().regex(/^[0-9a-f]{64}$/i),
+]);
+
 const todoCommonSchema = z.object({
-  id: z.uuidv4(),
+  id: todoIdSchema,
 });
 
 export const rawTodoBatchSchema = z.object({
@@ -122,7 +128,7 @@ export const projectNamesSchema = z.object({
 });
 
 export const flattenedTodosInfoSchema = z.object({
-  id: z.uuidv4(),
+  id: todoIdSchema,
   type: z.string(),
   content: z.string(),
   filePath: z.string(),
@@ -134,19 +140,24 @@ export const flattenedTodosInfoSchema = z.object({
   syncId: z.string(),
 });
 
-export const createResolutionRequestSchema = z.object({
-  id: z.uuidv4(),
+export const createResolutionSchema = z.object({
+  id: todoIdSchema,
   syncId: z.uuidv4(),
-  reason: TodoReasonEnum.optional(),
+  reason: TodoReasonEnum,
 });
 
 const todoResolutionCommonSchema = z.object({
   userId: z.uuidv4(),
-  createdAt: z.iso.datetime(),
-  resolved: z.boolean().default(false),
+  resolved: z.boolean().default(false).optional(),
   resolvedAt: z.iso.datetime().optional(),
+  reason: TodoReasonEnum.optional(),
 });
 
 export const todoResolutionSchema = todoSchema
   .and(todoResolutionCommonSchema)
-  .and(createResolutionRequestSchema);
+  .and(
+    z.object({
+      syncId: todoBatchSchema.shape.syncId,
+      createdAt: z.iso.datetime().optional(),
+    })
+  );

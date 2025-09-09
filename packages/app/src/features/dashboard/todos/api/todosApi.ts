@@ -16,4 +16,9 @@ const getByProject = async (projectName: string): Promise<TodosInfo> => {
   return response.data;
 };
 
-export { getLatest, getProjectNames, getByProject };
+const getPendingResolutions = async () => {
+  const response = await protectedClient.get('/todos/resolutions/pending');
+  return response.data;
+};
+
+export { getLatest, getProjectNames, getByProject, getPendingResolutions };
