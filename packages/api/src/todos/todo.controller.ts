@@ -2,7 +2,7 @@ import z from 'zod';
 import { NextFunction, Request, Response } from 'express';
 import { ITodoService } from './todo.service';
 import {
-  createResolutionRequestSchema,
+  createResolutionSchema,
   rawTodoBatchSchema,
   uuidSchema,
   VALIDATION_CONSTANTS,
@@ -121,30 +121,6 @@ export const TodoController = (todoService: ITodoService) => {
       }
     },
 
-    async compareLatestBatches(
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ) {
-      try {
-        const userId = uuidSchema.parse(req.user?.userId);
-        const projectName = z
-          .string()
-          .min(1)
-          .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH)
-          .parse(req.params.projectName);
-
-        const result = await todoService.compareLatestBatches(
-          userId,
-          projectName
-        );
-
-        res.json(result);
-      } catch (error) {
-        handleValidationError(error, res, next, 'Invalid User ID format');
-      }
-    },
-
     async findPendingResolutionsByUserId(
       req: Request,
       res: Response,
@@ -159,12 +135,15 @@ export const TodoController = (todoService: ITodoService) => {
       }
     },
 
-    async createResolution(req: Request, res: Response, next: NextFunction) {
+    async resolveResolutions(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const resolution = createResolutionRequestSchema.parse(req.body);
+        const resolutions = z.array(createResolutionSchema).parse(req.body);
 
-        const result = await todoService.createResolution(userId, resolution);
+        const result = await todoService.resolveResolutions(
+          userId,
+          resolutions
+        );
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid resolution format');

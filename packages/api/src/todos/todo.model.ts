@@ -25,7 +25,7 @@ export interface ITodoModel {
     limit?: number
   ): Promise<TodoBatch[]>;
   findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
-  createResolution(resolution: TodoResolution): Promise<TodoResolution>;
+  createResolutions(resolutions: TodoResolution[]): Promise<TodoResolution[]>;
 }
 
 export const TodoModel = (docClient: DynamoDBDocumentClient) => {
@@ -188,16 +188,20 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
       return result.Items as TodoResolution[];
     },
 
-    async createResolution(
-      resolution: TodoResolution
-    ): Promise<TodoResolution> {
-      await docClient.send(
-        new PutCommand({
-          TableName: RESOLUTIONS_TABLE,
-          Item: resolution,
-        })
+    async createResolutions(
+      resolutions: TodoResolution[]
+    ): Promise<TodoResolution[]> {
+      await Promise.all(
+        resolutions.map(resolution =>
+          docClient.send(
+            new PutCommand({
+              TableName: RESOLUTIONS_TABLE,
+              Item: resolution,
+            })
+          )
+        )
       );
-      return resolution;
+      return resolutions;
     },
   };
 };
