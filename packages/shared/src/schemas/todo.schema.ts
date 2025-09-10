@@ -133,7 +133,6 @@ export const flattenedTodosInfoSchema = z.object({
   content: z.string(),
   filePath: z.string(),
   lineNumber: z.number(),
-  resolved: z.boolean(),
   syncedAt: z.string(),
   projectName: z.string(),
   userId: z.string(),
