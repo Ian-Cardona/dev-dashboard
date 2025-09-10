@@ -1,4 +1,9 @@
-import type { ProjectNames, TodosInfo } from '@dev-dashboard/shared';
+import type {
+  CreateResolution,
+  ProjectNames,
+  TodoResolution,
+  TodosInfo,
+} from '@dev-dashboard/shared';
 import { protectedClient } from '../../../../lib/api';
 
 const getLatest = async (): Promise<TodosInfo> => {
@@ -16,9 +21,25 @@ const getByProject = async (projectName: string): Promise<TodosInfo> => {
   return response.data;
 };
 
-const getPendingResolutions = async () => {
+const getPendingResolutions = async (): Promise<TodoResolution[]> => {
   const response = await protectedClient.get('/todos/resolutions/pending');
   return response.data;
 };
 
-export { getLatest, getProjectNames, getByProject, getPendingResolutions };
+const postResolutions = async (
+  resolutions: CreateResolution[]
+): Promise<TodoResolution[]> => {
+  const response = await protectedClient.post(
+    '/todos/resolutions/resolve',
+    resolutions
+  );
+  return response.data;
+};
+
+export {
+  getLatest,
+  getProjectNames,
+  getByProject,
+  getPendingResolutions,
+  postResolutions,
+};

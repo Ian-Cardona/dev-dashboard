@@ -8,9 +8,8 @@ interface TodosTableProps {
 
 export const TodosTable = ({ batch }: TodosTableProps) => {
   const [typeFilter, setTypeFilter] = useState('');
-  const [resolvedFilter, setResolvedFilter] = useState('');
   const [sortField, setSortField] = useState<
-    'type' | 'content' | 'resolved' | 'date' | null
+    'type' | 'content' | 'date' | null
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
@@ -40,7 +39,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
 
   const showDateFilter = uniqueDates.length > 1;
 
-  const handleSort = (field: 'type' | 'content' | 'resolved' | 'date') => {
+  const handleSort = (field: 'type' | 'content' | 'date') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -49,7 +48,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
     }
   };
 
-  const getSortIcon = (field: 'type' | 'content' | 'resolved' | 'date') => {
+  const getSortIcon = (field: 'type' | 'content' | 'date') => {
     if (sortField !== field) return '↕️';
     return sortDirection === 'asc' ? '↑' : '↓';
   };
@@ -57,11 +56,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
   const filteredAndSortedTodos = useMemo(() => {
     let filtered = flattenedTodos.filter(todo => {
       const matchesType = !typeFilter || todo.type === typeFilter;
-      const matchesResolved =
-        !resolvedFilter ||
-        (resolvedFilter === 'resolved' ? todo.resolved : !todo.resolved);
-
-      return matchesType && matchesResolved;
+      return matchesType;
     });
 
     if (sortField) {
@@ -76,10 +71,6 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
           case 'content':
             aValue = a.content.toLowerCase();
             bValue = b.content.toLowerCase();
-            break;
-          case 'resolved':
-            aValue = a.resolved ? 1 : 0;
-            bValue = b.resolved ? 1 : 0;
             break;
           case 'date':
             aValue = new Date(a.syncedAt).getTime();
@@ -96,23 +87,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
     }
 
     return filtered;
-  }, [flattenedTodos, typeFilter, resolvedFilter, sortField, sortDirection]);
-
-  const toggleResolvedFilter = () => {
-    if (resolvedFilter === '') {
-      setResolvedFilter('resolved');
-    } else if (resolvedFilter === 'resolved') {
-      setResolvedFilter('unresolved');
-    } else {
-      setResolvedFilter('');
-    }
-  };
-
-  const getResolvedFilterLabel = () => {
-    if (resolvedFilter === 'resolved') return 'Y';
-    if (resolvedFilter === 'unresolved') return 'N';
-    return '↕️';
-  };
+  }, [flattenedTodos, typeFilter, sortField, sortDirection]);
 
   return (
     <div className="flex-1 overflow-auto">
@@ -179,16 +154,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
                 Content {getSortIcon('content')}
               </button>
             </th>
-            <th className="w-32 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
-              <button
-                onClick={toggleResolvedFilter}
-                className="flex cursor-pointer select-none items-center gap-2"
-                title="Filter by Resolved Status"
-                type="button"
-              >
-                Resolved {getResolvedFilterLabel()}
-              </button>
-            </th>
+
             {showDateFilter && (
               <th className="w-48 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
                 <button
