@@ -1,11 +1,11 @@
+import { useState } from 'react';
 import { useQueryLatestTodos } from '../hooks/useQueryLatestTodos';
-import { useQueryPendingResolutions } from '../hooks/useQueryPendingResolutions';
 import { TodosTable } from './TodosTable';
+import { ResolutionsModal } from './ResolutionModal';
 
 export const LatestTodos = () => {
   const { data, isLoading, isError } = useQueryLatestTodos();
-  const { data: pending, refetch: refetchPending } =
-    useQueryPendingResolutions();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -35,17 +35,13 @@ export const LatestTodos = () => {
     <section className="rounded-4xl border py-4 h-full flex flex-col">
       <div className="flex justify-between mb-4 mx-4">
         <h2 className="text-lg font-semibold">Latest</h2>
-        <button
-          className="p-2 rounded-md border hover:bg-gray-100 transition"
-          onClick={async () => {
-            const { data } = await refetchPending();
-            console.log('Pending resolutions:', data);
-          }}
-        >
-          Action
-        </button>
+        <button onClick={() => setIsModalOpen(true)}>Open Resolutions</button>
       </div>
       <TodosTable batch={data?.todosBatches || []} />
+      <ResolutionsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </section>
   );
 };

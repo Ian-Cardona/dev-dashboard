@@ -138,6 +138,7 @@ export const TodoController = (todoService: ITodoService) => {
     async resolveResolutions(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
+        console.log(req.body);
         const resolutions = z.array(createResolutionSchema).parse(req.body);
 
         const result = await todoService.resolveResolutions(

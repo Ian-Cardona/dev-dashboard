@@ -84,7 +84,10 @@ const generateDeterministicId = (
   projectName: string,
   todo: RawTodo
 ): string => {
-  const normalizedContent = todo.content.trim().replace(/\s+/g, ' ');
+  const normalizedContent = todo.content
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
 
   const base = `${projectName}|${todo.filePath}|${normalizedContent}`;
   return crypto.createHash('sha256').update(base).digest('hex');
@@ -236,7 +239,8 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       try {
         const batches = await TodoModel.findByUserIdAndProject(
           userId,
-          projectName
+          projectName,
+          limit
         );
         const sortedBatches = batches.sort(
           (a, b) =>
