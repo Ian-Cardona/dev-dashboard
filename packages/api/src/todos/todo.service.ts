@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { ITodoModel } from './todo.model';
 import { generateUUID } from '../utils/uuid.utils';
+import { ITodoModel } from './interfaces/itodo.model';
 import {
   TodoMeta,
   TodoBatch,
@@ -12,45 +12,9 @@ import {
   TodoResolution,
   CreateResolution,
 } from '@dev-dashboard/shared';
+import { ComparisonResult, ITodoService } from './interfaces/itodo.service';
 
-type ComparisonResult = {
-  missing: Todo[];
-  new: Todo[];
-  persisted: Todo[];
-  prevBatchSyncId?: string;
-  latestBatchSyncId?: string;
-};
-
-export interface ITodoService {
-  create(userId: string, batch: RawTodoBatch): Promise<TodosInfo>;
-  findByUserId(userId: string): Promise<TodosInfo>;
-  findByUserIdAndSyncId(userId: string, syncId: string): Promise<TodosInfo>;
-  findLatestByUserId(userId: string): Promise<TodosInfo | null>;
-  findRecentByUserId(userId: string, limit?: number): Promise<TodosInfo>;
-  findProjectsByUserId(userId: string): Promise<ProjectNames>;
-  findByUserIdAndProject(
-    userId: string,
-    projectName: string,
-    limit?: number
-  ): Promise<TodosInfo>;
-  compareLatestBatches(
-    userId: string,
-    projectName: string,
-    limit?: number
-  ): Promise<ComparisonResult>;
-  identifyMissingAndCreateResolutions(
-    userId: string,
-    projectName: string,
-    limit?: number
-  ): Promise<TodoResolution[]>;
-  findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
-  resolveResolutions(
-    userId: string,
-    resolveRequests: CreateResolution[]
-  ): Promise<TodoResolution[]>;
-}
-
-const createTodosInfoResponse = (
+const buildTodosInfoResponse = (
   userId: string,
   batches: TodoBatch[]
 ): TodosInfo => {
@@ -80,7 +44,7 @@ const createTodosInfoResponse = (
   };
 };
 
-const generateDeterministicId = (
+const generateDeterministicTodoId = (
   projectName: string,
   todo: RawTodo
 ): string => {
@@ -93,58 +57,62 @@ const generateDeterministicId = (
   return crypto.createHash('sha256').update(base).digest('hex');
 };
 
-const transformTodos = (projectName: string, todos: RawTodo[]): Todo[] => {
+const transformRawToBatchReady = (
+  projectName: string,
+  todos: RawTodo[]
+): Todo[] => {
   return todos.map(todo => ({
-    id: generateDeterministicId(projectName, todo),
+    id: generateDeterministicTodoId(projectName, todo),
     ...todo,
   }));
 };
 
 export const TodoService = (TodoModel: ITodoModel): ITodoService => {
   return {
-    async create(userId: string, rawBatch: RawTodoBatch): Promise<TodosInfo> {
+    async createBatch(
+      userId: string,
+      rawBatch: RawTodoBatch
+    ): Promise<TodosInfo> {
       try {
         const { todos, projectName } = rawBatch;
-        const todosToSave = transformTodos(projectName, todos);
+        const todosToSave = transformRawToBatchReady(projectName, todos);
+        const timestamp = new Date().toISOString();
 
         const batchToDb: TodoBatch = {
           userId,
           syncId: generateUUID(),
-          syncedAt: new Date().toISOString(),
+          syncedAt: timestamp,
           projectName,
           todos: todosToSave,
         };
 
-        await TodoModel.create(batchToDb);
-        const response = createTodosInfoResponse(userId, [batchToDb]);
+        const batch = await TodoModel.create(batchToDb);
 
-        process.nextTick(async () => {
-          try {
-            await this.identifyMissingAndCreateResolutions(userId, projectName);
-            console.log(
-              `Successfully identified missing todos for ${projectName}`
-            );
-          } catch (error) {
-            console.error(
-              `Failed to identify missing todos for ${projectName}:`,
-              error
-            );
-          }
-        });
+        const currentTodos: TodoResolution[] = todosToSave.map(todo => ({
+          id: todo.id,
+          type: todo.type,
+          content: todo.content,
+          filePath: todo.filePath,
+          lineNumber: todo.lineNumber,
+          userId,
+          syncId: batchToDb.syncId,
+          createdAt: timestamp,
+          resolved: false,
+        }));
 
-        return response;
+        await TodoModel.createCurrent(currentTodos);
+
+        return buildTodosInfoResponse(userId, [batch]);
       } catch (error) {
         console.log(error);
         if (error instanceof Error) throw error;
         throw new Error('Failed to sync todos');
       }
     },
-
-    async findByUserId(userId: string): Promise<TodosInfo> {
+    async getBatchesByUserId(userId: string): Promise<TodosInfo> {
       try {
         const batches = await TodoModel.findByUserId(userId);
-
-        return createTodosInfoResponse(userId, batches);
+        return buildTodosInfoResponse(userId, batches);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -154,17 +122,16 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async findByUserIdAndSyncId(
+    async getBatchByUserIdAndSyncId(
       userId: string,
       syncId: string
     ): Promise<TodosInfo> {
       try {
         const batch = await TodoModel.findByUserIdAndSyncId(userId, syncId);
         if (!batch) {
-          return createTodosInfoResponse(userId, []);
+          return buildTodosInfoResponse(userId, []);
         }
-
-        return createTodosInfoResponse(userId, [batch]);
+        return buildTodosInfoResponse(userId, [batch]);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -174,12 +141,11 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async findLatestByUserId(userId: string): Promise<TodosInfo | null> {
+    async getLatestBatchByUserId(userId: string): Promise<TodosInfo | null> {
       try {
         const batch = await TodoModel.findLatestByUserId(userId);
         if (!batch) return null;
-
-        return createTodosInfoResponse(userId, [batch]);
+        return buildTodosInfoResponse(userId, [batch]);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -189,20 +155,20 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async findRecentByUserId(
+    async getRecentBatchesByUserId(
       userId: string,
       limit: number = 10
     ): Promise<TodosInfo> {
       try {
         const batches = await TodoModel.findRecentByUserId(userId, limit);
-        return createTodosInfoResponse(userId, batches);
+        return buildTodosInfoResponse(userId, batches);
       } catch (error) {
         if (error instanceof Error) throw error;
         throw new Error('Failed to retrieve tasks');
       }
     },
 
-    async findProjectsByUserId(userId: string): Promise<ProjectNames> {
+    async getProjectsByUserId(userId: string): Promise<ProjectNames> {
       try {
         return await TodoModel.findProjectsByUserId(userId);
       } catch (error) {
@@ -211,7 +177,7 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async findByUserIdAndProject(
+    async getBatchesByUserIdAndProject(
       userId: string,
       projectName: string,
       limit: number = 100
@@ -222,7 +188,7 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
           projectName,
           limit
         );
-        return createTodosInfoResponse(userId, batches);
+        return buildTodosInfoResponse(userId, batches);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
@@ -231,7 +197,7 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async compareLatestBatches(
+    async compareLatestBatchesByProject(
       userId: string,
       projectName: string,
       limit: number = 2
@@ -274,13 +240,13 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async identifyMissingAndCreateResolutions(
+    async identifyMissingTodosAndCreateResolutions(
       userId: string,
       projectName: string,
       limit: number = 2
     ): Promise<TodoResolution[]> {
       try {
-        const comparison = await this.compareLatestBatches(
+        const comparison = await this.compareLatestBatchesByProject(
           userId,
           projectName,
           limit
@@ -291,7 +257,7 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
         }
 
         const existingPending =
-          await this.findPendingResolutionsByUserId(userId);
+          await this.getPendingResolutionsByUserId(userId);
         const existingIds = new Set(existingPending.map(r => r.id));
 
         const newMissingTodos = comparison.missing.filter(
@@ -327,18 +293,22 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
       }
     },
 
-    async resolveResolutions(
+    async updateResolutionsAsResolved(
       userId: string,
       resolveRequests: CreateResolution[]
     ): Promise<TodoResolution[]> {
       try {
         const pendingResolutions =
-          await this.findPendingResolutionsByUserId(userId);
+          await this.getPendingResolutionsByUserId(userId);
         const pendingMap = new Map(
           pendingResolutions.filter(r => !r.resolved).map(r => [r.id, r])
         );
 
+        console.log('pendingResolutions', JSON.stringify(pendingResolutions));
+        console.log('resolveRequests', JSON.stringify(resolveRequests));
+
         const resolvedResolutions: TodoResolution[] = [];
+        const resolvedAt = new Date().toISOString();
 
         for (const resolveRequest of resolveRequests) {
           const targetResolution = pendingMap.get(resolveRequest.id);
@@ -350,21 +320,30 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
           const resolvedResolution: TodoResolution = {
             ...targetResolution,
             resolved: true,
-            resolvedAt: new Date().toISOString(),
+            resolvedAt,
             reason: resolveRequest.reason,
           };
 
           resolvedResolutions.push(resolvedResolution);
         }
 
-        return await TodoModel.createResolutions(resolvedResolutions);
+        console.log('resolvedResolutions', JSON.stringify(resolvedResolutions));
+
+        const updatedResolutions =
+          await TodoModel.createResolutions(resolvedResolutions);
+
+        console.log('updatedResolutions', JSON.stringify(updatedResolutions));
+
+        await TodoModel.createCurrent(resolvedResolutions);
+
+        return updatedResolutions;
       } catch (error) {
         if (error instanceof Error) throw error;
         throw new Error('Failed to resolve missing todo');
       }
     },
 
-    async findPendingResolutionsByUserId(
+    async getPendingResolutionsByUserId(
       userId: string
     ): Promise<TodoResolution[]> {
       try {
@@ -372,9 +351,18 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
           await TodoModel.findPendingResolutionsByUserId(userId);
         return resolutions;
       } catch (error) {
-        console.error('Error in findPendingResolutionsByUserId:', error);
+        console.error('Error in getPendingResolutionsByUserId:', error);
         if (error instanceof Error) throw error;
         throw new Error('Failed to retrieve pending resolutions');
+      }
+    },
+
+    async deleteResolvedCurrent(): Promise<void> {
+      try {
+        await TodoModel.deleteResolvedCurrent();
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error('Failed to delete resolved todos');
       }
     },
   };

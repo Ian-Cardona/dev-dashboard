@@ -1,6 +1,5 @@
 import z from 'zod';
 import { NextFunction, Request, Response } from 'express';
-import { ITodoService } from './todo.service';
 import {
   createResolutionSchema,
   rawTodoBatchSchema,
@@ -8,6 +7,7 @@ import {
   VALIDATION_CONSTANTS,
 } from '@dev-dashboard/shared';
 import { handleValidationError } from 'src/utils/validation-error.utils';
+import { ITodoService } from './interfaces/itodo.service';
 
 export const TodoController = (todoService: ITodoService) => {
   return {
@@ -16,17 +16,17 @@ export const TodoController = (todoService: ITodoService) => {
         const userId = uuidSchema.parse(req.user?.userId);
         const rawBatch = rawTodoBatchSchema.parse(req.body);
 
-        const result = await todoService.create(userId, rawBatch);
+        const result = await todoService.createBatch(userId, rawBatch);
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid input format');
       }
     },
 
-    async findByUserId(req: Request, res: Response, next: NextFunction) {
+    async getBatchesByUserId(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const result = await todoService.findByUserId(userId);
+        const result = await todoService.getBatchesByUserId(userId);
 
         res.json(result);
       } catch (error) {
@@ -34,7 +34,7 @@ export const TodoController = (todoService: ITodoService) => {
       }
     },
 
-    async findByUserIdAndSyncId(
+    async getBatchByUserIdAndSyncId(
       req: Request,
       res: Response,
       next: NextFunction
@@ -43,7 +43,10 @@ export const TodoController = (todoService: ITodoService) => {
         const userId = uuidSchema.parse(req.user?.userId);
         const syncId = uuidSchema.parse(req.params.syncId);
 
-        const result = await todoService.findByUserIdAndSyncId(userId, syncId);
+        const result = await todoService.getBatchByUserIdAndSyncId(
+          userId,
+          syncId
+        );
 
         res.json(result);
       } catch (error) {
@@ -56,43 +59,47 @@ export const TodoController = (todoService: ITodoService) => {
       }
     },
 
-    async findLatestByUserId(req: Request, res: Response, next: NextFunction) {
-      try {
-        const userId = uuidSchema.parse(req.user?.userId);
-        const result = await todoService.findLatestByUserId(userId);
-
-        res.json(result);
-      } catch (error) {
-        handleValidationError(error, res, next, 'Invalid User ID format');
-      }
-    },
-
-    async findRecentByUserId(req: Request, res: Response, next: NextFunction) {
-      try {
-        const userId = uuidSchema.parse(req.user?.userId);
-        const result = await todoService.findRecentByUserId(userId);
-
-        res.json(result);
-      } catch (error) {
-        handleValidationError(error, res, next, 'Invalid User ID format');
-      }
-    },
-
-    async findProjectsByUserId(
+    async getLatestBatchByUserId(
       req: Request,
       res: Response,
       next: NextFunction
     ) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const result = await todoService.findProjectsByUserId(userId);
+        const result = await todoService.getLatestBatchByUserId(userId);
+
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid User ID format');
       }
     },
 
-    async findByUserIdAndProjectName(
+    async getRecentBatchesByUserId(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await todoService.getRecentBatchesByUserId(userId);
+
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid User ID format');
+      }
+    },
+
+    async getProjectsByUserId(req: Request, res: Response, next: NextFunction) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await todoService.getProjectsByUserId(userId);
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid User ID format');
+      }
+    },
+
+    async getBatchesByUserIdAndProject(
       req: Request,
       res: Response,
       next: NextFunction
@@ -105,7 +112,7 @@ export const TodoController = (todoService: ITodoService) => {
           .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH)
           .parse(req.params.projectName);
 
-        const result = await todoService.findByUserIdAndProject(
+        const result = await todoService.getBatchesByUserIdAndProject(
           userId,
           projectName
         );
@@ -121,27 +128,30 @@ export const TodoController = (todoService: ITodoService) => {
       }
     },
 
-    async findPendingResolutionsByUserId(
+    async getPendingResolutionsByUserId(
       req: Request,
       res: Response,
       next: NextFunction
     ) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const result = await todoService.findPendingResolutionsByUserId(userId);
+        const result = await todoService.getPendingResolutionsByUserId(userId);
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid User ID format');
       }
     },
 
-    async resolveResolutions(req: Request, res: Response, next: NextFunction) {
+    async updateResolutionsAsResolved(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        console.log(req.body);
         const resolutions = z.array(createResolutionSchema).parse(req.body);
 
-        const result = await todoService.resolveResolutions(
+        const result = await todoService.updateResolutionsAsResolved(
           userId,
           resolutions
         );
