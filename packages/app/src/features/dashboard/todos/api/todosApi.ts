@@ -7,7 +7,7 @@ import type {
 import { protectedClient } from '../../../../lib/api';
 
 const getLatest = async (): Promise<TodosInfo> => {
-  const response = await protectedClient.get('/todos/latest');
+  const response = await protectedClient.get('/todos/batches/latest');
   return response.data;
 };
 
@@ -17,7 +17,9 @@ const getProjectNames = async (): Promise<ProjectNames> => {
 };
 
 const getByProject = async (projectName: string): Promise<TodosInfo> => {
-  const response = await protectedClient.get(`/todos/projects/${projectName}`);
+  const response = await protectedClient.get(
+    `/todos/projects/${projectName}/batches`
+  );
   return response.data;
 };
 
@@ -30,7 +32,7 @@ const postResolutions = async (
   resolutions: CreateResolution[]
 ): Promise<TodoResolution[]> => {
   const response = await protectedClient.post(
-    '/todos/resolutions/resolve',
+    '/todos/resolutions',
     resolutions
   );
   return response.data;

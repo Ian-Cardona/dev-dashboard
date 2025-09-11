@@ -13,45 +13,50 @@ const modelInstance = TodoModel(docClient);
 const serviceInstance = TodoService(modelInstance);
 const controllerInstance = TodoController(serviceInstance);
 
-router.post('/', apiKeysMiddleware, controllerInstance.createBatch);
-router.get('/', authorizationMiddleware, controllerInstance.findByUserId);
+router.post('/batches', apiKeysMiddleware, controllerInstance.createBatch);
+router.get(
+  '/batches',
+  authorizationMiddleware,
+  controllerInstance.getBatchesByUserId
+);
 
 router.get(
-  '/latest',
+  '/batches/latest',
   authorizationMiddleware,
-  controllerInstance.findLatestByUserId
+  controllerInstance.getLatestBatchByUserId
 );
 router.get(
-  '/recent',
+  '/batches/recent',
   authorizationMiddleware,
-  controllerInstance.findRecentByUserId
+  controllerInstance.getRecentBatchesByUserId
 );
+
+router.get(
+  '/batches/:syncId',
+  authorizationMiddleware,
+  controllerInstance.getBatchByUserIdAndSyncId
+);
+
 router.get(
   '/projects',
   authorizationMiddleware,
-  controllerInstance.findProjectsByUserId
+  controllerInstance.getProjectsByUserId
 );
 router.get(
-  '/projects/:projectName',
+  '/projects/:projectName/batches',
   authorizationMiddleware,
-  controllerInstance.findByUserIdAndProjectName
+  controllerInstance.getBatchesByUserIdAndProject
 );
 
 router.get(
   '/resolutions/pending',
   authorizationMiddleware,
-  controllerInstance.findPendingResolutionsByUserId
+  controllerInstance.getPendingResolutionsByUserId
 );
 router.post(
-  '/resolutions/resolve',
+  '/resolutions',
   authorizationMiddleware,
-  controllerInstance.resolveResolutions
-);
-
-router.get(
-  '/:syncId',
-  authorizationMiddleware,
-  controllerInstance.findByUserIdAndSyncId
+  controllerInstance.updateResolutionsAsResolved
 );
 
 export default router;

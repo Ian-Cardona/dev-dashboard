@@ -2,38 +2,22 @@ import {
   DynamoDBDocumentClient,
   PutCommand,
   QueryCommand,
+  BatchWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ENV } from '../config/env_variables';
 import { ProjectNames, TodoBatch, TodoResolution } from '@dev-dashboard/shared';
+import { ITodoModel } from './interfaces/itodo.model';
 
-const TODOS_TABLE = ENV.TODOS_TABLE;
-const RESOLUTIONS_TABLE = ENV.RESOLUTIONS_TABLE;
+const BATCHES_TABLE = ENV.TODO_BATCHES_TABLE;
+const RESOLUTIONS_TABLE = ENV.TODO_RESOLUTIONS_TABLE;
+const CURRENT_TABLE = ENV.TODO_CURRENT_TABLE;
 
-export interface ITodoModel {
-  create(batch: TodoBatch): Promise<TodoBatch>;
-  findByUserId(userId: string): Promise<TodoBatch[]>;
-  findByUserIdAndSyncId(
-    userId: string,
-    syncId: string
-  ): Promise<TodoBatch | null>;
-  findLatestByUserId(userId: string): Promise<TodoBatch | null>;
-  findRecentByUserId(userId: string, limit?: number): Promise<TodoBatch[]>;
-  findProjectsByUserId(userId: string): Promise<ProjectNames>;
-  findByUserIdAndProject(
-    userId: string,
-    projectName: string,
-    limit?: number
-  ): Promise<TodoBatch[]>;
-  findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
-  createResolutions(resolutions: TodoResolution[]): Promise<TodoResolution[]>;
-}
-
-export const TodoModel = (docClient: DynamoDBDocumentClient) => {
+export const TodoModel = (docClient: DynamoDBDocumentClient): ITodoModel => {
   return {
     async create(batch: TodoBatch): Promise<TodoBatch> {
       await docClient.send(
         new PutCommand({
-          TableName: TODOS_TABLE,
+          TableName: BATCHES_TABLE,
           Item: { ...batch, id: batch.syncId },
         })
       );
@@ -43,7 +27,7 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
     async findByUserId(userId: string): Promise<TodoBatch[]> {
       const result = await docClient.send(
         new QueryCommand({
-          TableName: TODOS_TABLE,
+          TableName: BATCHES_TABLE,
           IndexName: 'UserLatestSyncIndex',
           KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: { ':userId': userId },
@@ -51,11 +35,7 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!result.Items || !Array.isArray(result.Items)) {
-        return [];
-      }
-
-      return result.Items as TodoBatch[];
+      return (result.Items as TodoBatch[]) || [];
     },
 
     async findByUserIdAndSyncId(
@@ -64,7 +44,7 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
     ): Promise<TodoBatch | null> {
       const result = await docClient.send(
         new QueryCommand({
-          TableName: TODOS_TABLE,
+          TableName: BATCHES_TABLE,
           IndexName: 'UserSyncIndex',
           KeyConditionExpression: 'userId = :userId AND syncId = :syncId',
           ExpressionAttributeValues: {
@@ -75,17 +55,13 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!result.Items || result.Items.length === 0) {
-        return null;
-      }
-
-      return result.Items[0] as TodoBatch;
+      return (result.Items?.[0] as TodoBatch) || null;
     },
 
     async findLatestByUserId(userId: string): Promise<TodoBatch | null> {
-      const latestItemQuery = await docClient.send(
+      const result = await docClient.send(
         new QueryCommand({
-          TableName: TODOS_TABLE,
+          TableName: BATCHES_TABLE,
           IndexName: 'UserLatestSyncIndex',
           KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: { ':userId': userId },
@@ -94,17 +70,16 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!latestItemQuery.Items || latestItemQuery.Items.length === 0) {
-        return null;
-      }
-
-      return latestItemQuery.Items[0] as TodoBatch;
+      return (result.Items?.[0] as TodoBatch) || null;
     },
 
-    async findRecentByUserId(userId: string, limit = 5): Promise<TodoBatch[]> {
-      const latestSyncsQuery = await docClient.send(
+    async findRecentByUserId(
+      userId: string,
+      limit: number = 5
+    ): Promise<TodoBatch[]> {
+      const result = await docClient.send(
         new QueryCommand({
-          TableName: TODOS_TABLE,
+          TableName: BATCHES_TABLE,
           IndexName: 'UserLatestSyncIndex',
           KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: { ':userId': userId },
@@ -113,40 +88,17 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!latestSyncsQuery.Items || latestSyncsQuery.Items.length === 0) {
-        return [];
-      }
-
-      return latestSyncsQuery.Items as TodoBatch[];
-    },
-
-    async findProjectsByUserId(userId: string): Promise<ProjectNames> {
-      const result = await docClient.send(
-        new QueryCommand({
-          TableName: TODOS_TABLE,
-          IndexName: 'UserProjectIndex',
-          KeyConditionExpression: 'userId = :userId',
-          ExpressionAttributeValues: { ':userId': userId },
-          ProjectionExpression: 'projectName',
-        })
-      );
-      if (!result.Items || !Array.isArray(result.Items)) {
-        return { projects: [] };
-      }
-      const projectNames = result.Items.map(item => item.projectName).filter(
-        (name): name is string => typeof name === 'string'
-      );
-      return { projects: Array.from(new Set(projectNames)) };
+      return (result.Items as TodoBatch[]) || [];
     },
 
     async findByUserIdAndProject(
       userId: string,
       projectName: string,
-      limit = 100
+      limit: number = 100
     ): Promise<TodoBatch[]> {
       const result = await docClient.send(
         new QueryCommand({
-          TableName: TODOS_TABLE,
+          TableName: BATCHES_TABLE,
           IndexName: 'UserProjectIndex',
           KeyConditionExpression:
             'userId = :userId AND projectName = :projectName',
@@ -159,11 +111,29 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!result.Items || !Array.isArray(result.Items)) {
-        return [];
+      return (result.Items as TodoBatch[]) || [];
+    },
+
+    async findProjectsByUserId(userId: string): Promise<ProjectNames> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: BATCHES_TABLE,
+          IndexName: 'UserProjectIndex',
+          KeyConditionExpression: 'userId = :userId',
+          ExpressionAttributeValues: { ':userId': userId },
+          ProjectionExpression: 'projectName',
+        })
+      );
+
+      if (!result.Items?.length) {
+        return { projects: [] };
       }
 
-      return result.Items as TodoBatch[];
+      const projectNames = result.Items.map(item => item.projectName).filter(
+        (name): name is string => typeof name === 'string'
+      );
+
+      return { projects: Array.from(new Set(projectNames)) };
     },
 
     async findPendingResolutionsByUserId(
@@ -171,7 +141,7 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
     ): Promise<TodoResolution[]> {
       const result = await docClient.send(
         new QueryCommand({
-          TableName: RESOLUTIONS_TABLE,
+          TableName: CURRENT_TABLE,
           KeyConditionExpression: 'userId = :userId',
           FilterExpression: 'resolved = :resolved',
           ExpressionAttributeValues: {
@@ -181,16 +151,14 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
         })
       );
 
-      if (!result.Items || !Array.isArray(result.Items)) {
-        return [];
-      }
-
-      return result.Items as TodoResolution[];
+      return (result.Items as TodoResolution[]) || [];
     },
 
     async createResolutions(
       resolutions: TodoResolution[]
     ): Promise<TodoResolution[]> {
+      if (!resolutions.length) return [];
+
       await Promise.all(
         resolutions.map(resolution =>
           docClient.send(
@@ -201,7 +169,64 @@ export const TodoModel = (docClient: DynamoDBDocumentClient) => {
           )
         )
       );
+
       return resolutions;
+    },
+
+    async createCurrent(items: TodoResolution[]): Promise<TodoResolution[]> {
+      if (!items.length) return [];
+
+      await Promise.all(
+        items.map(item =>
+          docClient.send(
+            new PutCommand({
+              TableName: CURRENT_TABLE,
+              Item: item,
+            })
+          )
+        )
+      );
+
+      return items;
+    },
+
+    async deleteResolvedCurrent(): Promise<TodoResolution[]> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: CURRENT_TABLE,
+          FilterExpression: 'resolved = :resolved',
+          ExpressionAttributeValues: {
+            ':resolved': true,
+          },
+        })
+      );
+
+      if (!result.Items?.length) {
+        return [];
+      }
+
+      const deleteRequests = result.Items.map(item => ({
+        DeleteRequest: {
+          Key: {
+            userId: item.userId,
+            id: item.id,
+          },
+        },
+      }));
+
+      const batchSize = 25;
+      for (let i = 0; i < deleteRequests.length; i += batchSize) {
+        const batch = deleteRequests.slice(i, i + batchSize);
+        await docClient.send(
+          new BatchWriteCommand({
+            RequestItems: {
+              [CURRENT_TABLE]: batch,
+            },
+          })
+        );
+      }
+
+      return result.Items as TodoResolution[];
     },
   };
 };
