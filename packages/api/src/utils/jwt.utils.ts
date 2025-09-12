@@ -30,11 +30,16 @@ export const verifyJWT = (token: string): AuthorizationTokenPayload => {
     audience: ENV.CLIENT_APP_NAME,
   };
 
-  return jwt.verify(
-    token,
-    ENV.JWT_SECRET,
-    verifyOptions
-  ) as AuthorizationTokenPayload;
+  try {
+    return jwt.verify(
+      token,
+      ENV.JWT_SECRET,
+      verifyOptions
+    ) as AuthorizationTokenPayload;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    throw new UnauthorizedError('Invalid or expired token');
+  }
 };
 
 export const extractBearerToken = (req: Request): string => {

@@ -38,7 +38,8 @@ export const ApiKeysModel: (
           Key: { id },
         })
       );
-      return result.Item as ApiKey | null;
+
+      return result.Item as ApiKey;
     },
 
     findByUserId: async (userId: string) => {

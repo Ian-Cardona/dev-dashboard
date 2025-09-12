@@ -81,6 +81,7 @@ export const ApiKeysService = (
 
     async validate(pkey: string): Promise<ApiKey> {
       const byteLength = Buffer.byteLength(pkey, 'utf8');
+
       if (byteLength > 72) {
         throw new UnauthorizedError('Invalid API key');
       }

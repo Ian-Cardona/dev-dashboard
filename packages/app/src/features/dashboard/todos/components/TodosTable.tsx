@@ -1,6 +1,14 @@
 import type { FlattenedTodo, TodoBatch } from '@dev-dashboard/shared';
 import { useMemo, useState } from 'react';
 import { TodosTableRow } from './TodosTableRow';
+import {
+  ChevronUpDownIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  FunnelIcon, // New icon for filtering
+  CheckIcon, // New icon for selected items
+  InboxIcon, // New icon for the empty state
+} from '@heroicons/react/24/outline';
 
 interface TodosTableProps {
   batch: TodoBatch[];
@@ -49,8 +57,14 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
   };
 
   const getSortIcon = (field: 'type' | 'content' | 'date') => {
-    if (sortField !== field) return '↕️';
-    return sortDirection === 'asc' ? '↑' : '↓';
+    if (sortField !== field) {
+      return <ChevronUpDownIcon className="h-4 w-4" aria-hidden="true" />;
+    }
+    return sortDirection === 'asc' ? (
+      <ChevronUpIcon className="h-4 w-4" aria-hidden="true" />
+    ) : (
+      <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
+    );
   };
 
   const filteredAndSortedTodos = useMemo(() => {
@@ -89,95 +103,110 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
     return filtered;
   }, [flattenedTodos, typeFilter, sortField, sortDirection]);
 
+  // A helper component for dropdown items to keep the main return clean
+  const DropdownItem = ({
+    label,
+    value,
+  }: {
+    label: string;
+    value: string;
+  }) => {
+    const isActive = typeFilter === value;
+    return (
+      <div
+        className={`flex w-full cursor-pointer items-center justify-between rounded-md px-4 py-2 text-sm transition-colors hover:bg-[var(--color-fg)]/5 ${
+          isActive
+            ? 'font-medium text-[var(--color-primary)]'
+            : 'text-[var(--color-fg)]/90'
+        }`}
+        onClick={() => {
+          setTypeFilter(value);
+          setShowTypeDropdown(false);
+        }}
+      >
+        <span>{label}</span>
+        {isActive && <CheckIcon className="h-4 w-4" />}
+      </div>
+    );
+  };
+
   return (
     <div className="flex-1 overflow-auto">
-      <table className="w-full table-fixed border-collapse text-sm">
-        <thead className="sticky">
+      <table className="w-full min-w-[600px] table-fixed border-collapse">
+        <thead className="sticky top-0 z-10 bg-[var(--color-bg)] text-xs text-[var(--color-fg)]/60">
           <tr className="border-b">
-            <th className="w-36 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
-              <div className="flex items-center gap-2">
+            <th className="w-48 px-6 py-4 text-left font-medium">
+              <div className="flex items-center gap-4">
                 <div className="relative">
+                  {/* Filter button now includes an icon and better styling */}
                   <button
                     onClick={() => setShowTypeDropdown(!showTypeDropdown)}
-                    className="cursor-pointer select-none"
+                    className="flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-[var(--color-fg)]/5"
                     title="Filter by Type"
                     type="button"
                   >
-                    {typeFilter === '' ? 'Type' : typeFilter}
+                    <FunnelIcon className="h-4 w-4" />
+                    <span>{typeFilter === '' ? 'Type' : typeFilter}</span>
                   </button>
                   {showTypeDropdown && (
-                    <div className="absolute z-10 mt-2 w-32 rounded-lg border bg-[var(--color-bg)] shadow-md">
-                      <div
-                        className={`cursor-pointer rounded-md px-4 py-2 hover:bg-[var(--color-fg)]/5 ${
-                          typeFilter === '' ? 'font-semibold' : ''
-                        }`}
-                        onClick={() => {
-                          setTypeFilter('');
-                          setShowTypeDropdown(false);
-                        }}
-                      >
-                        All
-                      </div>
+                    <div className="absolute z-10 mt-2 w-48 origin-top-left rounded-md border bg-[var(--color-bg)] p-2 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <DropdownItem label="All Types" value="" />
                       {uniqueTypes.map(type => (
-                        <div
-                          key={type}
-                          className={`cursor-pointer rounded-md p-4 hover:bg-[var(--color-fg)]/5 ${
-                            typeFilter === type ? 'font-semibold' : ''
-                          }`}
-                          onClick={() => {
-                            setTypeFilter(type);
-                            setShowTypeDropdown(false);
-                          }}
-                        >
-                          {type}
-                        </div>
+                        <DropdownItem key={type} label={type} value={type} />
                       ))}
                     </div>
                   )}
                 </div>
+                {/* Sort button now has a more subtle, modern feel */}
                 <button
                   onClick={() => handleSort('type')}
-                  className="cursor-pointer select-none"
+                  className="rounded-md p-2 transition-colors hover:bg-[var(--color-fg)]/5"
                   title="Sort by Type"
                 >
                   {getSortIcon('type')}
                 </button>
               </div>
             </th>
-            <th className="whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
+            <th className="px-6 py-4 text-left font-medium">
               <button
                 onClick={() => handleSort('content')}
-                className="flex cursor-pointer select-none items-center gap-2"
+                className="flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-[var(--color-fg)]/5"
                 title="Sort by Content"
                 type="button"
               >
-                Content {getSortIcon('content')}
+                <span>Content</span>
+                {getSortIcon('content')}
               </button>
             </th>
-
             {showDateFilter && (
-              <th className="w-48 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
+              <th className="w-48 px-6 py-4 text-left font-medium">
                 <button
                   onClick={() => handleSort('date')}
-                  className="flex cursor-pointer select-none items-center gap-2"
+                  className="flex items-center gap-2 rounded-md p-2 transition-colors hover:bg-[var(--color-fg)]/5"
                   title="Sort by Date"
                 >
-                  Date {getSortIcon('date')}
+                  <span>Date</span>
+                  {getSortIcon('date')}
                 </button>
               </th>
             )}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="text-sm">
           {filteredAndSortedTodos.map(todo => (
-            <TodosTableRow todo={todo} showDateFilter={showDateFilter} />
+            <TodosTableRow
+              key={todo.id}
+              todo={todo}
+              showDateFilter={showDateFilter}
+            />
           ))}
         </tbody>
       </table>
 
       {filteredAndSortedTodos.length === 0 && (
-        <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
-          No todos match the current filters
+        <div className="flex flex-col items-center justify-center gap-4 py-16 text-sm text-[var(--color-fg)]/50">
+          <InboxIcon className="h-12 w-12" />
+          <span>No todos match the current filters</span>
         </div>
       )}
     </div>
