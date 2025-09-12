@@ -32,6 +32,14 @@ export const authorizationMiddleware = async (
 
     next();
   } catch (error) {
-    next(error);
+    if (error instanceof Error && error.name === 'TokenExpiredError') {
+      next(new UnauthorizedError('Token expired'));
+    } else if (error instanceof Error && error.name === 'JsonWebTokenError') {
+      next(new UnauthorizedError('Invalid token'));
+    } else if (error instanceof Error && error.name === 'NotBeforeError') {
+      next(new UnauthorizedError('Token not active'));
+    } else {
+      next(error);
+    }
   }
 };
