@@ -170,7 +170,7 @@ export const AuthenticationService = (
           data.refreshTokenId,
           data.refreshTokenPlain
         );
-        console.log('Matched refresh token:', matchedToken);
+
         if (!matchedToken) {
           throw new UnauthorizedError('Invalid session. Please login again.');
         }
@@ -179,19 +179,14 @@ export const AuthenticationService = (
           Date.now() > new Date(matchedToken.expiresAt).getTime()
         ) {
           await refreshTokenService.deleteAllByUserId(matchedToken.userId);
-          console.log('Delete tokens');
           throw new UnauthorizedError('Invalid session. Please login again.');
         }
-        console.log('For tombstone');
 
         await _tombstoneToken(matchedToken);
-        console.log('Tombstoned!');
 
         const user = await userService.findById(matchedToken.userId);
-        console.log('Findbyid');
         if (!user) {
           await refreshTokenService.deleteAllByUserId(matchedToken.userId);
-          console.log('Delete all ya');
           throw new UnauthorizedError('Invalid user account.');
         }
         const newAccessTokenPayload: AuthorizationTokenPayload = {
@@ -201,7 +196,6 @@ export const AuthenticationService = (
         };
         const newAccessToken = generateJWT(newAccessTokenPayload);
         const newRefreshToken = await refreshTokenService.create(user.id);
-        console.log('create new token!');
 
         return {
           accessToken: newAccessToken,

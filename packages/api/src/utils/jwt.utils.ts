@@ -36,7 +36,7 @@ export const verifyJWT = (token: string): AuthorizationTokenPayload => {
       ENV.JWT_SECRET,
       verifyOptions
     ) as AuthorizationTokenPayload;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     throw new UnauthorizedError('Invalid or expired token');
   }
