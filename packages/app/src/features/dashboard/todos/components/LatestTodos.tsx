@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQueryLatestTodos } from '../hooks/useQueryLatestTodos';
-import { TodosTable } from './TodosTable';
+import { TodosTable } from './table/TodosTable';
 import { ResolutionsModal } from './ResolutionModal';
 
 export const LatestTodos = () => {

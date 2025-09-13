@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQueryProjectNames } from '../hooks/useQueryProjectNames.ts';
 import { useQueryProjectTodos } from '../hooks/useQueryProjectTodos.ts';
 import { TodosToolbar } from './TodosToolbar.tsx';
-import { TodosTable } from './TodosTable.tsx';
+import { TodosTable } from './table/TodosTable.tsx';
 
 export const MainTodos = () => {
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(0);
