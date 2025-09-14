@@ -1,3 +1,5 @@
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+
 interface TodosToolbarProps {
   title: string;
   onGoLeft: () => void;
@@ -14,7 +16,7 @@ export const TodosToolbar = ({
   canGoRight,
 }: TodosToolbarProps) => {
   return (
-    <div className="flex shrink-0 items-center justify-center mb-4">
+    <div className="flex shrink-0 items-center justify-center mb-8">
       <button
         onClick={onGoLeft}
         disabled={!canGoLeft}
@@ -25,9 +27,9 @@ export const TodosToolbar = ({
         }`}
         aria-label="Previous Project"
       >
-        ←
+        <ChevronLeftIcon className="h-5 w-5 stroke-[var(--color-fg)]" />
       </button>
-      <span className="min-w-[160px] select-none text-center text-lg font-semibold text-[var(--color-fg)]">
+      <span className="min-w-[160px] select-none mx-4 text-center text-xl font-semibold text-[var(--color-fg)]">
         {title}
       </span>
       <button
@@ -40,7 +42,7 @@ export const TodosToolbar = ({
         }`}
         aria-label="Next Project"
       >
-        →
+        <ChevronRightIcon className="h-5 w-5 stroke-[var(--color-fg)]" />
       </button>
     </div>
   );

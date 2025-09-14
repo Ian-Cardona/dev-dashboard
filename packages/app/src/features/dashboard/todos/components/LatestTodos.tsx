@@ -33,9 +33,14 @@ export const LatestTodos = () => {
 
   return (
     <section className="rounded-4xl border py-4 h-full flex flex-col">
-      <div className="flex justify-between mb-4 mx-4">
-        <h2 className="text-lg font-semibold">Latest</h2>
-        <button onClick={() => setIsModalOpen(true)}>Open Resolutions</button>
+      <div className="flex items-center justify-between mb-4 px-4">
+        <h2 className="text-xl font-bold">Latest</h2>
+        <button
+          className="px-4 py-2 border rounded-md font-medium text-sm ml-2"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Open Resolutions
+        </button>
       </div>
       <TodosTable batch={data?.todosBatches || []} />
       <ResolutionsModal
