@@ -1,4 +1,5 @@
 import type { FlattenedTodo } from '@dev-dashboard/shared';
+import IconSelector from './IconSelector';
 
 interface TodosTableRowProps {
   todo: FlattenedTodo;
@@ -8,24 +9,17 @@ interface TodosTableRowProps {
 export const TodosTableRow = ({ todo, showDateFilter }: TodosTableRowProps) => {
   return (
     <tr className="border-b border-[var(--color-fg)]/10 hover:bg-[var(--color-fg)]/[0.03]">
-      <td className="px-4 py-4 align-middle">
-        <span
-          className={`rounded-full px-2 py-1  font-medium ${
-            todo.type === 'TODO'
-              ? 'bg-[var(--color-primary)] text-[var(--color-bg)]'
-              : todo.type === 'FIXME'
-                ? 'bg-[var(--color-error)] text-[var(--color-bg)]'
-                : todo.type === 'HACK'
-                  ? 'bg-[var(--color-fg)]/[0.1] text-[var(--color-fg)]/[0.8]'
-                  : 'bg-[var(--color-fg)]/[0.1] text-[var(--color-fg)]/[0.8]'
-          }`}
-        >
-          {todo.type}
-        </span>
+      <td className="px-6 py-2 align-middle text-sm normal-case">
+        <IconSelector type={todo.type} />
+        <span>{todo.type}</span>
       </td>
-      <td className="max-w-xs px-4 py-4 align-middle">{todo.content}</td>
+      <td className="max-w-xs px-6 py-2 align-middle text-base normal-case">
+        {todo.content}
+      </td>
       {showDateFilter && (
-        <td className="px-4 py-4 align-middle">{todo.syncedAt}</td>
+        <td className="px-6 py-2 align-middle text-sm normal-case">
+          {todo.syncedAt}
+        </td>
       )}
     </tr>
   );

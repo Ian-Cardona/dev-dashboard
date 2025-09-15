@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useQueryProjectNames } from '../hooks/useQueryProjectNames.ts';
 import { useQueryProjectTodos } from '../hooks/useQueryProjectTodos.ts';
-import { TodosToolbar } from './TodosToolbar.tsx';
+import { TodosToolbar } from './table/TodosToolbar.tsx';
 import { TodosTable } from './table/TodosTable.tsx';
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  TableCellsIcon,
+} from '@heroicons/react/24/outline';
 
 export const MainTodos = () => {
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(0);
@@ -58,7 +64,22 @@ export const MainTodos = () => {
   };
 
   return (
-    <section className="rounded-4xl border py-4 h-full flex flex-col">
+    <section className="rounded-4xl border py-8 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-8 px-8">
+        <h2 className="flex items-center text-3xl">
+          <TableCellsIcon className="w-7 h-7 mr-2" />
+          History
+        </h2>
+        <div className="flex gap-2">
+          <button
+            aria-label="Open API Keys"
+            className="px-8 py-2 border rounded-md font-medium text-sm hover:bg-[var(--color-fg)]/5 flex items-center justify-center"
+            // onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+          >
+            <Cog6ToothIcon className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
       <TodosToolbar
         title={displayTitle}
         onGoLeft={goLeft}

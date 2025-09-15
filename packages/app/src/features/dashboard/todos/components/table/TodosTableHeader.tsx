@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
+import IconSelector from './IconSelector';
 
 interface TodosTableHeaderProps {
   typeFilter: string;
@@ -21,75 +22,81 @@ export const TodosTableHeader = ({
   return (
     <thead className="sticky">
       <tr className="border-b">
-        <th className="w-36 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <button
-                onClick={() => setShowTypeDropdown(!showTypeDropdown)}
-                className="cursor-pointer select-none"
+        <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
+          <div className="relative">
+            <button
+              onClick={() => handleSort('type')}
+              className="flex cursor-pointer select-none items-center gap-2 font-normal"
+              title="Sort by Type"
+              type="button"
+            >
+              <span
+                onClick={e => {
+                  e.stopPropagation();
+                  setShowTypeDropdown(!showTypeDropdown);
+                }}
                 title="Filter by Type"
-                type="button"
               >
                 {typeFilter === '' ? 'Type' : typeFilter}
-              </button>
-              {showTypeDropdown && (
-                <div className="absolute z-10 mt-2 w-32 rounded-lg border bg-[var(--color-bg)] shadow-md">
-                  <div
-                    className={`cursor-pointer rounded-md px-4 py-2 hover:bg-[var(--color-fg)]/5 ${
-                      typeFilter === '' ? 'font-semibold' : ''
-                    }`}
-                    onClick={() => {
-                      setTypeFilter('');
-                      setShowTypeDropdown(false);
-                    }}
-                  >
+              </span>
+              {getSortIcon('type')}
+            </button>
+            {showTypeDropdown && (
+              <div className="absolute z-10 mt-2 w-40 rounded-lg border bg-[var(--color-bg)] shadow-md">
+                <div
+                  className="cursor-pointer rounded-md px-6 py-2 text-base uppercase hover:bg-[var(--color-fg)]/5"
+                  onClick={() => {
+                    setTypeFilter('');
+                    setShowTypeDropdown(false);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <IconSelector type="OTHER" />
                     All
                   </div>
-                  {uniqueTypes.map(type => (
+                </div>
+                {uniqueTypes.map(type => {
+                  return (
                     <div
                       key={type}
-                      className={`cursor-pointer rounded-md p-4 hover:bg-[var(--color-fg)]/5 ${
-                        typeFilter === type ? 'font-semibold' : ''
-                      }`}
+                      className="cursor-pointer rounded-md px-6 py-2 text-base uppercase hover:bg-[var(--color-fg)]/5"
                       onClick={() => {
                         setTypeFilter(type);
                         setShowTypeDropdown(false);
                       }}
                     >
-                      {type}
+                      <div className="flex items-center gap-2">
+                        <IconSelector type={type} />
+                        {type}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => handleSort('type')}
-              className="cursor-pointer select-none"
-              title="Sort by Type"
-            >
-              {getSortIcon('type')}
-            </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </th>
-        <th className="whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
+        <th className="whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
           <button
             onClick={() => handleSort('content')}
-            className="flex cursor-pointer select-none items-center gap-2"
+            className="flex cursor-pointer select-none items-center gap-2 font-normal"
             title="Sort by Content"
             type="button"
           >
-            Content {getSortIcon('content')}
+            Content
+            {getSortIcon('content')}
           </button>
         </th>
-
         {showDateFilter && (
-          <th className="w-48 whitespace-nowrap px-4 py-4 text-left font-semibold uppercase tracking-wider">
+          <th className="w-48 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
             <button
               onClick={() => handleSort('date')}
-              className="flex cursor-pointer select-none items-center gap-2"
+              className="flex cursor-pointer select-none items-center gap-2 font-normal"
               title="Sort by Date"
+              type="button"
             >
-              Date {getSortIcon('date')}
+              Date
+              {getSortIcon('date')}
             </button>
           </th>
         )}

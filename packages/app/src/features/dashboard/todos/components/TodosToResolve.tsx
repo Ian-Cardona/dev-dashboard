@@ -29,12 +29,12 @@ const REASON_OPTIONS: { value: TodoReasonEnumType; label: string }[] = [
   { value: 'blocked', label: 'Blocked' },
 ];
 
-export const TodosToResolve = ({
+export const TodosToResolve: React.FC<TodosToResolveProps> = ({
   isOpen,
   onClose,
   previous,
   latest,
-}: TodosToResolveProps) => {
+}) => {
   const [resolutions, setResolutions] = useState<
     Record<string, TodoReasonEnumType>
   >({});

@@ -7,16 +7,16 @@ interface TodosToolbarProps {
   canGoLeft: boolean;
   canGoRight: boolean;
 }
-// TODO: Use icons and fix spacing
-export const TodosToolbar = ({
+
+export const TodosToolbar: React.FC<TodosToolbarProps> = ({
   title,
   onGoLeft,
   onGoRight,
   canGoLeft,
   canGoRight,
-}: TodosToolbarProps) => {
+}) => {
   return (
-    <div className="flex shrink-0 items-center justify-center mb-8">
+    <div className="flex shrink-0 items-center justify-between px-4 mb-4">
       <button
         onClick={onGoLeft}
         disabled={!canGoLeft}
@@ -27,9 +27,9 @@ export const TodosToolbar = ({
         }`}
         aria-label="Previous Project"
       >
-        <ChevronLeftIcon className="h-5 w-5 stroke-[var(--color-fg)]" />
+        <ChevronLeftIcon className="h-4 w-4 stroke-[var(--color-fg)]" />
       </button>
-      <span className="min-w-[160px] select-none mx-4 text-center text-xl font-semibold text-[var(--color-fg)]">
+      <span className="min-w-[160px] select-none text-center text-base font-normal uppercase text-[var(--color-fg)]">
         {title}
       </span>
       <button
@@ -42,7 +42,7 @@ export const TodosToolbar = ({
         }`}
         aria-label="Next Project"
       >
-        <ChevronRightIcon className="h-5 w-5 stroke-[var(--color-fg)]" />
+        <ChevronRightIcon className="h-4 w-4 stroke-[var(--color-fg)]" />
       </button>
     </div>
   );
