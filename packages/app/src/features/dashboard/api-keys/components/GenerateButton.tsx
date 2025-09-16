@@ -1,4 +1,4 @@
-import { useQueryCreateKey } from '../hooks/useQueryCreateKey';
+import { useQueryCreateKey } from '../hooks/useMutateCreateKey';
 
 const GenerateButton = () => {
   const { refetch, isFetching } = useQueryCreateKey();

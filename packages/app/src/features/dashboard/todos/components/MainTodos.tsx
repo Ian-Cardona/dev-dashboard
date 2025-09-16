@@ -64,7 +64,7 @@ export const MainTodos = () => {
   };
 
   return (
-    <section className="rounded-4xl border py-8 h-full flex flex-col">
+    <section className="rounded-4xl border pt-8 h-full flex flex-col">
       <div className="flex items-center justify-between mb-8 px-8">
         <h2 className="flex items-center text-3xl">
           <TableCellsIcon className="w-7 h-7 mr-2" />

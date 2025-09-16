@@ -1,4 +1,5 @@
 import { PlusIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { useMutateCreateKey } from '../../api-keys/hooks/useMutateCreateKey';
 
 export interface TodosSettingsProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ export const TodosSettings: React.FC<TodosSettingsProps> = ({
   isOpen,
   onClose,
 }) => {
+  const createKey = useMutateCreateKey();
   if (!isOpen) return null;
 
   return (
@@ -37,6 +39,7 @@ export const TodosSettings: React.FC<TodosSettingsProps> = ({
               type="button"
               className="inline-flex items-center justify-center px-3 py-1 border border-[var(--color-border)] rounded-md text-[var(--color-fg)] text-sm font-semibold hover:bg-[var(--color-border)] hover:text-[var(--color-fg)] transition"
               aria-label="Add API Key"
+              onClick={() => createKey.mutate()}
             >
               <PlusIcon className="h-5 w-5 mr-1" />
               New Key
