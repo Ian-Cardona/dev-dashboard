@@ -14,29 +14,21 @@ export const LatestTodos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  if (isLoading) {
-    return (
-      <section className="rounded-4xl border p-8">
-        Loading latest todos...
-      </section>
-    );
-  }
+  const isDisabled = isError || !data;
 
-  if (isError) {
-    return (
-      <section className="rounded-4xl border p-8">
-        Error loading latest todos.
-      </section>
-    );
-  }
-
-  if (!data) {
-    return (
-      <section className="rounded-4xl border p-8">
-        No latest todos found.
-      </section>
-    );
-  }
+  const renderContent = () => {
+    if (isLoading) {
+      return <div className="px-8">Loading latest todos...</div>;
+    } else if (isError) {
+      return <div className="px-8">Error loading latest todos.</div>;
+    } else if (data && data.todosBatches.length > 0) {
+      return <TodosTable batch={data.todosBatches} />;
+    } else if (data && data.todosBatches.length === 0) {
+      return <div className="px-8">No latest todos found.</div>;
+    } else {
+      return null;
+    }
+  };
 
   return (
     <section className="rounded-4xl border pt-8 h-full flex flex-col">
@@ -47,22 +39,24 @@ export const LatestTodos = () => {
         </h2>
         <div className="flex gap-2">
           <button
-            className="flex items-center px-8 py-2 border rounded-md font-medium text-sm hover:bg-[var(--color-fg)]/5"
+            className="flex items-center px-8 py-2 border rounded-md font-medium text-sm hover:bg-[var(--color-fg)]/5 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => setIsModalOpen(true)}
+            disabled={isDisabled}
           >
             <CheckCircleIcon className="w-5 h-5 mr-1" />
             Resolve
           </button>
           <button
             aria-label="Open API Keys"
-            className="px-8 py-2 border rounded-md font-medium text-sm hover:bg-[var(--color-fg)]/5 flex items-center justify-center"
+            className="px-8 py-2 border rounded-md font-medium text-sm hover:bg-[var(--color-fg)]/5 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            disabled={isDisabled}
           >
             <Cog6ToothIcon className="w-5 h-5" />
           </button>
         </div>
       </div>
-      <TodosTable batch={data?.todosBatches || []} />
+      {renderContent()}
       <ResolutionsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
