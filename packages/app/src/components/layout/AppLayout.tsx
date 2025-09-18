@@ -5,7 +5,7 @@ const AppLayout = () => {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
     </div>

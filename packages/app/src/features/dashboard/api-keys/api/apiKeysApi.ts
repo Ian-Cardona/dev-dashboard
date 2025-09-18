@@ -6,4 +6,9 @@ const createKey = async (): Promise<ApiKeyPublic> => {
   return response.data;
 };
 
-export { createKey };
+const fetchKeys = async (): Promise<ApiKeyPublic[]> => {
+  const response = await protectedClient.get<ApiKeyPublic[]>('/api-keys/list');
+  return response.data;
+};
+
+export { createKey, fetchKeys };
