@@ -13,6 +13,7 @@ const modelInstance = ApiKeysModel(docClient);
 const serviceInstance = ApiKeysService(modelInstance);
 const controllerInstance = ApiKeysController(serviceInstance);
 
+router.get('/list', authorizationMiddleware, controllerInstance.findByUserId);
 router.post('/create', authorizationMiddleware, controllerInstance.create);
 router.get('/check', apiKeysMiddleware, controllerInstance.check);
 
