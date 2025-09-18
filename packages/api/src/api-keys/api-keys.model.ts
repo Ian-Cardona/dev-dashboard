@@ -2,6 +2,7 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
+  QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ENV } from '../config/env_variables';
@@ -44,12 +45,16 @@ export const ApiKeysModel: (
 
     findByUserId: async (userId: string) => {
       const result = await docClient.send(
-        new GetCommand({
+        new QueryCommand({
           TableName: API_KEYS_TABLE,
-          Key: { userId },
+          IndexName: 'UserIdIndex',
+          KeyConditionExpression: 'userId = :u',
+          ExpressionAttributeValues: {
+            ':u': userId,
+          },
         })
       );
-      return result.Item as ApiKey[];
+      return result.Items as ApiKey[];
     },
 
     revoke: async (id: string) => {
