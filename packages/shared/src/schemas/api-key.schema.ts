@@ -6,7 +6,7 @@ export const apiKeySchema = z.object({
   hash: z.string({ message: 'Invalid API key hash' }).trim(),
   createdAt: z.iso.datetime(),
   lastUsedAt: z.iso.datetime(),
-  description: z.string().max(255).optional(),
+  description: z.string().min(1).max(255),
   expiresAt: z.iso.datetime(),
   isActive: z.boolean().default(true),
 });

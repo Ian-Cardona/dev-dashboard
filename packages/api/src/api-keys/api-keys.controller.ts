@@ -3,18 +3,18 @@ import { NextFunction, Request, Response } from 'express';
 import { IApiKeysService } from './api-keys.service';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 import { ApiKeyPublic, uuidSchema } from '@dev-dashboard/shared';
+import z from 'zod';
 
 export const ApiKeysController = (apiKeysService: IApiKeysService) => {
   return {
     async create(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const description = 'dev-dashboard';
-        // const description = z
-        //   .string()
-        //   .min(2)
-        //   .max(100)
-        //   .parse(req.body.description);
+        const description = z
+          .string()
+          .min(1)
+          .max(255)
+          .parse(req.body.description);
 
         const result: ApiKeyPublic = await apiKeysService.create(
           userId,
