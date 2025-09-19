@@ -56,15 +56,22 @@ export const TodosSettings: React.FC<TodosSettingsProps> = ({
               data.length > 0 ? (
                 <div>
                   {data.map((key: any) => (
-                    <div key={key.id} className="mb-2 text-sm text-[var(--color-fg)]">
-                      <div>{key.description ? key.description : 'No description'}</div>
+                    <div
+                      key={key.id}
+                      className="mb-2 text-sm text-[var(--color-fg)]"
+                    >
+                      <div>
+                        {key.description ? key.description : 'No description'}
+                      </div>
                       <div className="text-xs">{key.id}</div>
                       <div className="text-xs">{key.createdAt}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-[var(--color-fg)]">No API keys available.</div>
+                <div className="text-sm text-[var(--color-fg)]">
+                  No API keys available.
+                </div>
               )
             ) : null}
           </div>

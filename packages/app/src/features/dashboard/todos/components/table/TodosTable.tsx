@@ -112,28 +112,34 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
   }, [flattenedTodos, typeFilter, sortField, sortDirection]);
 
   return (
-    <div className="flex-1 overflow-auto">
-      <table className="w-full table-fixed border-collapse text-sm">
-        <TodosTableHeader
-          getSortIcon={getSortIcon}
-          handleSort={handleSort}
-          setTypeFilter={setTypeFilter}
-          showDateFilter={showDateFilter}
-          typeFilter={typeFilter}
-          uniqueTypes={uniqueTypes}
-        />
-        <tbody>
-          {filteredAndSortedTodos.map(todo => (
-            <TodosTableRow todo={todo} showDateFilter={showDateFilter} />
-          ))}
-        </tbody>
-      </table>
+    <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 overflow-auto">
+        <table className="w-full table-fixed border-collapse text-sm">
+          <TodosTableHeader
+            getSortIcon={getSortIcon}
+            handleSort={handleSort}
+            setTypeFilter={setTypeFilter}
+            showDateFilter={showDateFilter}
+            typeFilter={typeFilter}
+            uniqueTypes={uniqueTypes}
+          />
+          <tbody>
+            {filteredAndSortedTodos.map(todo => (
+              <TodosTableRow
+                key={`${todo.syncId}-${todo.content}`}
+                todo={todo}
+                showDateFilter={showDateFilter}
+              />
+            ))}
+          </tbody>
+        </table>
 
-      {filteredAndSortedTodos.length === 0 && (
-        <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
-          No todos match the current filters
-        </div>
-      )}
+        {filteredAndSortedTodos.length === 0 && (
+          <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
+            No todos match the current filters
+          </div>
+        )}
+      </div>
     </div>
   );
 };
