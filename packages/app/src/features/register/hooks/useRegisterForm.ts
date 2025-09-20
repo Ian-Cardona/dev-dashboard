@@ -1,5 +1,5 @@
+import { authenticationRegisterRequestPublicSchema } from '@dev-dashboard/shared';
 import { useState } from 'react';
-import { authenticationRegisterRequestPublicSchema } from '../../../../../shared/src/schemas/auth.schema';
 
 export const useRegisterForm = () => {
   const [email, setEmail] = useState('');

@@ -19,14 +19,17 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const flattenedTodos = useMemo((): FlattenedTodo[] => {
+  const flattenedTodos = useMemo((): (FlattenedTodo & {
+    _uniqueId: string;
+  })[] => {
     return batch.flatMap(batchItem =>
-      batchItem.todos.map(todo => ({
+      batchItem.todos.map((todo, todoIndex) => ({
         ...todo,
         syncedAt: batchItem.syncedAt,
         projectName: batchItem.projectName,
         userId: batchItem.userId,
         syncId: batchItem.syncId,
+        _uniqueId: `${batchItem.syncId}-${todoIndex}`,
       }))
     );
   }, [batch]);
@@ -82,7 +85,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
     });
 
     if (sortField) {
-      filtered.sort((a, b) => {
+      filtered = [...filtered].sort((a, b) => {
         let aValue, bValue;
 
         switch (sortField) {
@@ -112,8 +115,8 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
   }, [flattenedTodos, typeFilter, sortField, sortDirection]);
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col">
-      <div className="flex-1 overflow-auto">
+    <div className="h-full flex flex-col min-h-0">
+      <div className="flex-1 overflow-auto min-h-0">
         <table className="w-full table-fixed border-collapse text-sm">
           <TodosTableHeader
             getSortIcon={getSortIcon}
@@ -124,9 +127,9 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
             uniqueTypes={uniqueTypes}
           />
           <tbody>
-            {filteredAndSortedTodos.map(todo => (
+            {filteredAndSortedTodos.map((todo, index) => (
               <TodosTableRow
-                key={`${todo.syncId}-${todo.content}`}
+                key={todo._uniqueId || `${todo.syncId}-${index}`}
                 todo={todo}
                 showDateFilter={showDateFilter}
               />

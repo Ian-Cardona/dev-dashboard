@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { registerApi } from '../api/registerApi';
 import { useNavigate } from 'react-router';
-import type { AuthenticationRegisterRequestPublicSchema } from '../../../../../shared/src/types/auth.type';
 import { useAuth } from '../../../hooks/useAuth';
 import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
+import type { AuthenticationRegisterRequestPublicSchema } from '@dev-dashboard/shared';
 
 export const useRegisterMutation = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export const useRegisterMutation = () => {
         payload: data.user,
       });
       localStorage.setItem('accessToken', data.accessToken);
-      navigate('/dashboard');
+      navigate('/todos');
     },
     onError: error => {
       console.error('Register failed:', error);

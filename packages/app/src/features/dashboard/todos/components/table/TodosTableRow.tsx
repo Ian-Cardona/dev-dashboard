@@ -18,7 +18,7 @@ export const TodosTableRow = ({ todo, showDateFilter }: TodosTableRowProps) => {
       </td>
       {showDateFilter && (
         <td className="px-6 py-2 align-middle text-sm normal-case">
-          {todo.syncedAt}
+          {new Date(todo.syncedAt).toLocaleString()}
         </td>
       )}
     </tr>

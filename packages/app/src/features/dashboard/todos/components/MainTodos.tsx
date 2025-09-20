@@ -59,8 +59,8 @@ export const MainTodos = () => {
   };
 
   return (
-    <section className="rounded-4xl border pt-8 h-full flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between mb-8 px-8">
+    <div className="rounded-4xl border pt-8 h-full flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between mb-8 px-8 flex-shrink-0">
         <h2 className="flex items-center text-3xl">
           <TableCellsIcon className="w-7 h-7 mr-2" />
           History
@@ -75,14 +75,16 @@ export const MainTodos = () => {
           </button>
         </div>
       </div>
-      <TodosToolbar
-        title={displayTitle}
-        onGoLeft={goLeft}
-        onGoRight={goRight}
-        canGoLeft={canGoLeft}
-        canGoRight={canGoRight}
-      />
-      {renderContent()}
-    </section>
+      <div className="flex-shrink-0">
+        <TodosToolbar
+          title={displayTitle}
+          onGoLeft={goLeft}
+          onGoRight={goRight}
+          canGoLeft={canGoLeft}
+          canGoRight={canGoRight}
+        />
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">{renderContent()}</div>
+    </div>
   );
 };
