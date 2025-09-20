@@ -65,11 +65,7 @@ export const ResolutionsModal = ({
         {isLoading && (
           <p className="text-[var(--color-fg-muted)]">Loading...</p>
         )}
-        {error && (
-          <p className="text-red-500">
-            Failed to load resolutions.
-          </p>
-        )}
+        {error && <p className="text-red-500">Failed to load resolutions.</p>}
 
         <div className="max-h-96 overflow-y-auto text-[var(--color-fg)]">
           {data && data.length > 0 ? (
@@ -86,9 +82,7 @@ export const ResolutionsModal = ({
                     <span className="text-sm">{item.type}</span>
                   </div>
                   <div className="flex flex-col flex-1 min-w-0 ml-4">
-                    <span className="text-lg break-words">
-                      {item.content}
-                    </span>
+                    <span className="text-lg break-words">{item.content}</span>
                     <div className="text-sm mt-2">
                       <span>{item.filePath}</span>
                       <span className="ml-4">{item.lineNumber}</span>

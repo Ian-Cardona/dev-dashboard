@@ -19,14 +19,17 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const flattenedTodos = useMemo((): FlattenedTodo[] => {
+  const flattenedTodos = useMemo((): (FlattenedTodo & {
+    _uniqueId: string;
+  })[] => {
     return batch.flatMap(batchItem =>
-      batchItem.todos.map(todo => ({
+      batchItem.todos.map((todo, todoIndex) => ({
         ...todo,
         syncedAt: batchItem.syncedAt,
         projectName: batchItem.projectName,
         userId: batchItem.userId,
         syncId: batchItem.syncId,
+        _uniqueId: `${batchItem.syncId}-${todoIndex}`,
       }))
     );
   }, [batch]);
@@ -82,7 +85,7 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
     });
 
     if (sortField) {
-      filtered.sort((a, b) => {
+      filtered = [...filtered].sort((a, b) => {
         let aValue, bValue;
 
         switch (sortField) {
@@ -112,28 +115,34 @@ export const TodosTable = ({ batch }: TodosTableProps) => {
   }, [flattenedTodos, typeFilter, sortField, sortDirection]);
 
   return (
-    <div className="flex-1 overflow-auto">
-      <table className="w-full table-fixed border-collapse text-sm">
-        <TodosTableHeader
-          getSortIcon={getSortIcon}
-          handleSort={handleSort}
-          setTypeFilter={setTypeFilter}
-          showDateFilter={showDateFilter}
-          typeFilter={typeFilter}
-          uniqueTypes={uniqueTypes}
-        />
-        <tbody>
-          {filteredAndSortedTodos.map(todo => (
-            <TodosTableRow todo={todo} showDateFilter={showDateFilter} />
-          ))}
-        </tbody>
-      </table>
+    <div className="h-full flex flex-col min-h-0">
+      <div className="flex-1 overflow-auto min-h-0">
+        <table className="w-full table-fixed border-collapse text-sm">
+          <TodosTableHeader
+            getSortIcon={getSortIcon}
+            handleSort={handleSort}
+            setTypeFilter={setTypeFilter}
+            showDateFilter={showDateFilter}
+            typeFilter={typeFilter}
+            uniqueTypes={uniqueTypes}
+          />
+          <tbody>
+            {filteredAndSortedTodos.map((todo, index) => (
+              <TodosTableRow
+                key={todo._uniqueId || `${todo.syncId}-${index}`}
+                todo={todo}
+                showDateFilter={showDateFilter}
+              />
+            ))}
+          </tbody>
+        </table>
 
-      {filteredAndSortedTodos.length === 0 && (
-        <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
-          No todos match the current filters
-        </div>
-      )}
+        {filteredAndSortedTodos.length === 0 && (
+          <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
+            No todos match the current filters
+          </div>
+        )}
+      </div>
     </div>
   );
 };

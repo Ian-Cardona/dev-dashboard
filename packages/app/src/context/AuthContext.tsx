@@ -2,6 +2,7 @@ import {
   createContext,
   useEffect,
   useReducer,
+  useRef,
   type Dispatch,
   type ReactNode,
 } from 'react';
@@ -13,12 +14,12 @@ import { userApi } from '../lib/user';
 
 type State = {
   authUser: UserResponsePublic | null;
-  isLoading: boolean;
+  status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
 };
 
 const initialState: State = {
   authUser: null,
-  isLoading: true,
+  status: 'loading',
 };
 
 export const AUTH_REDUCER_ACTION_TYPE = {
@@ -43,9 +44,9 @@ type AuthContextType = {
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case AUTH_REDUCER_ACTION_TYPE.SET_AUTH:
-      return { authUser: action.payload, isLoading: false };
+      return { authUser: action.payload, status: 'authenticated' };
     case AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH:
-      return { authUser: null, isLoading: false };
+      return { authUser: null, status: 'unauthenticated' };
     default:
       return state;
   }
@@ -55,9 +56,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const effectRan = useRef(false);
 
   useEffect(() => {
     const hydrateAuth = async () => {
+      if (import.meta.env.DEV && effectRan.current === true) {
+        return;
+      }
+
       try {
         const response = await authApi.refresh();
         localStorage.setItem('accessToken', response.accessToken);
@@ -72,9 +78,15 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     };
 
     hydrateAuth();
+
+    return () => {
+      if (import.meta.env.DEV) {
+        effectRan.current = true;
+      }
+    };
   }, []);
 
-  if (state.isLoading) {
+  if (state.status === 'loading') {
     return <LoadingSpinner />;
   }
 

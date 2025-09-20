@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../../hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
-import type { AuthenticationLoginRequestPublicSchema } from '../../../../../shared/src/types/auth.type';
 import { loginApi } from '../api/loginApi';
 import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
+import type { AuthenticationLoginRequestPublicSchema } from '@dev-dashboard/shared';
 
 export const useLoginMutation = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ export const useLoginMutation = () => {
         payload: data.user,
       });
       localStorage.setItem('accessToken', data.accessToken);
-      navigate('/dashboard');
+      navigate('/todos');
     },
     onError: error => {
       console.error('Login failed:', error);

@@ -3,12 +3,7 @@ import { useQueryProjectNames } from '../hooks/useQueryProjectNames.ts';
 import { useQueryProjectTodos } from '../hooks/useQueryProjectTodos.ts';
 import { TodosToolbar } from './table/TodosToolbar.tsx';
 import { TodosTable } from './table/TodosTable.tsx';
-import {
-  CheckCircleIcon,
-  ClockIcon,
-  Cog6ToothIcon,
-  TableCellsIcon,
-} from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, TableCellsIcon } from '@heroicons/react/24/outline';
 
 export const MainTodos = () => {
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(0);
@@ -64,8 +59,8 @@ export const MainTodos = () => {
   };
 
   return (
-    <section className="rounded-4xl border pt-8 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-8 px-8">
+    <div className="rounded-4xl border pt-8 h-full flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between mb-8 px-8 flex-shrink-0">
         <h2 className="flex items-center text-3xl">
           <TableCellsIcon className="w-7 h-7 mr-2" />
           History
@@ -80,14 +75,16 @@ export const MainTodos = () => {
           </button>
         </div>
       </div>
-      <TodosToolbar
-        title={displayTitle}
-        onGoLeft={goLeft}
-        onGoRight={goRight}
-        canGoLeft={canGoLeft}
-        canGoRight={canGoRight}
-      />
-      {renderContent()}
-    </section>
+      <div className="flex-shrink-0">
+        <TodosToolbar
+          title={displayTitle}
+          onGoLeft={goLeft}
+          onGoRight={goRight}
+          canGoLeft={canGoLeft}
+          canGoRight={canGoRight}
+        />
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">{renderContent()}</div>
+    </div>
   );
 };

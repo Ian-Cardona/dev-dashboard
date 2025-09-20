@@ -20,7 +20,7 @@ export const TodosTableHeader = ({
 }: TodosTableHeaderProps) => {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   return (
-    <thead className="sticky">
+    <thead className="sticky top-0 bg-[var(--color-bg)] z-10">
       <tr className="border-b">
         <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
           <div className="relative">

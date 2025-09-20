@@ -1,7 +1,7 @@
 import type {
   AuthenticationRegisterRequestPublicSchema,
   AuthenticationResponsePublicSchema,
-} from '../../../../../shared/src/types/auth.type';
+} from '@dev-dashboard/shared';
 import { publicClient } from '../../../lib/api';
 
 export const registerApi = async (

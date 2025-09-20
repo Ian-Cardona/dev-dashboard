@@ -1,5 +1,5 @@
+import { authenticationLoginRequestPublicSchema } from '@dev-dashboard/shared';
 import { useState } from 'react';
-import { authenticationLoginRequestPublicSchema } from '../../../../../shared/src/schemas/auth.schema';
 
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
