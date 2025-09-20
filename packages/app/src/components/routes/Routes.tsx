@@ -5,27 +5,17 @@ import LoadingSpinner from '../shared/LoadingSpinner';
 export const ProtectedRoute = () => {
   const { state } = useAuth();
 
-  if (state.isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (!state.authUser) {
-    return <Navigate to="/" replace />;
-  }
-
-  return <Outlet />;
+  if (state.status === 'loading') return <LoadingSpinner />;
+  if (state.status === 'unauthenticated') return <Navigate to="/" replace />;
+  if (state.status === 'authenticated') return <Outlet />;
 };
 
 export const PublicRoute = () => {
   const { state } = useAuth();
 
-  if (state.isLoading) {
-    return <LoadingSpinner />;
+  if (state.status === 'loading') return <LoadingSpinner />;
+  if (state.status === 'authenticated') {
+    return <Navigate to="/todos" replace />;
   }
-
-  if (state.authUser) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return <Outlet />;
 };
