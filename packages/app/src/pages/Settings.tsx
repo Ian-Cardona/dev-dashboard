@@ -1,5 +1,5 @@
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
-import ApiKeysSettings from '../features/dashboard/settings/components/ApiKeysSettings';
+import SettingsApiKeys from '../features/settings/components/api-keys/SettingsApiKeys';
 
 const SettingsPage = () => {
   return (
@@ -8,7 +8,7 @@ const SettingsPage = () => {
         <Cog6ToothIcon className="h-7 w-7" />
         <h1 className="text-4xl">Settings</h1>
       </header>
-      <ApiKeysSettings />
+      <SettingsApiKeys />
     </div>
   );
 };

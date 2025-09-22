@@ -1,6 +1,6 @@
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
-import { LatestTodos } from '../features/dashboard/todos/components/LatestTodos';
-import { MainTodos } from '../features/dashboard/todos/components/MainTodos';
+import PendingResolutions from '../features/todos/components/PendingResolutions';
+import TodosHistory from '../features/todos/components/TodosHistory';
 
 const TodosPage = () => {
   return (
@@ -11,11 +11,11 @@ const TodosPage = () => {
       </header>
       <div className="grid grid-cols-2 grid-rows-2 gap-8 flex-1 min-h-0">
         <div className="min-h-0 overflow-hidden">
-          <LatestTodos />
+          <PendingResolutions />
         </div>
 
         <div className="row-span-2 min-h-0 overflow-hidden">
-          <MainTodos />
+          <TodosHistory />
         </div>
 
         <div className="p-8 border rounded-4xl min-h-0 overflow-auto">

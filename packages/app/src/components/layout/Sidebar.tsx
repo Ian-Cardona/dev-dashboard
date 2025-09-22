@@ -1,7 +1,6 @@
 import {
-  HomeIcon,
-  ClipboardDocumentListIcon,
   Cog6ToothIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { Link } from 'react-router';
 
@@ -16,31 +15,13 @@ export default function Sidebar() {
         <ul className="space-y-2">
           <li>
             <Link
-              to="/"
-              className="flex items-center gap-2 px-4 py-2 border rounded-xl hover:border hover:shadow-sm"
-            >
-              <HomeIcon className="w-5 h-5" />
-              Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link
               to="/todos"
               className="flex items-center gap-2 px-4 py-2 border rounded-xl hover:border hover:shadow-sm"
             >
-              <ClipboardDocumentListIcon className="w-5 h-5" />
+              <DocumentTextIcon className="w-5 h-5" />
               Todos
             </Link>
           </li>
-          {/* <li>
-            <a
-              href="#"
-              className="flex items-center gap-2 px-4 py-2 border rounded-xl hover:border hover:shadow-sm"
-            >
-              <ChartBarIcon className="w-5 h-5" />
-              Analytics
-            </a>
-          </li> */}
         </ul>
       </nav>
 
@@ -51,7 +32,7 @@ export default function Sidebar() {
         >
           <div className="w-8 h-8 rounded-full"></div>
           <div>
-            <div className="text-sm font-normal">John Doe</div>
+            <div className="text-sm font-normal">Angelo Ian Michael Cardona</div>
             <div className="text-xs flex items-center">
               <Cog6ToothIcon className="w-4 h-4 mr-1" />
               Settings
