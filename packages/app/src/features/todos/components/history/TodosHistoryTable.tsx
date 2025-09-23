@@ -117,7 +117,7 @@ const TodosHistoryTable = ({ batch }: TodosHistoryTableProps) => {
   return (
     <div className="h-full flex flex-col min-h-0">
       <div className="flex-1 overflow-auto min-h-0">
-        <table className="w-full table-fixed border-collapse text-sm">
+        <table className="w-full table-auto">
           <TodosHistoryTableHeader
             getSortIcon={getSortIcon}
             handleSort={handleSort}

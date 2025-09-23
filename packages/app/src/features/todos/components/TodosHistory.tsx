@@ -58,14 +58,12 @@ const TodosHistory = () => {
   };
 
   return (
-    <div className="rounded-4xl border pt-8 h-full flex flex-col overflow-hidden">
+    <div className="rounded-4xl border pt-8 h-full flex flex-col overflow-hidden bg-[var(--color-surface)]">
       <div className="flex items-center justify-between mb-8 px-8 flex-shrink-0">
         <h2 className="flex items-center text-3xl">
           <TableCellsIcon className="w-7 h-7 mr-2" />
           History
         </h2>
-      </div>
-      <div className="flex-shrink-0">
         <TodosHistoryProjectMenu
           title={displayTitle}
           onGoLeft={goLeft}
