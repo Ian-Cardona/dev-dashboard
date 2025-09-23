@@ -8,7 +8,11 @@ import {
 import ResolutionsTableRow from './ResolutionsTableRow';
 import ResolutionsTableHeader from './ResolutionsTableHeader';
 
-const ResolutionsTable = () => {
+interface ResolutionsTableProps {
+  isEditMode?: boolean;
+}
+
+const ResolutionsTable = ({ isEditMode = false }: ResolutionsTableProps) => {
   const {
     data: resolutions,
     isLoading,
@@ -19,6 +23,17 @@ const ResolutionsTable = () => {
     'type' | 'content' | 'createdAt' | null
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const [selectedReasons, setSelectedReasons] = useState<
+    Record<string, string>
+  >({});
+
+  const handleReasonChange = (id: string, value: string) => {
+    setSelectedReasons(prev => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
 
   const uniqueTypes = useMemo(
     () => [...new Set(resolutions?.map(resolution => resolution.type) || [])],
@@ -120,6 +135,7 @@ const ResolutionsTable = () => {
             setTypeFilter={setTypeFilter}
             typeFilter={typeFilter}
             uniqueTypes={uniqueTypes}
+            isEditMode={isEditMode}
           />
           <tbody>
             {filteredAndSortedResolutions.map((resolution, index) => (
@@ -129,6 +145,11 @@ const ResolutionsTable = () => {
                   `${resolution.type}-${resolution.createdAt}-${index}`
                 }
                 resolution={resolution}
+                isEditMode={isEditMode}
+                selectedReason={selectedReasons[resolution.id] || ''}
+                onReasonChange={value =>
+                  handleReasonChange(resolution.id, value)
+                }
               />
             ))}
           </tbody>

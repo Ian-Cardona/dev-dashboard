@@ -7,6 +7,7 @@ interface ResolutionsTableHeaderProps {
   uniqueTypes: string[];
   handleSort: (key: string) => void;
   getSortIcon: (key: string) => React.ReactNode;
+  isEditMode: boolean;
 }
 
 const ResolutionsTableHeader = ({
@@ -15,10 +16,11 @@ const ResolutionsTableHeader = ({
   uniqueTypes,
   handleSort,
   getSortIcon,
+  isEditMode,
 }: ResolutionsTableHeaderProps) => {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   return (
-    <thead className="sticky top-0 bg-[var(--color-bg)] z-10">
+    <thead className="sticky top-0 z-10">
       <tr className="border-b">
         <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
           <div className="relative">
@@ -85,17 +87,24 @@ const ResolutionsTableHeader = ({
             {getSortIcon('content')}
           </button>
         </th>
-        <th className="w-48 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
-          <button
-            onClick={() => handleSort('createdAt')}
-            className="flex cursor-pointer select-none items-center gap-2 font-normal"
-            title="Sort by Created At"
-            type="button"
-          >
-            Created At
-            {getSortIcon('createdAt')}
-          </button>
-        </th>
+        {!isEditMode && (
+          <th className="w-56 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
+            <button
+              onClick={() => handleSort('createdAt')}
+              className="flex cursor-pointer select-none items-center gap-2 font-normal"
+              title="Sort by Created At"
+              type="button"
+            >
+              Created At
+              {getSortIcon('createdAt')}
+            </button>
+          </th>
+        )}
+        {isEditMode && (
+          <th className="w-64 whitespace-nowrap px-6 py-2 text-left text-base font-normal">
+            Resolution
+          </th>
+        )}
       </tr>
     </thead>
   );

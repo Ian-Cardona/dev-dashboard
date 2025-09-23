@@ -20,13 +20,13 @@ const TodosHistoryTableHeader = ({
 }: TodosHistoryTableHeaderProps) => {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   return (
-    <thead className="sticky top-0 bg-[var(--color-bg)] z-10">
-      <tr className="border-b">
-        <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
+    <thead className="sticky top-0 bg-[var(--color-surface)] z-10 border-b">
+      <tr>
+        <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base font-bold uppercase">
           <div className="relative">
             <button
               onClick={() => handleSort('type')}
-              className="flex cursor-pointer select-none items-center gap-2 font-normal"
+              className="flex cursor-pointer select-none items-center gap-2 font-bold"
               title="Sort by Type"
               type="button"
             >
@@ -76,10 +76,10 @@ const TodosHistoryTableHeader = ({
             )}
           </div>
         </th>
-        <th className="whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
+        <th className="whitespace-nowrap px-6 py-2 text-left text-base font-bold uppercase">
           <button
             onClick={() => handleSort('content')}
-            className="flex cursor-pointer select-none items-center gap-2 font-normal"
+            className="flex cursor-pointer select-none items-center gap-2 font-bold"
             title="Sort by Content"
             type="button"
           >
@@ -88,14 +88,14 @@ const TodosHistoryTableHeader = ({
           </button>
         </th>
         {showDateFilter && (
-          <th className="w-48 whitespace-nowrap px-6 py-2 text-left text-base font-normal uppercase">
+          <th className="w-56 whitespace-nowrap px-6 py-2 text-left text-base font-bold uppercase">
             <button
               onClick={() => handleSort('date')}
-              className="flex cursor-pointer select-none items-center gap-2 font-normal"
+              className="flex cursor-pointer select-none items-center gap-2 font-bold"
               title="Sort by Date"
               type="button"
             >
-              Date
+              Created at
               {getSortIcon('date')}
             </button>
           </th>

@@ -1,12 +1,9 @@
-import {
-  Cog6ToothIcon,
-  DocumentTextIcon,
-} from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router';
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 flex flex-col border-r">
+    <aside className="w-64 flex flex-col border-r bg-[var(--color-surface)]">
       <div className="p-8 border-b">
         <div className="text-lg font-normal">Hello, User!</div>
       </div>
@@ -32,7 +29,9 @@ export default function Sidebar() {
         >
           <div className="w-8 h-8 rounded-full"></div>
           <div>
-            <div className="text-sm font-normal">Angelo Ian Michael Cardona</div>
+            <div className="text-sm font-normal">
+              Angelo Ian Michael Cardona
+            </div>
             <div className="text-xs flex items-center">
               <Cog6ToothIcon className="w-4 h-4 mr-1" />
               Settings

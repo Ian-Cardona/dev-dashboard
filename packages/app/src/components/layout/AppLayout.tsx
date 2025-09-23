@@ -3,9 +3,9 @@ import Sidebar from './Sidebar';
 
 const AppLayout = () => {
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-[var(--color-bg)]">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-[var(--color-bg)]">
         <Outlet />
       </main>
     </div>
