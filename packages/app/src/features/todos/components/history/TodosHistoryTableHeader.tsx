@@ -20,13 +20,13 @@ const TodosHistoryTableHeader = ({
 }: TodosHistoryTableHeaderProps) => {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   return (
-    <thead className="sticky top-0 bg-[var(--color-surface)] z-10 border-b">
-      <tr>
-        <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base font-bold uppercase">
+    <thead className="sticky top-0 bg-[var(--color-surface)] z-2">
+      <tr className="border-b">
+        <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base">
           <div className="relative">
             <button
               onClick={() => handleSort('type')}
-              className="flex cursor-pointer select-none items-center gap-2 font-bold"
+              className="flex cursor-pointer select-none items-center gap-2"
               title="Sort by Type"
               type="button"
             >
@@ -42,7 +42,7 @@ const TodosHistoryTableHeader = ({
               {getSortIcon('type')}
             </button>
             {showTypeDropdown && (
-              <div className="absolute z-10 mt-2 w-40 rounded-lg border bg-[var(--color-bg)] shadow-md">
+              <div className="absolute z-10 mt-2 w-40 rounded-lg border bg-[var(--color-surface)] shadow-md">
                 <div
                   className="cursor-pointer rounded-md px-6 py-2 text-base uppercase hover:bg-[var(--color-fg)]/5"
                   onClick={() => {
@@ -76,10 +76,10 @@ const TodosHistoryTableHeader = ({
             )}
           </div>
         </th>
-        <th className="whitespace-nowrap px-6 py-2 text-left text-base font-bold uppercase">
+        <th className="whitespace-nowrap px-6 py-3 text-left text-base">
           <button
             onClick={() => handleSort('content')}
-            className="flex cursor-pointer select-none items-center gap-2 font-bold"
+            className="flex cursor-pointer select-none items-center gap-2"
             title="Sort by Content"
             type="button"
           >
@@ -88,10 +88,10 @@ const TodosHistoryTableHeader = ({
           </button>
         </th>
         {showDateFilter && (
-          <th className="w-56 whitespace-nowrap px-6 py-2 text-left text-base font-bold uppercase">
+          <th className="w-56 whitespace-nowrap px-6 py-3 text-left text-base">
             <button
               onClick={() => handleSort('date')}
-              className="flex cursor-pointer select-none items-center gap-2 font-bold"
+              className="flex cursor-pointer select-none items-center gap-2"
               title="Sort by Date"
               type="button"
             >
