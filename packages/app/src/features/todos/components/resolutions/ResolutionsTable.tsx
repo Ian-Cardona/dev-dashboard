@@ -128,7 +128,7 @@ const ResolutionsTable = ({ isEditMode = false }: ResolutionsTableProps) => {
   return (
     <div className="h-full flex flex-col min-h-0 overflow-hidden">
       <div className="flex-1 overflow-auto min-h-0">
-        <table className="w-full table-fixed border-collapse text-sm">
+        <table className="w-full table-fixed border-collapse">
           <ResolutionsTableHeader
             getSortIcon={getSortIcon}
             handleSort={handleSort}
