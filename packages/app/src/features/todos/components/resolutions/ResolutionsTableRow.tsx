@@ -16,23 +16,21 @@ const ResolutionsTableRow = ({
   onReasonChange,
 }: ResolutionsTableRowProps) => {
   return (
-    <tr className="border-b border-[var(--color-fg)]/10 hover:bg-[var(--color-fg)]/[0.03]">
-      <td className="px-6 py-2 align-middle text-base normal-case">
+    <tr className="border-b border-[var(--color-fg)]/10 hover:bg-[var(--color-fg)]/[0.03] hover:border-b-2 hover:border-[var(--color-primary)]">
+      <td className="px-6 py-3 align-middle text-base normal-case">
         <div className="flex items-center gap-2">
           <IconSelector type={resolution.type} />
           <span>{resolution.type}</span>
         </div>
       </td>
-      <td className="max-w-xs px-6 py-2 align-middle text-base normal-case">
+      <td className="max-w-xs px-6 py-2 align-middle font-bold text-base normal-case ">
         {resolution.content}
       </td>
-      {!isEditMode && (
-        <td className="px-6 py-2 align-middle text-base normal-case">
-          {resolution.createdAt
-            ? new Date(resolution.createdAt).toLocaleString()
-            : 'N/A'}
-        </td>
-      )}
+      <td className="px-6 py-2 align-middle text-base normal-case">
+        {resolution.createdAt
+          ? new Date(resolution.createdAt).toLocaleString()
+          : 'N/A'}
+      </td>
       {isEditMode && (
         <td className="px-6 py-2 align-middle text-base normal-case">
           <select
