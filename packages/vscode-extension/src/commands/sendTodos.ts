@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
 import { postTodos } from '../services/post-todos';
-import { TodosProvider } from '../webviews/todos/todos-provider';
 import { batchTodos } from '../services/send/batch-todos';
+import { TodosProvider } from '../webviews/todos/todos-provider';
+import * as vscode from 'vscode';
 
 export const sendTodosCommand = async (todosProvider: TodosProvider) => {
   try {

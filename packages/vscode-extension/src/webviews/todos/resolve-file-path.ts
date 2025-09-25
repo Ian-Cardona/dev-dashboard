@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { ProcessedTodo } from '@dev-dashboard/shared';
 import { findGitRoot } from '../../utils/repository-manager';
+import { ProcessedTodo } from '@dev-dashboard/shared';
+import * as path from 'path';
+import * as vscode from 'vscode';
 
 export const resolveFilePath = (
   todo: ProcessedTodo & { projectName?: string }

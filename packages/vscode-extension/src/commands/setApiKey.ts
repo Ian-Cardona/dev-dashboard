@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import { setSecretKey } from '../utils/secret-key-manager';
 import { API_KEY } from '../utils/constants';
+import { setSecretKey } from '../utils/secret-key-manager';
+import * as vscode from 'vscode';
 
 export const setApiKeyCommand = async (context: vscode.ExtensionContext) => {
   try {

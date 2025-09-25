@@ -1,13 +1,13 @@
-import z from 'zod';
-import { NextFunction, Request, Response } from 'express';
+import { ITodoService } from './interfaces/itodo.service';
 import {
   createResolutionSchema,
   rawTodoBatchSchema,
   uuidSchema,
   VALIDATION_CONSTANTS,
 } from '@dev-dashboard/shared';
+import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
-import { ITodoService } from './interfaces/itodo.service';
+import z from 'zod';
 
 export const TodoController = (todoService: ITodoService) => {
   return {

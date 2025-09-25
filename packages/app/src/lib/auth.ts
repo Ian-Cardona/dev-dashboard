@@ -1,5 +1,5 @@
-import type { AuthenticationResponsePublicSchema } from '@dev-dashboard/shared';
 import { publicClient } from './api';
+import type { AuthenticationResponsePublicSchema } from '@dev-dashboard/shared';
 
 export const authApi = {
   refresh: async (): Promise<AuthenticationResponsePublicSchema> => {

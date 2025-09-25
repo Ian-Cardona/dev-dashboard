@@ -1,3 +1,8 @@
+import type { UserResponsePublic } from '../../../shared/src/types/user.type';
+import LoadingSpinner from '../components/shared/LoadingSpinner';
+import { authApi } from '../lib/auth';
+import { userApi } from '../lib/user';
+import { isAxiosError } from 'axios';
 import {
   createContext,
   useEffect,
@@ -6,11 +11,6 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react';
-import { authApi } from '../lib/auth';
-import { isAxiosError } from 'axios';
-import type { UserResponsePublic } from '../../../shared/src/types/user.type';
-import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { userApi } from '../lib/user';
 
 type State = {
   authUser: UserResponsePublic | null;

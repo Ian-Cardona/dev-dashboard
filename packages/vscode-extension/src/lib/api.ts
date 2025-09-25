@@ -1,7 +1,7 @@
+import { API_KEY } from '../utils/constants';
+import { getSecretKey } from '../utils/secret-key-manager';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import * as vscode from 'vscode';
-import { getSecretKey } from '../utils/secret-key-manager';
-import { API_KEY } from '../utils/constants';
 
 // const baseURL = process.env.API_URL || 'http://localhost:3000';
 const baseURL = 'http://localhost:3000/v1';

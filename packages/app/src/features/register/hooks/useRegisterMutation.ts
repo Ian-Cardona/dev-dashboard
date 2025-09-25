@@ -1,9 +1,9 @@
-import { useMutation } from '@tanstack/react-query';
-import { registerApi } from '../api/registerApi';
-import { useNavigate } from 'react-router';
-import { useAuth } from '../../../hooks/useAuth';
 import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
+import { registerApi } from '../api/registerApi';
 import type { AuthenticationRegisterRequestPublicSchema } from '@dev-dashboard/shared';
+import { useMutation } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
 
 export const useRegisterMutation = () => {
   const navigate = useNavigate();

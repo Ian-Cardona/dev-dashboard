@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import { ProcessedTodo } from '@dev-dashboard/shared';
 import { TodoItem } from './todo-item';
+import { ProcessedTodo } from '@dev-dashboard/shared';
+import * as vscode from 'vscode';
 
 export class TodosProvider implements vscode.TreeDataProvider<TodoItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<

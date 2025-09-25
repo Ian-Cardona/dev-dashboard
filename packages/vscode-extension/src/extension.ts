@@ -1,13 +1,13 @@
-import * as vscode from 'vscode';
-import { setApiKeyCommand } from './commands/setApiKey';
 import { scanSetTodosCommand } from './commands/scanSetTodos';
-import { setupProtectedClient } from './lib/api';
-import { clearSecretKey, getSecretKey } from './utils/secret-key-manager';
-import { API_KEY } from './utils/constants';
-import { OnboardingProvider } from './webviews/onboarding/onboarding-provider';
-import { shouldShowOnboarding } from './services/should-show-onboarding';
-import { TodosProvider } from './webviews/todos/todos-provider';
 import { sendTodosCommand } from './commands/sendTodos';
+import { setApiKeyCommand } from './commands/setApiKey';
+import { setupProtectedClient } from './lib/api';
+import { shouldShowOnboarding } from './services/should-show-onboarding';
+import { API_KEY } from './utils/constants';
+import { clearSecretKey, getSecretKey } from './utils/secret-key-manager';
+import { OnboardingProvider } from './webviews/onboarding/onboarding-provider';
+import { TodosProvider } from './webviews/todos/todos-provider';
+import * as vscode from 'vscode';
 
 //TODO: Fix the scaning and fetching
 export const activate = async (context: vscode.ExtensionContext) => {

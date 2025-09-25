@@ -1,5 +1,5 @@
-import path from 'path';
 import { findGitRoot } from '../../utils/repository-manager';
+import path from 'path';
 
 export const findPivotRoot = (
   workspacePath: string

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { fetchKeys } from '../api/apiKeysApi';
+import { useQuery } from '@tanstack/react-query';
 
 export const useQueryFetchKeys = () => {
   return useQuery({

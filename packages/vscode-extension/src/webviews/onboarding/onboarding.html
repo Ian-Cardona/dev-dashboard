@@ -6,8 +6,8 @@
     <title>Onboarding</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body class="flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md p-8 space-y-6">
+  <body class="flex min-h-screen items-center justify-center">
+    <div class="w-full max-w-md space-y-6 p-8">
       <div class="text-center">
         <h2 class="text-2xl font-bold">Welcome to DevDashboard</h2>
       </div>
@@ -17,11 +17,11 @@
       </div>
 
       <form id="api-key-form" novalidate>
-        <div id="input-error-message" class="text-red-500 hidden"></div>
+        <div id="input-error-message" class="hidden text-red-500"></div>
         <div class="mb-6">
           <label
             for="api-key-input"
-            class="block mb-2 font-semibold text-inherit"
+            class="mb-2 block font-semibold text-inherit"
             >API Key</label
           >
           <input
@@ -29,16 +29,16 @@
             name="api-key"
             id="api-key-input"
             placeholder="Enter API Key..."
-            class="w-full border p-1 bg-inherit"
+            class="w-full border bg-inherit p-1"
           />
         </div>
 
-        <div id="submit-error-message" class="text-red-500 hidden mb-1"></div>
+        <div id="submit-error-message" class="mb-1 hidden text-red-500"></div>
         <div>
           <button
             type="submit"
             id="submit-button"
-            class="w-full p-1 bg-sky-600 text-white"
+            class="w-full bg-sky-600 p-1 text-white"
           >
             Submit and Verify
           </button>

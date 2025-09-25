@@ -1,5 +1,3 @@
-import * as vscode from 'vscode';
-import { ProcessedTodo, RawTodo } from '@dev-dashboard/shared';
 import {
   findPivotRoot,
   getSourceFiles,
@@ -7,6 +5,8 @@ import {
   tagTodos,
   scanFile,
 } from './scan';
+import { ProcessedTodo, RawTodo } from '@dev-dashboard/shared';
+import * as vscode from 'vscode';
 
 export const scanTodos = async (): Promise<{
   todos: ProcessedTodo[];

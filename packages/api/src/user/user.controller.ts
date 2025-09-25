@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from 'express';
 import { IUserService } from './user.service';
 import {
   passwordUpdateSchema,
   uuidSchema,
   userUpdateSchema,
 } from '@dev-dashboard/shared';
+import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
 export interface IUserController {

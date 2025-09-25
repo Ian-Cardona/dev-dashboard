@@ -1,9 +1,9 @@
+import { IApiKeysModel } from './api-keys.model';
+import { ApiKey, ApiKeyPublic } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { ApiKey, ApiKeyPublic } from '@dev-dashboard/shared';
-import { IApiKeysModel } from './api-keys.model';
-import { UnauthorizedError } from 'src/utils/errors.utils';
 import { ENV } from 'src/config/env_variables';
+import { UnauthorizedError } from 'src/utils/errors.utils';
 
 export interface IApiKeysService {
   create(userId: string, description: string): Promise<ApiKeyPublic>;

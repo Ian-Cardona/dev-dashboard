@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from 'express';
-import { ApiKeysService } from '../api-keys/api-keys.service';
 import { ApiKeysModel } from '../api-keys/api-keys.model';
+import { ApiKeysService } from '../api-keys/api-keys.service';
 import { docClient } from '../config/dynamodb';
+import { NextFunction, Request, Response } from 'express';
 import { extractBearerToken } from 'src/utils/jwt.utils';
 
 const apiKeysService = ApiKeysService(ApiKeysModel(docClient));

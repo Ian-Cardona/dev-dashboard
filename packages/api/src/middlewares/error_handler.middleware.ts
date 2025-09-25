@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import { sendError } from '../utils/api.utils';
 import {
   ConflictError,
   NotFoundError,
   UnauthorizedError,
 } from '../utils/errors.utils';
-import { sendError } from '../utils/api.utils';
 import { logger } from './logger.middleware';
+import { Request, Response, NextFunction } from 'express';
 
 export const errorHandlerMiddleware = (
   error: unknown,

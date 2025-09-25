@@ -1,6 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
-import type { CreateResolution, TodoResolution } from '@dev-dashboard/shared';
 import { postResolutions } from '../api/todosApi';
+import type { CreateResolution, TodoResolution } from '@dev-dashboard/shared';
+import { useMutation } from '@tanstack/react-query';
 
 const useMutateResolveTodos = () => {
   return useMutation<TodoResolution[], Error, CreateResolution[]>({

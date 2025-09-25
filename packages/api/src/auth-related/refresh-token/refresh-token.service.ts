@@ -1,11 +1,11 @@
+import { ENV } from '../../config/env_variables';
+import { ConflictError } from '../../utils/errors.utils';
+import { generateRefreshToken, generateUUID } from '../../utils/uuid.utils';
 import { IRefreshTokenModel } from './refresh-token.model';
 import {
   RefreshToken,
   RefreshTokenRecordAndPlain,
 } from '@dev-dashboard/shared';
-import { ConflictError } from '../../utils/errors.utils';
-import { generateRefreshToken, generateUUID } from '../../utils/uuid.utils';
-import { ENV } from '../../config/env_variables';
 import bcrypt from 'bcryptjs';
 
 export interface IRefreshTokenService {

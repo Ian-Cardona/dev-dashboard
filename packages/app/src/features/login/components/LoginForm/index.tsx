@@ -18,7 +18,7 @@ const LoginForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-80">
+    <form onSubmit={handleSubmit} className="flex w-80 flex-col gap-4">
       <input
         type="email"
         value={email}

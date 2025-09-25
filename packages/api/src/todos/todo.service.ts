@@ -1,6 +1,6 @@
-import crypto from 'crypto';
 import { generateUUID } from '../utils/uuid.utils';
 import { ITodoModel } from './interfaces/itodo.model';
+import { ComparisonResult, ITodoService } from './interfaces/itodo.service';
 import {
   TodoMeta,
   TodoBatch,
@@ -12,7 +12,7 @@ import {
   TodoResolution,
   CreateResolution,
 } from '@dev-dashboard/shared';
-import { ComparisonResult, ITodoService } from './interfaces/itodo.service';
+import crypto from 'crypto';
 
 const buildTodosInfoResponse = (
   userId: string,

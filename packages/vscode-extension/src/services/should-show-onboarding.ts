@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import { clearSecretKey, getSecretKey } from '../utils/secret-key-manager';
 import { API_KEY } from '../utils/constants';
+import { clearSecretKey, getSecretKey } from '../utils/secret-key-manager';
+import * as vscode from 'vscode';
 import z from 'zod';
 
 export const shouldShowOnboarding = async (

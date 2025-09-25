@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
-import { ProcessedTodo } from '@dev-dashboard/shared';
 import { getIconForType } from './get-icon-for-type';
 import { resolveFilePath } from './resolve-file-path';
+import { ProcessedTodo } from '@dev-dashboard/shared';
+import * as vscode from 'vscode';
 
 export class TodoItem extends vscode.TreeItem {
   constructor(todo: ProcessedTodo) {

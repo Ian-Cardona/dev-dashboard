@@ -1,114 +1,35 @@
-import { useMemo, useState } from 'react';
-import useQueryPendingResolutions from '../../hooks/useQueryPendingResolutions';
-import {
-  ChevronDownIcon,
-  ChevronUpDownIcon,
-  ChevronUpIcon,
-} from '@heroicons/react/24/outline';
-import ResolutionsTableRow from './ResolutionsTableRow';
 import ResolutionsTableHeader from './ResolutionsTableHeader';
+import ResolutionsTableRow from './ResolutionsTableRow';
+import type { TodoResolution } from '@dev-dashboard/shared';
+import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface ResolutionsTableProps {
   isEditMode?: boolean;
+  resolutions: TodoResolution[];
+  isLoading: boolean;
+  isError: boolean;
+  getSortIcon: (key: string) => React.ReactNode;
+  handleSort: (field: string) => void;
+  setTypeFilter: (filter: string) => void;
+  typeFilter: string;
+  uniqueTypes: string[];
+  selectedReasons: Record<string, string>;
+  onReasonChange: (id: string, value: string) => void;
 }
 
-const ResolutionsTable = ({ isEditMode = false }: ResolutionsTableProps) => {
-  const {
-    data: resolutions,
-    isLoading,
-    isError,
-  } = useQueryPendingResolutions();
-  const [typeFilter, setTypeFilter] = useState('');
-  const [sortField, setSortField] = useState<
-    'type' | 'content' | 'createdAt' | null
-  >(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
-  const [selectedReasons, setSelectedReasons] = useState<
-    Record<string, string>
-  >({});
-
-  const handleReasonChange = (id: string, value: string) => {
-    setSelectedReasons(prev => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
-
-  const uniqueTypes = useMemo(
-    () => [...new Set(resolutions?.map(resolution => resolution.type) || [])],
-    [resolutions]
-  );
-
-  const handleSort = (field: string) => {
-    if (field === 'type' || field === 'content' || field === 'createdAt') {
-      if (sortField === field) {
-        setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-      } else {
-        setSortField(field);
-        setSortDirection('asc');
-      }
-    }
-  };
-
-  const getSortIcon = (key: string): React.ReactNode => {
-    if (key !== 'type' && key !== 'content' && key !== 'createdAt') {
-      return null;
-    }
-    const field = key as 'type' | 'content' | 'createdAt';
-    if (sortField !== field) {
-      return (
-        <ChevronUpDownIcon
-          className="inline-block w-4 h-4"
-          aria-hidden="true"
-        />
-      );
-    }
-    return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="inline-block w-4 h-4" aria-hidden="true" />
-    ) : (
-      <ChevronDownIcon className="inline-block w-4 h-4" aria-hidden="true" />
-    );
-  };
-
-  const filteredAndSortedResolutions = useMemo(() => {
-    if (!resolutions) return [];
-
-    let filtered = resolutions.filter(resolution => {
-      const matchesType = !typeFilter || resolution.type === typeFilter;
-      return matchesType;
-    });
-
-    if (sortField) {
-      filtered = [...filtered].sort((a, b) => {
-        let aValue, bValue;
-
-        switch (sortField) {
-          case 'type':
-            aValue = a.type;
-            bValue = b.type;
-            break;
-          case 'content':
-            aValue = a.content.toLowerCase();
-            bValue = b.content.toLowerCase();
-            break;
-          case 'createdAt':
-            aValue = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            bValue = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            break;
-          default:
-            return 0;
-        }
-
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return filtered;
-  }, [resolutions, typeFilter, sortField, sortDirection]);
-
+const ResolutionsTable = ({
+  isEditMode = false,
+  resolutions,
+  isLoading,
+  isError,
+  getSortIcon,
+  handleSort,
+  setTypeFilter,
+  typeFilter,
+  uniqueTypes,
+  selectedReasons,
+  onReasonChange,
+}: ResolutionsTableProps) => {
   if (isLoading) {
     return <div className="px-8">Loading pending resolutions...</div>;
   }
@@ -126,8 +47,8 @@ const ResolutionsTable = ({ isEditMode = false }: ResolutionsTableProps) => {
   }
 
   return (
-    <div className="h-full flex flex-col min-h-0 overflow-hidden">
-      <div className="flex-1 overflow-auto min-h-0">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="relative min-h-0 flex-1 overflow-auto">
         <table className="w-full table-fixed border-collapse">
           <ResolutionsTableHeader
             getSortIcon={getSortIcon}
@@ -137,8 +58,8 @@ const ResolutionsTable = ({ isEditMode = false }: ResolutionsTableProps) => {
             uniqueTypes={uniqueTypes}
             isEditMode={isEditMode}
           />
-          <tbody>
-            {filteredAndSortedResolutions.map((resolution, index) => (
+          <tbody className="relative">
+            {resolutions.map((resolution, index) => (
               <ResolutionsTableRow
                 key={
                   resolution.id ||
@@ -147,15 +68,13 @@ const ResolutionsTable = ({ isEditMode = false }: ResolutionsTableProps) => {
                 resolution={resolution}
                 isEditMode={isEditMode}
                 selectedReason={selectedReasons[resolution.id] || ''}
-                onReasonChange={value =>
-                  handleReasonChange(resolution.id, value)
-                }
+                onReasonChange={value => onReasonChange(resolution.id, value)}
               />
             ))}
           </tbody>
         </table>
 
-        {filteredAndSortedResolutions.length === 0 && (
+        {resolutions.length === 0 && (
           <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
             No resolutions match the current filters
           </div>
