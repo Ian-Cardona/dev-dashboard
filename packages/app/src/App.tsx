@@ -1,7 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router';
+import AppLayout from './components/layout/AppLayout';
 import { PublicRoute, ProtectedRoute } from './components/routes/Routes';
 import { LoginPage, TodosPage, RegisterPage, SettingsPage } from './pages';
-import AppLayout from './components/layout/AppLayout';
+import { Routes, Route, Navigate } from 'react-router';
 
 function App() {
   return (

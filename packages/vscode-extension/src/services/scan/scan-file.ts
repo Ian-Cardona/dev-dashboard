@@ -1,5 +1,5 @@
-import * as fs from 'fs';
 import { RawTodo } from '@dev-dashboard/shared';
+import * as fs from 'fs';
 
 export const scanFile = async (filePath: string): Promise<RawTodo[]> => {
   const todos: RawTodo[] = [];

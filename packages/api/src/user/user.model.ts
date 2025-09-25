@@ -1,3 +1,4 @@
+import { ENV } from '../config/env_variables';
 import {
   DeleteCommand,
   DynamoDBDocumentClient,
@@ -6,7 +7,6 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { ENV } from '../config/env_variables';
 import { User } from '@dev-dashboard/shared';
 
 const USERS_TABLE = ENV.USERS_TABLE;

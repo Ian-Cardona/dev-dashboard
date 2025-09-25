@@ -1,5 +1,6 @@
+import { IUserService } from '../../user/user.service';
 import { generateJWT, verifyJWT } from '../../utils/jwt.utils';
-import { bcryptCompare } from 'src/utils/bcrypt.utils';
+import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
 import {
   AuthenticationLoginRequestPublicSchema,
   AuthenticationRefreshRequestPrivateSchema,
@@ -11,8 +12,7 @@ import {
   RefreshTokenRecordAndPlain,
   RefreshToken,
 } from '@dev-dashboard/shared';
-import { IUserService } from '../../user/user.service';
-import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
+import { bcryptCompare } from 'src/utils/bcrypt.utils';
 import {
   ConflictError,
   NotFoundError,

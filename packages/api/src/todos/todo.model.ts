@@ -1,12 +1,12 @@
+import { ENV } from '../config/env_variables';
+import { ITodoModel } from './interfaces/itodo.model';
 import {
   DynamoDBDocumentClient,
   PutCommand,
   QueryCommand,
   BatchWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { ENV } from '../config/env_variables';
 import { ProjectNames, TodoBatch, TodoResolution } from '@dev-dashboard/shared';
-import { ITodoModel } from './interfaces/itodo.model';
 
 const BATCHES_TABLE = ENV.TODO_BATCHES_TABLE;
 const RESOLUTIONS_TABLE = ENV.TODO_RESOLUTIONS_TABLE;

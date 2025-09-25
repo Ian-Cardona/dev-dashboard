@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router';
-import { useAuth } from '../../../hooks/useAuth';
-import { useMutation } from '@tanstack/react-query';
-import { loginApi } from '../api/loginApi';
 import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
+import { loginApi } from '../api/loginApi';
 import type { AuthenticationLoginRequestPublicSchema } from '@dev-dashboard/shared';
+import { useMutation } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
 
 export const useLoginMutation = () => {
   const navigate = useNavigate();

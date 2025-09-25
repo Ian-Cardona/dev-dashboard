@@ -1,4 +1,3 @@
-import z from 'zod';
 import {
   todoMetaSchema,
   OtherTodoTypeEnum,
@@ -15,6 +14,7 @@ import {
   todoResolutionSchema,
   createResolutionSchema,
 } from '../schemas/todo.schema';
+import z from 'zod';
 
 export type TodoReasonEnumType = z.infer<typeof TodoReasonEnum>;
 export type PredefinedTodoTypeEnumType = z.infer<typeof PredefinedTodoTypeEnum>;

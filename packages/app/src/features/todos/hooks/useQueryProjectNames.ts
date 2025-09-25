@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { getProjectNames } from '../api/todosApi';
+import { useQuery } from '@tanstack/react-query';
 
 const useQueryProjectNames = () => {
   return useQuery({

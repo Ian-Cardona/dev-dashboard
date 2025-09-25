@@ -1,10 +1,10 @@
-import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import SettingsApiKeys from '../features/settings/components/api-keys/SettingsApiKeys';
+import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
 const SettingsPage = () => {
   return (
-    <div className="h-screen flex flex-col p-8 overflow-hidden">
-      <header className="flex flex-shrink-0 items-center gap-3 mb-8">
+    <div className="flex h-screen flex-col overflow-hidden p-8">
+      <header className="mb-8 flex flex-shrink-0 items-center gap-3">
         <Cog6ToothIcon className="h-7 w-7" />
         <h1 className="text-4xl">Settings</h1>
       </header>

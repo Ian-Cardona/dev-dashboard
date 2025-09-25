@@ -1,4 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
+import { ENV } from '../../config/env_variables';
+import { IAuthenticationService } from './authentication.service';
 import {
   AuthenticationLoginRequestPublicSchema,
   AuthenticationRefreshRequestPrivateSchema,
@@ -9,8 +10,7 @@ import {
   authenticationRefreshRequestPrivateSchema,
   authenticationRegisterRequestPublicSchema,
 } from '@dev-dashboard/shared';
-import { IAuthenticationService } from './authentication.service';
-import { ENV } from '../../config/env_variables';
+import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;

@@ -1,10 +1,10 @@
+import { protectedClient } from '../../../lib/api';
 import type {
   CreateResolution,
   ProjectNames,
   TodoResolution,
   TodosInfo,
 } from '@dev-dashboard/shared';
-import { protectedClient } from '../../../lib/api';
 
 const getLatest = async (): Promise<TodosInfo> => {
   const response = await protectedClient.get('/todos/batches/latest');

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 import { getLatest } from '../api/todosApi';
+import { useQuery } from '@tanstack/react-query';
 
 const useQueryLatestTodos = () => {
   return useQuery({

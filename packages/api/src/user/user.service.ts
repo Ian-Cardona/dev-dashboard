@@ -1,13 +1,13 @@
-import { IUserModel } from './user.model';
+import { ENV } from '../config/env_variables';
 import { ConflictError, NotFoundError } from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
-import bcrypt from 'bcryptjs';
-import { ENV } from '../config/env_variables';
+import { IUserModel } from './user.model';
 import {
   User,
   UserResponsePublic,
   AuthenticationRegisterRequestPublicSchema,
 } from '@dev-dashboard/shared';
+import bcrypt from 'bcryptjs';
 
 export interface IUserService {
   create(

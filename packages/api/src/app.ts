@@ -1,16 +1,14 @@
-import express from 'express';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import cookieParser from 'cookie-parser';
-
-import authenticationRouter from './auth-related/authentication/authentication.route';
-import todoRouter from './todos/todo.route';
-import userRouter from './user/user.route';
 import apiKeysRouter from './api-keys/api-keys.route';
-
+import authenticationRouter from './auth-related/authentication/authentication.route';
+import { authorizationMiddleware } from './middlewares/authorization.middleware';
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
 import { loggerMiddleware } from './middlewares/logger.middleware';
-import { authorizationMiddleware } from './middlewares/authorization.middleware';
+import todoRouter from './todos/todo.route';
+import userRouter from './user/user.route';
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 
 const app = express();
 

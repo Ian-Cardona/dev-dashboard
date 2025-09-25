@@ -1,7 +1,7 @@
 import js from '@eslint/js';
-import globals from 'globals';
-import eslintPluginPrettier from 'eslint-plugin-prettier';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintPluginPrettier from 'eslint-plugin-prettier';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
@@ -29,15 +29,12 @@ export default tseslint.config(
       prettier: eslintPluginPrettier,
     },
     rules: {
-      // Prettier as ESLint rule
       'prettier/prettier': 'error',
-
-      // Basic modern JS rules
       'prefer-const': 'error',
       'no-var': 'error',
-      'no-unused-vars': 'off', // Turn off base rule
-      '@typescript-eslint/no-unused-vars': 'error', // Use TypeScript version
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error',
     },
   },
-  eslintConfigPrettier // This must be last
+  eslintConfigPrettier
 );

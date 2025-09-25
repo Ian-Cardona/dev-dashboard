@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { TableCellsIcon } from '@heroicons/react/24/outline';
-import TodosHistoryTable from './history/TodosHistoryTable.tsx';
-import TodosHistoryProjectMenu from './history/TodosHistoryProjectMenu.tsx';
 import useQueryProjectNames from '../hooks/useQueryProjectNames.ts';
 import useQueryProjectTodos from '../hooks/useQueryProjectTodos.ts';
+import TodosHistoryProjectMenu from './history/TodosHistoryProjectMenu.tsx';
+import TodosHistoryTable from './history/TodosHistoryTable.tsx';
+import { useState } from 'react';
 
 const TodosHistory = () => {
   const [selectedProjectIndex, setSelectedProjectIndex] = useState<number>(0);
@@ -58,8 +57,8 @@ const TodosHistory = () => {
   };
 
   return (
-    <div className="rounded-4xl border pt-8 flex flex-col bg-[var(--color-surface)] h-full">
-      <div className="flex items-center justify-between mb-8 px-8">
+    <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+      <div className="mb-8 flex items-center justify-between px-8">
         <h2 className="flex items-center text-3xl">History</h2>
         <TodosHistoryProjectMenu
           title={displayTitle}
@@ -69,7 +68,7 @@ const TodosHistory = () => {
           canGoRight={selectedProjectIndex < projects.length - 1}
         />
       </div>
-      <div className="flex-1 min-h-0 overflow-auto rounded-b-4xl">
+      <div className="min-h-0 flex-1 overflow-auto rounded-b-4xl">
         {renderContent()}
       </div>
     </div>

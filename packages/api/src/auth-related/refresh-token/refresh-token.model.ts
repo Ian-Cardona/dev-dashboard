@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ENV } from '../../config/env_variables';
 import {
   DynamoDBDocumentClient,
   PutCommand,
@@ -10,7 +11,6 @@ import {
   UpdateCommand,
   GetCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { ENV } from '../../config/env_variables';
 import { RefreshToken } from '@dev-dashboard/shared';
 
 const REFRESH_TOKENS_TABLE = ENV.REFRESH_TOKENS_TABLE;

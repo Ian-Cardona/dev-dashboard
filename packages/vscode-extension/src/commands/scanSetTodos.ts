@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
 import { scanTodos } from '../services/scan-todos';
 import { TodosProvider } from '../webviews/todos/todos-provider';
+import * as vscode from 'vscode';
 
 export const scanSetTodosCommand = async (todosProvider: TodosProvider) => {
   try {

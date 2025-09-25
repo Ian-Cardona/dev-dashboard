@@ -1,14 +1,12 @@
-import { Router } from 'express';
-
 import { docClient } from '../../config/dynamodb';
-import { AuthenticationService } from './authentication.service';
-import { AuthenticationController } from './authentication.controller';
-import { IAuthenticationService } from './authentication.service';
-
 import { UserModel } from '../../user/user.model';
-import { RefreshTokenModel } from '../refresh-token/refresh-token.model';
 import { UserService } from '../../user/user.service';
+import { RefreshTokenModel } from '../refresh-token/refresh-token.model';
 import { RefreshTokenService } from '../refresh-token/refresh-token.service';
+import { AuthenticationController } from './authentication.controller';
+import { AuthenticationService } from './authentication.service';
+import { IAuthenticationService } from './authentication.service';
+import { Router } from 'express';
 
 const router = Router();
 

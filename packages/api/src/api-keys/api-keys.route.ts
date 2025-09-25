@@ -1,11 +1,10 @@
-import { Router } from 'express';
-
 import { docClient } from '../config/dynamodb';
-import { ApiKeysService } from './api-keys.service';
 import { ApiKeysController } from './api-keys.controller';
 import { ApiKeysModel } from './api-keys.model';
-import { authorizationMiddleware } from 'src/middlewares/authorization.middleware';
+import { ApiKeysService } from './api-keys.service';
+import { Router } from 'express';
 import { apiKeysMiddleware } from 'src/middlewares/api-keys.middleware';
+import { authorizationMiddleware } from 'src/middlewares/authorization.middleware';
 
 const router = Router();
 

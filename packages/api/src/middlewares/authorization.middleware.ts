@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from 'express';
+import { docClient } from '../config/dynamodb';
+import { UserModel } from '../user/user.model';
+import { UserService } from '../user/user.service';
 import { UnauthorizedError } from '../utils/errors.utils';
 import { extractBearerToken, verifyJWT } from '../utils/jwt.utils';
 import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
-import { UserService } from '../user/user.service';
-import { UserModel } from '../user/user.model';
-import { docClient } from '../config/dynamodb';
+import { NextFunction, Request, Response } from 'express';
 
 const userService = UserService(UserModel(docClient));
 

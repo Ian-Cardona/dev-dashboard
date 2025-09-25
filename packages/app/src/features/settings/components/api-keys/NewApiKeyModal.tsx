@@ -11,18 +11,18 @@ const NewApiKeyModal = ({ isOpen, onClose }: NewApiKeyModalProps) => {
       style={{}}
     >
       <div
-        className="bg-[var(--color-bg)] text-[var(--color-fg)] p-8 rounded-lg border border-[var(--color-border)] min-w-[300px] relative shadow-lg"
+        className="relative min-w-[300px] rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-8 text-[var(--color-fg)] shadow-lg"
         role="dialog"
         aria-modal="true"
       >
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] p-2 rounded transition"
+          className="absolute top-2 right-2 rounded p-2 text-[var(--color-fg-muted)] transition hover:text-[var(--color-fg)]"
           aria-label="Close"
         >
           &times;
         </button>
-        <h2 className="text-lg font-semibold mb-4">New API Key</h2>
+        <h2 className="mb-4 text-lg font-semibold">New API Key</h2>
         <div>Form goes here</div>
       </div>
     </div>

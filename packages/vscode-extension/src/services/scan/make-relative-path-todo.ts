@@ -1,5 +1,5 @@
-import { RawTodo } from '@dev-dashboard/shared';
 import { makeRelativePath } from '../../utils/path-manager';
+import { RawTodo } from '@dev-dashboard/shared';
 
 export const makeRelativePathTodo = (
   todo: RawTodo,

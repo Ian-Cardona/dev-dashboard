@@ -1,9 +1,8 @@
-import { Router } from 'express';
-
 import { docClient } from '../config/dynamodb';
+import { TodoController } from './todo.controller';
 import { TodoModel } from './todo.model';
 import { TodoService } from './todo.service';
-import { TodoController } from './todo.controller';
+import { Router } from 'express';
 import { apiKeysMiddleware } from 'src/middlewares/api-keys.middleware';
 import { authorizationMiddleware } from 'src/middlewares/authorization.middleware';
 

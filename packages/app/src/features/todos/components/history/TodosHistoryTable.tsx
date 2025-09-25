@@ -1,12 +1,12 @@
+import TodosHistoryTableHeader from './TodosHistoryTableHeader';
+import TodosHistoryTableRow from './TodosHistoryTableRow';
 import type { FlattenedTodo, TodoBatch } from '@dev-dashboard/shared';
-import { useMemo, useState } from 'react';
 import {
   ChevronUpDownIcon,
   ChevronUpIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
-import TodosHistoryTableHeader from './TodosHistoryTableHeader';
-import TodosHistoryTableRow from './TodosHistoryTableRow';
+import { useMemo, useState } from 'react';
 
 interface TodosHistoryTableProps {
   batch: TodoBatch[];
@@ -66,15 +66,15 @@ const TodosHistoryTable = ({ batch }: TodosHistoryTableProps) => {
     if (sortField !== field) {
       return (
         <ChevronUpDownIcon
-          className="inline-block w-4 h-4"
+          className="inline-block h-4 w-4"
           aria-hidden="true"
         />
       );
     }
     return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="inline-block w-4 h-4" aria-hidden="true" />
+      <ChevronUpIcon className="inline-block h-4 w-4" aria-hidden="true" />
     ) : (
-      <ChevronDownIcon className="inline-block w-4 h-4" aria-hidden="true" />
+      <ChevronDownIcon className="inline-block h-4 w-4" aria-hidden="true" />
     );
   };
 
@@ -115,8 +115,8 @@ const TodosHistoryTable = ({ batch }: TodosHistoryTableProps) => {
   }, [flattenedTodos, typeFilter, sortField, sortDirection]);
 
   return (
-    <div className="h-full flex flex-col min-h-0">
-      <div className="flex-1 overflow-auto min-h-0">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full table-auto">
           <TodosHistoryTableHeader
             getSortIcon={getSortIcon}

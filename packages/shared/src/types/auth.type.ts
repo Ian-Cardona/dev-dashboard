@@ -1,5 +1,3 @@
-import z from 'zod';
-import { JwtPayload } from 'jsonwebtoken';
 import {
   authenticationLoginRequestPublicSchema,
   authenticationResponsePublicSchema,
@@ -9,6 +7,8 @@ import {
   authenticationSuccessResponsePrivateSchema,
   authorizationJwtSchema,
 } from '../schemas/auth.schema';
+import { JwtPayload } from 'jsonwebtoken';
+import z from 'zod';
 
 export type AuthenticationRegisterRequestPublicSchema = z.infer<
   typeof authenticationRegisterRequestPublicSchema

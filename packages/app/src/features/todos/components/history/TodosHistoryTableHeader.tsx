@@ -1,5 +1,5 @@
-import { type ReactNode, useState } from 'react';
 import IconSelector from '../common/IconSelector';
+import { type ReactNode, useState } from 'react';
 
 interface TodosHistoryTableHeaderProps {
   typeFilter: string;
@@ -20,13 +20,17 @@ const TodosHistoryTableHeader = ({
 }: TodosHistoryTableHeaderProps) => {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   return (
-    <thead className="sticky top-0 bg-[var(--color-surface)] z-2">
+    <thead className="sticky top-0 z-2 bg-[var(--color-surface)]">
       <tr className="border-b">
-        <th className="w-36 whitespace-nowrap px-6 py-2 text-left text-base">
+        <th
+          className="w-36 px-6 py-3 text-left text-base whitespace-nowrap"
+          onMouseEnter={() => setShowTypeDropdown(true)}
+          onMouseLeave={() => setShowTypeDropdown(false)}
+        >
           <div className="relative">
             <button
               onClick={() => handleSort('type')}
-              className="flex cursor-pointer select-none items-center gap-2"
+              className="flex cursor-pointer items-center gap-2 select-none"
               title="Sort by Type"
               type="button"
             >
@@ -42,7 +46,7 @@ const TodosHistoryTableHeader = ({
               {getSortIcon('type')}
             </button>
             {showTypeDropdown && (
-              <div className="absolute z-10 mt-2 w-40 rounded-lg border bg-[var(--color-surface)] shadow-md">
+              <div className="absolute z-10 mt-2 w-40 rounded-2xl border bg-[var(--color-surface)] shadow-md">
                 <div
                   className="cursor-pointer rounded-md px-6 py-2 text-base uppercase hover:bg-[var(--color-fg)]/5"
                   onClick={() => {
@@ -76,10 +80,10 @@ const TodosHistoryTableHeader = ({
             )}
           </div>
         </th>
-        <th className="whitespace-nowrap px-6 py-3 text-left text-base">
+        <th className="px-6 py-3 text-left text-base whitespace-nowrap">
           <button
             onClick={() => handleSort('content')}
-            className="flex cursor-pointer select-none items-center gap-2"
+            className="flex cursor-pointer items-center gap-2 select-none"
             title="Sort by Content"
             type="button"
           >
@@ -88,10 +92,10 @@ const TodosHistoryTableHeader = ({
           </button>
         </th>
         {showDateFilter && (
-          <th className="w-56 whitespace-nowrap px-6 py-3 text-left text-base">
+          <th className="w-56 px-6 py-3 text-left text-base whitespace-nowrap">
             <button
               onClick={() => handleSort('date')}
-              className="flex cursor-pointer select-none items-center gap-2"
+              className="flex cursor-pointer items-center gap-2 select-none"
               title="Sort by Date"
               type="button"
             >

@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import { execSync } from 'child_process';
+import * as vscode from 'vscode';
 
 export const findGitRoot = (startPath: string): string | null => {
   try {

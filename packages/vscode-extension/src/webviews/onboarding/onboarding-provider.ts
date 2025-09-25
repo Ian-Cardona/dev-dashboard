@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import z from 'zod';
-import { WebviewMessage } from './onboarding.type';
 import { verifyApiKey } from '../../services/validate-api-key';
+import { WebviewMessage } from './onboarding.type';
+import * as fs from 'fs';
+import * as vscode from 'vscode';
+import z from 'zod';
 
 export class OnboardingProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'devDashboardOnboarding';

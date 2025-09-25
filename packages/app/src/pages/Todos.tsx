@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import PendingResolutions from '../features/todos/components/PendingResolutions';
 import TodosHistory from '../features/todos/components/TodosHistory';
+import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 
 const TodosPage = () => {
   const [activeTab, setActiveTab] = useState('pending');
 
   return (
-    <div className="h-screen flex flex-col p-8 overflow-hidden bg-[var(--color-background)]">
-      <header className="flex flex-shrink-0 items-center gap-2 mb-4">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-background)] p-8">
+      <header className="mb-4 flex flex-shrink-0 items-center gap-2">
         <DocumentTextIcon className="h-8 w-8" />
         <h1 className="text-4xl">Todos</h1>
       </header>
-      <div className="flex mb-4">
+      <div className="mb-4 flex">
         <button
           className={`px-4 py-2 text-lg font-medium transition-colors duration-200 ${
             activeTab === 'pending'
-              ? 'border-l-4 border-b-2 border-[var(--color-primary)] text-[var(--color-primary)]'
-              : 'border-l-4 border-b-2 border-transparent'
+              ? 'border-b-2 border-l-4 border-[var(--color-primary)] text-[var(--color-primary)]'
+              : 'border-b-2 border-l-4 border-transparent'
           }`}
           onClick={() => setActiveTab('pending')}
         >
@@ -26,8 +26,8 @@ const TodosPage = () => {
         <button
           className={`px-4 py-2 text-lg font-medium transition-colors duration-200 ${
             activeTab === 'history'
-              ? 'border-l-4 border-b-2 border-[var(--color-primary)] text-[var(--color-primary)]'
-              : 'border-l-4 border-b-2 border-transparent'
+              ? 'border-b-2 border-l-4 border-[var(--color-primary)] text-[var(--color-primary)]'
+              : 'border-b-2 border-l-4 border-transparent'
           }`}
           onClick={() => setActiveTab('history')}
         >
@@ -35,12 +35,12 @@ const TodosPage = () => {
         </button>
       </div>
       {activeTab === 'pending' && (
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <PendingResolutions />
         </div>
       )}
       {activeTab === 'history' && (
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <TodosHistory />
         </div>
       )}

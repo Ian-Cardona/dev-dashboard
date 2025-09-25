@@ -1,5 +1,5 @@
-import z from 'zod';
 import { VALIDATION_CONSTANTS } from '../constants/validations';
+import z from 'zod';
 
 // Password Validation
 export const passwordSchema = z

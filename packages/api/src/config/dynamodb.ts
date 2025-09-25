@@ -1,6 +1,6 @@
+import { ENV } from './env_variables';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { ENV } from './env_variables';
 
 const client = new DynamoDBClient({
   region: ENV.AWS_REGION,

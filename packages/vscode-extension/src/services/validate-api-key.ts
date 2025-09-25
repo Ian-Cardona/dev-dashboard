@@ -1,8 +1,8 @@
-import * as vscode from 'vscode';
-import { API_KEY } from '../utils/constants';
 import { apiKeysApi } from '../apis/api-keys-api';
-import { setSecretKey } from '../utils/secret-key-manager';
 import { setupProtectedClient } from '../lib/api';
+import { API_KEY } from '../utils/constants';
+import { setSecretKey } from '../utils/secret-key-manager';
+import * as vscode from 'vscode';
 
 export const verifyApiKey = async (
   key: string,
