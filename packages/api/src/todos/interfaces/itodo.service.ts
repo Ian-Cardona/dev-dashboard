@@ -42,5 +42,6 @@ export interface ITodoService {
     userId: string,
     resolveRequests: CreateResolution[]
   ): Promise<TodoResolution[]>;
+  getResolved(userId: string): Promise<TodoResolution[]>;
   deleteResolvedCurrent(): Promise<void>;
 }

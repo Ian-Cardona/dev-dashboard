@@ -19,6 +19,7 @@ export interface ITodoModel {
 
   findPendingResolutionsByUserId(userId: string): Promise<TodoResolution[]>;
   createResolutions(resolutions: TodoResolution[]): Promise<TodoResolution[]>;
+  getResolved(userId: string): Promise<TodoResolution[]>;
 
   createCurrent(items: TodoResolution[]): Promise<TodoResolution[]>;
   deleteResolvedCurrent(): Promise<TodoResolution[]>;

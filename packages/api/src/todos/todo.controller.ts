@@ -160,5 +160,16 @@ export const TodoController = (todoService: ITodoService) => {
         handleValidationError(error, res, next, 'Invalid resolution format');
       }
     },
+
+    async getResolved(req: Request, res: Response, next: NextFunction) {
+      try {
+        console.log('Getting resolved todos');
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await todoService.getResolved(userId);
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid User ID format');
+      }
+    },
   };
 };

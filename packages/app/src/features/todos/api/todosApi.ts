@@ -38,10 +38,16 @@ const postResolutions = async (
   return response.data;
 };
 
+const getResolved = async (): Promise<TodoResolution[]> => {
+  const response = await protectedClient.get('/todos/resolutions');
+  return response.data;
+};
+
 export {
   getLatest,
   getProjectNames,
   getByProject,
   getPendingResolutions,
   postResolutions,
+  getResolved,
 };
