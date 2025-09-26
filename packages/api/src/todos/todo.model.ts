@@ -173,6 +173,20 @@ export const TodoModel = (docClient: DynamoDBDocumentClient): ITodoModel => {
       return resolutions;
     },
 
+    async getResolved(userId: string): Promise<TodoResolution[]> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: RESOLUTIONS_TABLE,
+          KeyConditionExpression: 'userId = :userId',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+          },
+        })
+      );
+
+      return (result.Items as TodoResolution[]) || [];
+    },
+
     async createCurrent(items: TodoResolution[]): Promise<TodoResolution[]> {
       if (!items.length) return [];
 

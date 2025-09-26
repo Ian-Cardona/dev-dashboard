@@ -327,12 +327,8 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
           resolvedResolutions.push(resolvedResolution);
         }
 
-        console.log('resolvedResolutions', JSON.stringify(resolvedResolutions));
-
         const updatedResolutions =
           await TodoModel.createResolutions(resolvedResolutions);
-
-        console.log('updatedResolutions', JSON.stringify(updatedResolutions));
 
         await TodoModel.createCurrent(resolvedResolutions);
 
@@ -351,9 +347,17 @@ export const TodoService = (TodoModel: ITodoModel): ITodoService => {
           await TodoModel.findPendingResolutionsByUserId(userId);
         return resolutions;
       } catch (error) {
-        console.error('Error in getPendingResolutionsByUserId:', error);
         if (error instanceof Error) throw error;
         throw new Error('Failed to retrieve pending resolutions');
+      }
+    },
+
+    getResolved(userId: string): Promise<TodoResolution[]> {
+      try {
+        return TodoModel.getResolved(userId);
+      } catch (error) {
+        if (error instanceof Error) throw error;
+        throw new Error('Failed to retrieve resolved todos');
       }
     },
 

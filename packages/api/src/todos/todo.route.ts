@@ -48,6 +48,11 @@ router.get(
 );
 
 router.get(
+  '/resolutions',
+  authorizationMiddleware,
+  controllerInstance.getResolved
+);
+router.get(
   '/resolutions/pending',
   authorizationMiddleware,
   controllerInstance.getPendingResolutionsByUserId
