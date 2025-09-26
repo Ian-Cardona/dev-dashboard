@@ -1,5 +1,6 @@
 import useMutateResolveTodos from '../hooks/useMutateResolveTodos';
 import useQueryPendingResolutions from '../hooks/useQueryPendingResolutions';
+import ConfirmModal from './resolutions/ConfirmModal';
 import ResolutionsTable from './resolutions/ResolutionsTable';
 import { type CreateResolution } from '@dev-dashboard/shared';
 import {
@@ -11,6 +12,7 @@ import {
   XMarkIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState, type JSX } from 'react';
 
 type TypeFilter = '' | 'bug' | 'feature' | 'chore' | string;
@@ -21,6 +23,10 @@ type SelectedReasons = Record<string, string>;
 const PendingResolutions = () => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [isTooltipVisible, setIsTooltipVisible] = useState<boolean>(false);
+  const [showConfirmDiscard, setShowConfirmDiscard] = useState<boolean>(false);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState<boolean>(false);
+
+  const queryClient = useQueryClient();
 
   const { mutate } = useMutateResolveTodos();
 
@@ -117,7 +123,15 @@ const PendingResolutions = () => {
     return filtered;
   }, [resolutions, typeFilter, sortField, sortDirection]);
 
-  const handleSubmit = (): void => {
+  const selectedResolutionsCount = useMemo(() => {
+    return Object.values(selectedReasons).filter(Boolean).length;
+  }, [selectedReasons]);
+
+  const handleSubmitClick = (): void => {
+    setShowConfirmSubmit(true);
+  };
+
+  const handleSubmitConfirm = (): void => {
     if (!resolutions) return;
     const payload: Array<{
       id: string;
@@ -130,13 +144,49 @@ const PendingResolutions = () => {
         syncId: resolution.syncId,
         reason: selectedReasons[resolution.id] as CreateResolution['reason'],
       }));
-    mutate(payload);
+
+    mutate(payload, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['todos', 'resolutions', 'pending'],
+        });
+        setSelectedReasons({});
+        setIsEditMode(false);
+        setShowConfirmSubmit(false);
+      },
+      onError: error => {
+        console.error('Failed to submit resolutions:', error);
+        setShowConfirmSubmit(false);
+      },
+    });
+  };
+
+  const handleSubmitCancel = (): void => {
+    setShowConfirmSubmit(false);
   };
 
   const hasValidSelection = useMemo(() => {
     if (!resolutions) return false;
     return resolutions.some(resolution => !!selectedReasons[resolution.id]);
   }, [resolutions, selectedReasons]);
+
+  const handleDiscardConfirm = () => {
+    setSelectedReasons({});
+    setShowConfirmDiscard(false);
+    setIsEditMode(false);
+  };
+
+  const handleDiscardCancel = () => {
+    setShowConfirmDiscard(false);
+  };
+
+  const handleEditButtonClick = () => {
+    if (isEditMode && Object.keys(selectedReasons).length > 0) {
+      setShowConfirmDiscard(true);
+    } else {
+      setIsEditMode(!isEditMode);
+    }
+  };
 
   return (
     <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
@@ -160,7 +210,7 @@ const PendingResolutions = () => {
           </div>
         </h2>
         <button
-          onClick={() => setIsEditMode(!isEditMode)}
+          onClick={handleEditButtonClick}
           className="flex items-center gap-2 rounded-4xl border px-6 text-base font-medium shadow-md hover:bg-[var(--color-fg)]/[0.03]"
         >
           {isEditMode ? (
@@ -168,7 +218,7 @@ const PendingResolutions = () => {
           ) : (
             <PencilSquareIcon className="h-5 w-5" />
           )}
-          {isEditMode ? 'Cancel' : 'Edit'}
+          {isEditMode ? 'Discard' : 'Edit'}
         </button>
       </div>
       <div className="flex-1 overflow-hidden rounded-b-4xl">
@@ -191,16 +241,42 @@ const PendingResolutions = () => {
       {isEditMode && resolutions && resolutions.length > 0 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
           <button
-            onClick={handleSubmit}
+            onClick={handleSubmitClick}
             disabled={!hasValidSelection}
             className={`flex items-center gap-2 rounded-4xl border bg-[var(--color-surface)] px-6 py-2 text-base font-medium shadow-md ${
-              !hasValidSelection ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+              !hasValidSelection
+                ? 'cursor-not-allowed opacity-50'
+                : 'cursor-pointer'
             }`}
           >
             <CheckIcon className="h-6 w-6" />
             Submit
           </button>
         </div>
+      )}
+
+      {showConfirmDiscard && (
+        <ConfirmModal
+          title="Discard Changes"
+          message="Are you sure you want to discard all your changes? This action cannot be undone."
+          confirmText="Yes, Discard"
+          cancelText="Cancel"
+          confirmVariant="danger"
+          onConfirm={handleDiscardConfirm}
+          onCancel={handleDiscardCancel}
+        />
+      )}
+
+      {showConfirmSubmit && (
+        <ConfirmModal
+          title="Submit Resolutions"
+          message={`Are you sure you want to submit ${selectedResolutionsCount} resolution${selectedResolutionsCount !== 1 ? 's' : ''}? This action cannot be undone.`}
+          confirmText="Yes, Submit"
+          cancelText="Cancel"
+          confirmVariant="success"
+          onConfirm={handleSubmitConfirm}
+          onCancel={handleSubmitCancel}
+        />
       )}
     </section>
   );
