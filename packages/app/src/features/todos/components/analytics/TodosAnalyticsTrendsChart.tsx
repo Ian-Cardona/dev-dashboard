@@ -28,12 +28,12 @@ const TodosAnalyticsTrendChart = ({
           dataKey="date"
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 12, fill: 'var(--color-fg-muted)' }}
+          tick={{ fontSize: 12, fill: 'var(--color-fg)' }}
         />
         <YAxis
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 12, fill: 'var(--color-fg-muted)' }}
+          tick={{ fontSize: 12, fill: 'var(--color-fg)' }}
           domain={[0, 'dataMax']}
         />
         <Tooltip

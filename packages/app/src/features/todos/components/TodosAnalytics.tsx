@@ -1,7 +1,8 @@
 import useQueryResolved from '../hooks/useQueryResolved';
 import type { TrendDataPoint } from './analytics/CustomTooltip';
 import TodosAnalyticsTrendsChart from './analytics/TodosAnalyticsTrendsChart';
-import { useMemo } from 'react';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useMemo, useState } from 'react';
 
 interface TodoNode {
   reason?: string;
@@ -9,14 +10,17 @@ interface TodoNode {
   resolvedAt?: string;
 }
 
+const completedReasons = [
+  'done',
+  'implemented',
+  'refactored',
+  'done_by_others',
+];
+
 const TodosAnalytics = () => {
   const { data } = useQueryResolved();
-  const completedReasons = [
-    'done',
-    'implemented',
-    'refactored',
-    'done_by_others',
-  ];
+
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
   const { completionRate, trendData } = useMemo(() => {
     if (!data) return { completionRate: 0, trendData: [] };
@@ -68,7 +72,10 @@ const TodosAnalytics = () => {
     let cumulative = 0;
     const trend: TrendDataPoint[] = [];
 
-    dateMap.forEach((value, dateStr) => {
+    const sortedDates = Array.from(dateMap.keys()).sort();
+
+    sortedDates.forEach(dateStr => {
+      const value = dateMap.get(dateStr)!;
       const date = new Date(dateStr);
       const resolved = value.resolved;
       const breakdown: Record<string, number> = {};
@@ -100,12 +107,29 @@ const TodosAnalytics = () => {
   return (
     <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] px-8 py-8">
       <div className="mb-6 flex flex-col items-center justify-center py-4">
-        <span className="text-[5rem] leading-none font-extrabold text-[var(--color-primary)]">
-          {Math.round(completionRate)}%
-        </span>
-        <p className="mt-1 text-sm text-[var(--color-accent)]">
-          Completion Rate
-        </p>
+        <div className="flex items-center">
+          <span className="text-[5rem] leading-none font-extrabold text-[var(--color-primary)]">
+            {Math.round(completionRate)}%
+          </span>
+        </div>
+        <div className="mt-1 flex items-center text-sm">
+          <span>Completion Rate</span>
+          <div className="relative ml-2 flex items-center">
+            <InformationCircleIcon
+              className="h-5 w-5 cursor-pointer"
+              onMouseEnter={() => setIsTooltipVisible(true)}
+              onMouseLeave={() => setIsTooltipVisible(false)}
+            />
+            {isTooltipVisible && (
+              <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-2xl border bg-[var(--color-surface)] p-4 shadow-lg">
+                <p className="text-left text-sm font-normal">
+                  Completion rate shows the percentage of completed todos
+                  relative to total todos.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <h3 className="mb-4 text-center text-base font-medium text-[var(--color-primary)]">
