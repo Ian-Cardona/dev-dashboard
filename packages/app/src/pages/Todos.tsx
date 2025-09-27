@@ -1,4 +1,5 @@
 import PendingResolutions from '../features/todos/components/PendingResolutions';
+import TodosAnalytics from '../features/todos/components/TodosAnalytics';
 import TodosHistory from '../features/todos/components/TodosHistory';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
@@ -33,6 +34,16 @@ const TodosPage = () => {
         >
           History
         </button>
+        <button
+          className={`px-4 py-2 text-lg font-medium transition-colors duration-200 ${
+            activeTab === 'analytics'
+              ? 'border-b-2 border-l-4 border-[var(--color-primary)] text-[var(--color-primary)]'
+              : 'border-b-2 border-l-4 border-transparent'
+          }`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          Analytics
+        </button>
       </div>
       {activeTab === 'pending' && (
         <div className="min-h-0 flex-1 overflow-hidden">
@@ -42,6 +53,11 @@ const TodosPage = () => {
       {activeTab === 'history' && (
         <div className="min-h-0 flex-1 overflow-hidden">
           <TodosHistory />
+        </div>
+      )}
+      {activeTab === 'analytics' && (
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <TodosAnalytics />
         </div>
       )}
     </div>
