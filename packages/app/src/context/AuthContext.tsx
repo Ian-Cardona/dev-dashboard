@@ -1,5 +1,5 @@
 import type { UserResponsePublic } from '../../../shared/src/types/user.type';
-import LoadingSpinner from '../components/shared/LoadingSpinner';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { authApi } from '../lib/auth';
 import { userApi } from '../lib/user';
 import { isAxiosError } from 'axios';

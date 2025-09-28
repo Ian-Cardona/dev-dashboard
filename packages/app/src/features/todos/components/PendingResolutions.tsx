@@ -28,7 +28,19 @@ const PendingResolutions = () => {
 
   const queryClient = useQueryClient();
 
-  const { mutate } = useMutateResolveTodos();
+  const { mutate } = useMutateResolveTodos({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['todos', 'resolutions', 'pending'],
+      });
+      setSelectedReasons({});
+      setIsEditMode(false);
+      setShowConfirmSubmit(false);
+    },
+    onError: () => {
+      setShowConfirmSubmit(false);
+    },
+  });
 
   const {
     data: resolutions,
@@ -133,11 +145,8 @@ const PendingResolutions = () => {
 
   const handleSubmitConfirm = (): void => {
     if (!resolutions) return;
-    const payload: Array<{
-      id: string;
-      syncId: string;
-      reason: CreateResolution['reason'];
-    }> = resolutions
+
+    const payload = resolutions
       .filter(resolution => selectedReasons[resolution.id])
       .map(resolution => ({
         id: resolution.id,
@@ -145,20 +154,7 @@ const PendingResolutions = () => {
         reason: selectedReasons[resolution.id] as CreateResolution['reason'],
       }));
 
-    mutate(payload, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['todos', 'resolutions', 'pending'],
-        });
-        setSelectedReasons({});
-        setIsEditMode(false);
-        setShowConfirmSubmit(false);
-      },
-      onError: error => {
-        console.error('Failed to submit resolutions:', error);
-        setShowConfirmSubmit(false);
-      },
-    });
+    mutate(payload);
   };
 
   const handleSubmitCancel = (): void => {
