@@ -7,14 +7,17 @@ export interface TrendDataPoint {
   breakdown: Record<string, number>;
 }
 
-interface CustomTooltipProps {
+interface TodosAnalyticsCustomTooltipProps {
   active?: boolean;
   payload?: Array<{
     payload: TrendDataPoint;
   }>;
 }
 
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+const TodosAnalyticsCustomTooltip = ({
+  active,
+  payload,
+}: TodosAnalyticsCustomTooltipProps) => {
   if (!active || !payload?.[0]) return null;
 
   const data = payload[0].payload;
@@ -53,4 +56,4 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   );
 };
 
-export default CustomTooltip;
+export default TodosAnalyticsCustomTooltip;

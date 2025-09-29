@@ -1,17 +1,11 @@
+import useQueryPendingResolutions from '../hooks/useQueryPendingResolutions';
 import useQueryResolved from '../hooks/useQueryResolved';
-import type { TrendDataPoint } from './analytics/CustomTooltip';
-import TodosAnalyticsTrendsChart from './analytics/TodosAnalyticsTrendsChart';
+import TodosAnalyticsCardHeader from './analytics/TodosAnalyticsCardHeader';
+import TodosActivityHeatmap from './analytics/TodosAnalyticsHeatMap';
 import type { TodoReasonEnumType } from '@dev-dashboard/shared';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
 
-interface TodoNode {
-  reason?: string;
-  createdAt?: string;
-  resolvedAt?: string;
-}
-
-//TODO: Implement this correctly
 const completedReasons: TodoReasonEnumType[] = [
   'done',
   'implemented',
@@ -20,170 +14,174 @@ const completedReasons: TodoReasonEnumType[] = [
 ];
 
 const TodosAnalytics = () => {
-  const { data } = useQueryResolved();
+  const { data: resolvedData } = useQueryResolved();
+  const { data: pendingData } = useQueryPendingResolutions();
+  const [isTooltipVisible, setIsTooltipVisible] = useState<boolean>(false);
 
-  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  const {
+    completionRate,
+    completed,
+    total,
+    resolvedCount,
+    resolvedRate,
+    reasonDistribution,
+    totalResolved,
+  } = useMemo(() => {
+    const resolvedTodos = resolvedData || [];
+    const pendingTodos = pendingData || [];
 
-  const { completionRate, trendData, completed, total, breakdownAggregate } =
-    useMemo(() => {
-      if (!data)
-        return {
-          completionRate: 0,
-          trendData: [],
-          completed: 0,
-          total: 0,
-          breakdownAggregate: {},
-        };
+    const totalCount = resolvedTodos.length + pendingTodos.length;
+    const completedCount = resolvedTodos.filter(
+      todo =>
+        todo.reason &&
+        completedReasons.includes(todo.reason as TodoReasonEnumType)
+    ).length;
+    const resolvedCount = resolvedTodos.length;
+    const rate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+    const resolvedRate =
+      totalCount > 0 ? (resolvedCount / totalCount) * 100 : 0;
 
-      const totalCount = data.length;
-      const completedCount = data.filter(
-        todo =>
-          todo.reason &&
-          completedReasons.includes(todo.reason as TodoReasonEnumType)
-      ).length;
-      const rate = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const dateMap = new Map<
-        string,
-        {
-          resolved: TodoNode[];
-          created: TodoNode[];
+    const reasonDistribution = resolvedTodos.reduce(
+      (acc, todo) => {
+        if (todo.reason) {
+          acc[todo.reason] = (acc[todo.reason] || 0) + 1;
         }
-      >();
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        dateMap.set(key, { resolved: [], created: [] });
-      }
+    return {
+      completionRate: rate,
+      completed: completedCount,
+      total: totalCount,
+      resolvedCount,
+      resolvedRate,
+      reasonDistribution,
+      totalResolved: resolvedCount,
+    };
+  }, [resolvedData, pendingData]);
 
-      data.forEach(todo => {
-        if (
-          todo.resolvedAt &&
-          todo.reason &&
-          completedReasons.includes(todo.reason as TodoReasonEnumType)
-        ) {
-          const resolvedKey = todo.resolvedAt.slice(0, 10);
-          if (dateMap.has(resolvedKey)) {
-            dateMap.get(resolvedKey)!.resolved.push(todo);
-          }
-        }
+  if (!resolvedData && !pendingData) {
+    return (
+      <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+        <div className="mb-8 flex items-center justify-between px-8">
+          <h2 className="flex items-center text-3xl">Analytics</h2>
+        </div>
+        <div className="flex-1 overflow-hidden rounded-b-4xl">
+          <div className="flex h-full items-center justify-center">
+            <div className="text-[var(--color-accent)]">
+              Loading analytics...
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-        if (todo.createdAt) {
-          const createdKey = todo.createdAt.slice(0, 10);
-          if (dateMap.has(createdKey)) {
-            dateMap.get(createdKey)!.created.push(todo);
-          }
-        }
-      });
-
-      let cumulative = 0;
-      const trend: TrendDataPoint[] = [];
-
-      const sortedDates = Array.from(dateMap.keys()).sort();
-
-      sortedDates.forEach(dateStr => {
-        const value = dateMap.get(dateStr)!;
-        const date = new Date(dateStr);
-        const resolved = value.resolved;
-        const breakdown: Record<string, number> = {};
-
-        resolved.forEach(todo => {
-          if (todo.reason) {
-            breakdown[todo.reason] = (breakdown[todo.reason] || 0) + 1;
-          }
-        });
-
-        cumulative += resolved.length;
-
-        trend.push({
-          date: date.toLocaleDateString(undefined, {
-            month: 'short',
-            day: 'numeric',
-          }),
-          fullDate: date,
-          todos: resolved.length,
-          cumulative,
-          created: value.created.length,
-          breakdown,
-        });
-      });
-
-      // Aggregate breakdown for last day or overall trend data
-      const lastDayBreakdown =
-        trend.length > 0 ? trend[trend.length - 1].breakdown : {};
-      const breakdownAggregate: Record<string, number> = {};
-      trend.forEach(day => {
-        Object.entries(day.breakdown).forEach(([reason, count]) => {
-          breakdownAggregate[reason] =
-            (breakdownAggregate[reason] || 0) + count;
-        });
-      });
-
-      return {
-        completionRate: rate,
-        trendData: trend,
-        completed: completedCount,
-        total: totalCount,
-        breakdownAggregate,
-      };
-    }, [data, completedReasons]);
+  if (total === 0) {
+    return (
+      <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+        <div className="mb-8 flex items-center justify-between px-8">
+          <h2 className="flex items-center text-3xl">Analytics</h2>
+        </div>
+        <div className="flex-1 overflow-hidden rounded-b-4xl">
+          <div className="flex h-full items-center justify-center">
+            <div className="text-center text-[var(--color-accent)]">
+              <div className="text-lg font-medium">No todo data available</div>
+              <div className="mt-2 text-sm">
+                Complete some todos to see analytics
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] px-8 py-8">
-      <div className="mb-6 flex flex-col items-center justify-center py-4">
-        <div className="flex items-center">
-          <span className="text-[5rem] leading-none font-extrabold text-[var(--color-primary)]">
-            {Math.round(completionRate)}%
-          </span>
-        </div>
-        <div className="mt-2 text-sm font-medium text-[var(--color-primary)]">
-          {completed} of {total} todos completed
-        </div>
-        <div className="mt-1 flex items-center text-sm">
-          <span>Completion Rate</span>
-          <div className="relative ml-2 flex items-center">
+    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+      <div className="mb-8 flex items-center justify-between px-8">
+        <h2 className="flex items-center text-3xl">
+          Analytics
+          <div className="relative ml-3">
             <InformationCircleIcon
-              className="h-5 w-5 cursor-pointer"
+              className="h-6 w-6 cursor-pointer"
               onMouseEnter={() => setIsTooltipVisible(true)}
               onMouseLeave={() => setIsTooltipVisible(false)}
             />
             {isTooltipVisible && (
               <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-2xl border bg-[var(--color-surface)] p-4 shadow-lg">
                 <p className="text-left text-sm font-normal">
-                  Completion rate shows the percentage of completed todos
-                  relative to total todos.
+                  Analytics show your todo completion trends and activity over
+                  time. Track your progress with completion rates and resolution
+                  patterns.
                 </p>
               </div>
             )}
           </div>
-        </div>
-        <div className="mt-4 w-full max-w-xs">
-          <h4 className="mb-2 text-sm font-semibold text-[var(--color-primary)]">
-            Breakdown by Reason
-          </h4>
-          <ul className="list-inside list-disc text-sm text-[var(--color-primary)]">
-            {Object.entries(breakdownAggregate).map(([reason, count]) => (
-              <li key={reason}>
-                {reason}: {count}
-              </li>
-            ))}
-            {Object.keys(breakdownAggregate).length === 0 && (
-              <li>No completed todos yet</li>
-            )}
-          </ul>
+        </h2>
+      </div>
+      <div className="flex-1 overflow-hidden rounded-b-4xl">
+        <div className="h-full overflow-y-auto px-8 pb-8">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+            <div className="flex flex-col gap-4 lg:col-span-1">
+              <div className="rounded-2xl border bg-[var(--color-surface)] p-6">
+                <TodosAnalyticsCardHeader
+                  title="Completion Rate"
+                  tooltip="Completion rate shows the percentage of completed todos relative to total todos."
+                />
+                <span className="text-4xl font-bold text-[var(--color-primary)]">
+                  {Math.round(completionRate)}%
+                </span>
+                <div className="mt-2 text-sm text-[var(--color-fg)]">
+                  {completed} of {total} todos
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-[var(--color-surface)] p-6">
+                <TodosAnalyticsCardHeader
+                  title="Resolved Rate"
+                  tooltip="Resolved rate shows the percentage of todos with any reason relative to total todos."
+                />
+                <span className="text-4xl font-bold text-[var(--color-primary)]">
+                  {Math.round(resolvedRate)}%
+                </span>
+                <div className="mt-2 text-sm text-[var(--color-fg)]">
+                  {resolvedCount} of {total} todos
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-[var(--color-surface)] p-6">
+                <TodosAnalyticsCardHeader
+                  title="Resolution Types"
+                  tooltip="Breakdown of how todos are being resolved"
+                />
+                <div className="mt-4 space-y-2">
+                  {Object.entries(reasonDistribution).map(([reason, count]) => (
+                    <div key={reason} className="flex justify-between text-sm">
+                      <span className="text-[var(--color-fg)] capitalize">
+                        {reason.replace('_', ' ')}
+                      </span>
+                      <span className="font-medium text-[var(--color-primary)]">
+                        {count} ({Math.round((count / totalResolved) * 100)}%)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-[var(--color-surface)] p-6 lg:col-span-3">
+              <TodosAnalyticsCardHeader title="Activity Over Time" />
+              <div className="w-full">
+                <TodosActivityHeatmap resolvedData={resolvedData} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <h3 className="mb-4 text-center text-base font-medium text-[var(--color-primary)]">
-        Resolved and Created Todos Trend (Last 7 days)
-      </h3>
-      <TodosAnalyticsTrendsChart trendData={trendData} />
-    </div>
+    </section>
   );
 };
 

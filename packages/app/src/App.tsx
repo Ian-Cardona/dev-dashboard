@@ -16,7 +16,12 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Navigate to="/todos" replace />} />
-            <Route path="todos" element={<TodosPage />} />
+            <Route path="todos">
+              <Route index element={<Navigate to="/todos/pending" replace />} />
+              <Route path="pending" element={<TodosPage />} />
+              <Route path="history" element={<TodosPage />} />
+              <Route path="analytics" element={<TodosPage />} />
+            </Route>
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
