@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 interface TodoNode {
   reason?: string;
@@ -14,9 +14,13 @@ interface HeatmapDataPoint {
 
 interface TodosActivityHeatmapProps {
   resolvedData?: TodoNode[];
+  onDayClick?: (date: string) => void;
 }
 
-const TodosActivityHeatmap = ({ resolvedData }: TodosActivityHeatmapProps) => {
+const TodosActivityHeatmap = ({
+  resolvedData,
+  onDayClick,
+}: TodosActivityHeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<HeatmapDataPoint | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
@@ -34,18 +38,23 @@ const TodosActivityHeatmap = ({ resolvedData }: TodosActivityHeatmapProps) => {
     });
 
     const days: HeatmapDataPoint[] = [];
-    for (let i = 89; i >= 0; i--) {
+    for (let i = 29; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
 
-      const dateStr = date.toISOString().slice(0, 10);
+      // FIX: Construct date string from local date parts to avoid timezone conversion issues.
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const dayOfMonth = date.getDate().toString().padStart(2, '0');
+      const dateStr = `${year}-${month}-${dayOfMonth}`;
+
       const count = countMap.get(dateStr) || 0;
 
       days.push({
         date: dateStr,
         count,
         day: date.getDay(),
-        week: Math.floor((89 - i) / 7),
+        week: Math.floor((29 - i) / 7),
       });
     }
 
@@ -87,7 +96,7 @@ const TodosActivityHeatmap = ({ resolvedData }: TodosActivityHeatmapProps) => {
   const weeks = Math.ceil(heatmapData.length / 7);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center justify-center">
       <div className="flex items-start gap-6">
         <div className="flex flex-col gap-2 pt-8">
           {dayLabels.map((day, i) => (
@@ -104,7 +113,7 @@ const TodosActivityHeatmap = ({ resolvedData }: TodosActivityHeatmapProps) => {
           <div className="mb-3 flex gap-2">
             {Array.from({ length: weeks }, (_, i) => {
               const monthDate = new Date();
-              monthDate.setDate(monthDate.getDate() - (89 - i * 7));
+              monthDate.setDate(monthDate.getDate() - (29 - i * 7));
               const monthName = monthDate.toLocaleDateString('en-US', {
                 month: 'short',
               });
@@ -112,7 +121,7 @@ const TodosActivityHeatmap = ({ resolvedData }: TodosActivityHeatmapProps) => {
               const prevMonthDate = new Date();
               if (i > 0) {
                 prevMonthDate.setDate(
-                  prevMonthDate.getDate() - (89 - (i - 1) * 7)
+                  prevMonthDate.getDate() - (29 - (i - 1) * 7)
                 );
               }
               const showLabel =
@@ -137,23 +146,15 @@ const TodosActivityHeatmap = ({ resolvedData }: TodosActivityHeatmapProps) => {
               return (
                 <div
                   key={cell.date}
-                  className={`h-8 w-8 cursor-pointer rounded border ${getColor(intensity)} hover:border-[var(--color-primary)]`}
+                  className={`h-8 w-8 cursor-pointer rounded border ${getColor(
+                    intensity
+                  )} hover:border-[var(--color-primary)]`}
                   onMouseEnter={e => handleCellHover(cell, e)}
                   onMouseLeave={() => setHoveredCell(null)}
+                  onClick={() => onDayClick?.(cell.date)}
                 />
               );
             })}
-          </div>
-
-          <div className="mt-6 flex w-full items-center justify-end gap-3 text-sm">
-            <span>Less</span>
-            {[0, 1, 2, 3, 4].map(intensity => (
-              <div
-                key={intensity}
-                className={`h-6 w-6 rounded border ${getColor(intensity)}`}
-              />
-            ))}
-            <span>More</span>
           </div>
         </div>
       </div>
@@ -172,6 +173,7 @@ const TodosActivityHeatmap = ({ resolvedData }: TodosActivityHeatmapProps) => {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
+              timeZone: 'UTC', // Ensure tooltip date is not affected by local timezone
             })}
           </div>
           <div className="text-base text-[var(--color-primary)]">

@@ -1,5 +1,6 @@
 import useQueryPendingResolutions from '../hooks/useQueryPendingResolutions';
 import useQueryResolved from '../hooks/useQueryResolved';
+import TodosAnalyticsInfo from './analytics/TodoAnalyticsInfo';
 import TodosAnalyticsCardHeader from './analytics/TodosAnalyticsCardHeader';
 import TodosActivityHeatmap from './analytics/TodosAnalyticsHeatMap';
 import type { TodoReasonEnumType } from '@dev-dashboard/shared';
@@ -17,6 +18,7 @@ const TodosAnalytics = () => {
   const { data: resolvedData } = useQueryResolved();
   const { data: pendingData } = useQueryPendingResolutions();
   const [isTooltipVisible, setIsTooltipVisible] = useState<boolean>(false);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const {
     completionRate,
@@ -26,6 +28,7 @@ const TodosAnalytics = () => {
     resolvedRate,
     reasonDistribution,
     totalResolved,
+    staleCount,
   } = useMemo(() => {
     const resolvedTodos = resolvedData || [];
     const pendingTodos = pendingData || [];
@@ -51,6 +54,14 @@ const TodosAnalytics = () => {
       {} as Record<string, number>
     );
 
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const staleCount = pendingTodos.filter(todo => {
+      if (!todo.createdAt) return false;
+      const createdAt = new Date(todo.createdAt);
+      return !isNaN(createdAt.getTime()) && createdAt < sevenDaysAgo;
+    }).length;
+
     return {
       completionRate: rate,
       completed: completedCount,
@@ -59,16 +70,17 @@ const TodosAnalytics = () => {
       resolvedRate,
       reasonDistribution,
       totalResolved: resolvedCount,
+      staleCount,
     };
   }, [resolvedData, pendingData]);
 
   if (!resolvedData && !pendingData) {
     return (
-      <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+      <section className="relative flex h-full flex-col rounded-2xl border bg-[var(--color-surface)] pt-8">
         <div className="mb-8 flex items-center justify-between px-8">
           <h2 className="flex items-center text-3xl">Analytics</h2>
         </div>
-        <div className="flex-1 overflow-hidden rounded-b-4xl">
+        <div className="flex-1 overflow-hidden rounded-b-2xl">
           <div className="flex h-full items-center justify-center">
             <div className="text-[var(--color-accent)]">
               Loading analytics...
@@ -81,11 +93,11 @@ const TodosAnalytics = () => {
 
   if (total === 0) {
     return (
-      <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+      <section className="relative flex h-full flex-col rounded-2xl border bg-[var(--color-surface)] pt-8">
         <div className="mb-8 flex items-center justify-between px-8">
           <h2 className="flex items-center text-3xl">Analytics</h2>
         </div>
-        <div className="flex-1 overflow-hidden rounded-b-4xl">
+        <div className="flex-1 overflow-hidden rounded-b-2xl">
           <div className="flex h-full items-center justify-center">
             <div className="text-center text-[var(--color-accent)]">
               <div className="text-lg font-medium">No todo data available</div>
@@ -100,7 +112,7 @@ const TodosAnalytics = () => {
   }
 
   return (
-    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+    <section className="relative flex h-full flex-col rounded-2xl border bg-[var(--color-surface)] pt-8">
       <div className="mb-8 flex items-center justify-between px-8">
         <h2 className="flex items-center text-3xl">
           Analytics
@@ -111,7 +123,7 @@ const TodosAnalytics = () => {
               onMouseLeave={() => setIsTooltipVisible(false)}
             />
             {isTooltipVisible && (
-              <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-2xl border bg-[var(--color-surface)] p-4 shadow-lg">
+              <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-xl border bg-[var(--color-surface)] p-4 shadow-lg">
                 <p className="text-left text-sm font-normal">
                   Analytics show your todo completion trends and activity over
                   time. Track your progress with completion rates and resolution
@@ -122,10 +134,10 @@ const TodosAnalytics = () => {
           </div>
         </h2>
       </div>
-      <div className="flex-1 overflow-hidden rounded-b-4xl">
-        <div className="h-full overflow-y-auto px-8 pb-8">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-            <div className="flex flex-col gap-4 lg:col-span-1">
+      <div className="flex-1 overflow-hidden rounded-b-2xl">
+        <div className="h-full overflow-y-auto px-8 pb-8 lg:flex lg:flex-col lg:overflow-hidden">
+          <div className="grid grid-cols-1 gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-4">
+            <div className="flex flex-col gap-4 lg:col-span-1 lg:min-h-0 lg:overflow-y-auto">
               <div className="rounded-2xl border bg-[var(--color-surface)] p-6">
                 <TodosAnalyticsCardHeader
                   title="Completion Rate"
@@ -153,10 +165,17 @@ const TodosAnalytics = () => {
               </div>
 
               <div className="rounded-2xl border bg-[var(--color-surface)] p-6">
-                <TodosAnalyticsCardHeader
-                  title="Resolution Types"
-                  tooltip="Breakdown of how todos are being resolved"
-                />
+                <TodosAnalyticsCardHeader title="Stale Todos" />
+                <span className="text-4xl font-bold text-[var(--color-primary)]">
+                  {staleCount}
+                </span>
+                <div className="mt-2 text-sm text-[var(--color-fg)]">
+                  Pending todos older than 7 days
+                </div>
+              </div>
+
+              <div className="rounded-2xl border bg-[var(--color-surface)] p-6">
+                <TodosAnalyticsCardHeader title="Outcomes" />
                 <div className="mt-4 space-y-2">
                   {Object.entries(reasonDistribution).map(([reason, count]) => (
                     <div key={reason} className="flex justify-between text-sm">
@@ -172,10 +191,19 @@ const TodosAnalytics = () => {
               </div>
             </div>
 
-            <div className="rounded-2xl border bg-[var(--color-surface)] p-6 lg:col-span-3">
-              <TodosAnalyticsCardHeader title="Activity Over Time" />
-              <div className="w-full">
-                <TodosActivityHeatmap resolvedData={resolvedData} />
+            <div className="flex min-h-0 flex-col gap-6 overflow-hidden rounded-2xl border bg-[var(--color-surface)] p-6 lg:col-span-3 lg:flex-row">
+              <div className="flex flex-col gap-4 lg:flex-shrink-0">
+                <TodosAnalyticsCardHeader title="Activity Over Last 30 Days" />
+                <TodosActivityHeatmap
+                  resolvedData={resolvedData}
+                  onDayClick={date => setSelectedDay(date)}
+                />
+              </div>
+              <div className="flex min-h-0 flex-1 lg:min-w-0">
+                <TodosAnalyticsInfo
+                  selectedDay={selectedDay}
+                  resolvedData={resolvedData}
+                />
               </div>
             </div>
           </div>

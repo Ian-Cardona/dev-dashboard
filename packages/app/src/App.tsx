@@ -22,7 +22,16 @@ function App() {
               <Route path="history" element={<TodosPage />} />
               <Route path="analytics" element={<TodosPage />} />
             </Route>
-            <Route path="settings" element={<SettingsPage />} />
+
+            <Route path="settings">
+              <Route
+                index
+                element={<Navigate to="/settings/profile" replace />}
+              />
+              <Route path="profile" element={<SettingsPage />} />
+              <Route path="api-keys" element={<SettingsPage />} />
+              <Route path="account" element={<SettingsPage />} />
+            </Route>
           </Route>
         </Route>
 
