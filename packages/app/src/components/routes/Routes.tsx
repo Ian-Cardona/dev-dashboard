@@ -9,6 +9,7 @@ export const ProtectedRoute = () => {
   if (state.status === 'unauthenticated')
     return <Navigate to="/login" replace />;
   if (state.status === 'authenticated') return <Outlet />;
+  return null;
 };
 
 export const PublicRoute = () => {
