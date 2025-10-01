@@ -1,18 +1,10 @@
 import { IApiKeysModel } from './api-keys.model';
+import { IApiKeysService } from './interfaces/api-keys.service';
 import { ApiKey, ApiKeyPublic } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { ENV } from 'src/config/env_variables';
 import { UnauthorizedError } from 'src/utils/errors.utils';
-
-export interface IApiKeysService {
-  create(userId: string, description: string): Promise<ApiKeyPublic>;
-  validate(pkey: string): Promise<ApiKey>;
-  // findById(id: string): Promise<ApiKey | null>;
-  findByUserId(userId: string): Promise<ApiKey[]>;
-  // revoke(id: string): Promise<void>;
-  // updateLastUsed(id: string, timestamp: string): Promise<ApiKey>;
-}
 
 const KEY_ID_PREFIX = 'key';
 const KEY_SEPARATOR = '_';

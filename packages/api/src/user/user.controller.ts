@@ -1,4 +1,4 @@
-import { IUserService } from './user.service';
+import { IUserService } from './interfaces/iuser.service';
 import {
   passwordUpdateSchema,
   uuidSchema,

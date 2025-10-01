@@ -1,4 +1,5 @@
 import { ENV } from '../config/env_variables';
+import { IUserModel } from './interfaces/iuser.model';
 import {
   DeleteCommand,
   DynamoDBDocumentClient,
@@ -7,26 +8,12 @@ import {
   TransactWriteCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { User } from '@dev-dashboard/shared';
+import { User, UserUpdate } from '@dev-dashboard/shared';
 
 const USERS_TABLE = ENV.USERS_TABLE;
 const EMAILS_TABLE = ENV.EMAILS_TABLE;
 
-export interface IUserModel {
-  create(user: User): Promise<User>;
-  findById(id: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
-  update(
-    id: string,
-    updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>
-  ): Promise<User>;
-  delete(id: string): Promise<void>;
-  updateLastLogin(id: string, timestamp: string): Promise<User>;
-  updatePassword(id: string, passwordHash: string): Promise<User>;
-  deactivate(id: string): Promise<User>;
-}
-
-export const UserModel = (docClient: DynamoDBDocumentClient) => {
+export const UserModel = (docClient: DynamoDBDocumentClient): IUserModel => {
   return {
     async create(user: User): Promise<User> {
       await docClient.send(
@@ -77,10 +64,7 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
       return (result.Items?.[0] as User) ?? null;
     },
 
-    async update(
-      id: string,
-      updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>
-    ): Promise<User> {
+    async update(id: string, updates: UserUpdate): Promise<User> {
       const updateExpressions: string[] = [];
       const attributeNames: Record<string, string> = {};
       const attributeValues: Record<string, unknown> = {};
@@ -89,22 +73,17 @@ export const UserModel = (docClient: DynamoDBDocumentClient) => {
       attributeNames['#updatedAt'] = 'updatedAt';
       attributeValues[':updatedAt'] = new Date().toISOString();
 
-      if (updates.firstName !== undefined) {
-        updateExpressions.push('#firstName = :firstName');
-        attributeNames['#firstName'] = 'firstName';
-        attributeValues[':firstName'] = updates.firstName;
+      const allowedFields = ['firstName', 'lastName'] as const;
+      for (const field of allowedFields) {
+        if (updates[field] !== undefined) {
+          updateExpressions.push(`#${field} = :${field}`);
+          attributeNames[`#${field}`] = field;
+          attributeValues[`:${field}`] = updates[field];
+        }
       }
 
-      if (updates.lastName !== undefined) {
-        updateExpressions.push('#lastName = :lastName');
-        attributeNames['#lastName'] = 'lastName';
-        attributeValues[':lastName'] = updates.lastName;
-      }
-
-      if (updates.isActive !== undefined) {
-        updateExpressions.push('#isActive = :isActive');
-        attributeNames['#isActive'] = 'isActive';
-        attributeValues[':isActive'] = updates.isActive;
+      if (updateExpressions.length === 1) {
+        throw new Error('No valid fields to update');
       }
 
       const result = await docClient.send(
