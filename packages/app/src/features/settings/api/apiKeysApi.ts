@@ -1,8 +1,11 @@
 import { protectedClient } from '../../../lib/api';
-import type { ApiKeyPublic } from '@dev-dashboard/shared';
+import type { ApiKeyPublic, CreateApiKey } from '@dev-dashboard/shared';
 
-const createKey = async (): Promise<ApiKeyPublic> => {
-  const response = await protectedClient.post<ApiKeyPublic>('/api-keys/create');
+const createKey = async (data: CreateApiKey): Promise<ApiKeyPublic> => {
+  const response = await protectedClient.post<ApiKeyPublic>(
+    '/api-keys/create',
+    data
+  );
   return response.data;
 };
 

@@ -8,7 +8,7 @@ const SettingsApiKeysItem = ({
   createdAt,
 }: SettingsApiKeysItemProps) => {
   return (
-    <li className="group flex items-center justify-between rounded-lg border border-[var(--color-border)] px-4 py-3 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
+    <li className="group flex items-center justify-between rounded-4xl border border-[var(--color-border)] px-4 py-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
       <div className="flex flex-1 flex-col">
         <span className="font-sans text-base font-medium text-[var(--color-fg)]">
           {description || 'Untitled Key'}
@@ -24,7 +24,7 @@ const SettingsApiKeysItem = ({
       </div>
       <button
         type="button"
-        className="ml-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-fg)] transition-all group-hover:opacity-100 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+        className="ml-4 rounded-4xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-fg)] transition-all group-hover:opacity-100 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
       >
         Edit
       </button>
