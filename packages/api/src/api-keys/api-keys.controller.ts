@@ -1,24 +1,22 @@
-// import z from 'zod';
-import { IApiKeysService } from './api-keys.service';
-import { ApiKeyPublic, uuidSchema } from '@dev-dashboard/shared';
+import { IApiKeysService } from './interfaces/api-keys.service';
+import {
+  ApiKeyPublic,
+  createApiKeySchema,
+  uuidSchema,
+} from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
-import z from 'zod';
 
 export const ApiKeysController = (apiKeysService: IApiKeysService) => {
   return {
     async create(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const description = z
-          .string()
-          .min(1)
-          .max(255)
-          .parse(req.body.description);
+        const createApiKey = createApiKeySchema.parse(req.body.description);
 
         const result: ApiKeyPublic = await apiKeysService.create(
           userId,
-          description
+          createApiKey.description
         );
         res.json(result);
       } catch (error) {

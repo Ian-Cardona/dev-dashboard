@@ -1,7 +1,9 @@
 import { docClient } from '../config/dynamodb';
+import { IUserModel } from './interfaces/iuser.model';
+import { IUserService } from './interfaces/iuser.service';
 import { UserController } from './user.controller';
-import { IUserModel, UserModel } from './user.model';
-import { IUserService, UserService } from './user.service';
+import { UserModel } from './user.model';
+import { UserService } from './user.service';
 import { Router } from 'express';
 
 const router = Router();
