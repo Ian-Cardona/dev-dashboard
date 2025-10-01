@@ -15,3 +15,10 @@ export const apiKeyPublicSchema = z.object({
   id: z.string().min(1).max(36),
   pkey: z.string().min(1).max(255),
 });
+
+export const createApiKeySchema = z.object({
+  description: z
+    .string()
+    .min(1, { message: 'Description is required' })
+    .max(255),
+});

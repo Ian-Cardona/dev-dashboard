@@ -1,14 +1,12 @@
-// Constants
 export * from './constants/validations';
 
-// Schemas
 export * from './schemas/api-key.schema';
 export * from './schemas/auth.schema';
 export * from './schemas/refresh-token.schema';
 export * from './schemas/todo.schema';
 export * from './schemas/user.schema';
+export * from './schemas/common/common.schema';
 
-// Types
 export * from './types/api-key.type';
 export * from './types/auth.type';
 export * from './types/refresh-token.type';

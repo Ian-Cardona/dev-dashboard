@@ -1,6 +1,5 @@
 import SettingsAccount from '../features/settings/components/account/SettingsAccount';
 import SettingsApiKeys from '../features/settings/components/api-keys/SettingsApiKeys';
-import SettingsProfile from '../features/settings/components/profile/SettingsProfile';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation } from 'react-router';
 
@@ -20,29 +19,11 @@ const SettingsPage = () => {
   const renderContent = () => {
     switch (currentTab) {
       case 'profile':
-        return (
-          <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-            <SettingsProfile />
-          </div>
-        );
+        return <SettingsAccount />;
       case 'api-keys':
-        return (
-          <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-            <SettingsApiKeys />
-          </div>
-        );
-      case 'account':
-        return (
-          <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-            <SettingsAccount />
-          </div>
-        );
+        return <SettingsApiKeys />;
       default:
-        return (
-          <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-            <SettingsProfile />
-          </div>
-        );
+        return <SettingsAccount />;
     }
   };
 
@@ -58,9 +39,6 @@ const SettingsPage = () => {
         </Link>
         <Link to="/settings/api-keys" className={getTabClass('api-keys')}>
           API Keys
-        </Link>
-        <Link to="/settings/account" className={getTabClass('account')}>
-          Account
         </Link>
       </div>
       <div className="min-h-0 flex-1 overflow-hidden">{renderContent()}</div>
