@@ -1,6 +1,8 @@
 import { IApiKeysService } from './interfaces/api-keys.service';
 import {
+  ApiKey,
   ApiKeyPublic,
+  CreateApiKey,
   createApiKeySchema,
   uuidSchema,
 } from '@dev-dashboard/shared';
@@ -11,8 +13,8 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
   return {
     async create(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = uuidSchema.parse(req.user?.userId);
-        const createApiKey = createApiKeySchema.parse(req.body.description);
+        const userId: string = uuidSchema.parse(req.user?.userId);
+        const createApiKey: CreateApiKey = createApiKeySchema.parse(req.body);
 
         const result: ApiKeyPublic = await apiKeysService.create(
           userId,
@@ -26,7 +28,7 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
 
     async check(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = uuidSchema.parse(req.user?.userId);
+        const userId: string = uuidSchema.parse(req.user?.userId);
         if (userId) {
           res.json({ message: 'API Key is valid' });
         }
@@ -37,8 +39,8 @@ export const ApiKeysController = (apiKeysService: IApiKeysService) => {
 
     async findByUserId(req: Request, res: Response, next: NextFunction) {
       try {
-        const userId = uuidSchema.parse(req.user?.userId);
-        const result = await apiKeysService.findByUserId(userId);
+        const userId: string = uuidSchema.parse(req.user?.userId);
+        const result: ApiKey[] = await apiKeysService.findByUserId(userId);
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid User ID format');

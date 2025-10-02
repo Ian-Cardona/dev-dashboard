@@ -30,7 +30,7 @@ const TodosAnalyticsInfo = ({
             .map((todo, index) => (
               <div
                 key={index}
-                className="mb-4 overflow-auto rounded-2xl border p-4"
+                className="mb-4 overflow-auto rounded-2xl border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
               >
                 <div className="mb-2 text-[var(--color-fg)]">
                   {todo.content}

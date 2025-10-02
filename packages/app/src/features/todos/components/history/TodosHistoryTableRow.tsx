@@ -11,7 +11,7 @@ const TodosHistoryTableRow = ({
   showDateFilter,
 }: TodosHistoryTableRowProps) => {
   return (
-    <tr className="border-b border-[var(--color-fg)]/10 hover:border-b-2 hover:border-[var(--color-primary)] hover:bg-[var(--color-fg)]/[0.03]">
+    <tr className="border-b border-[var(--color-border)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
       <td className="px-6 py-3 align-middle text-base normal-case">
         <div className="flex items-center gap-2">
           <IconSelector type={todo.type} />

@@ -18,7 +18,7 @@ const SettingsPage = () => {
 
   const renderContent = () => {
     switch (currentTab) {
-      case 'profile':
+      case 'account':
         return <SettingsAccount />;
       case 'api-keys':
         return <SettingsApiKeys />;
@@ -34,7 +34,7 @@ const SettingsPage = () => {
         <h1 className="text-4xl">Settings</h1>
       </header>
       <div className="mb-4 flex">
-        <Link to="/settings/profile" className={getTabClass('profile')}>
+        <Link to="/settings/account" className={getTabClass('account')}>
           Profile
         </Link>
         <Link to="/settings/api-keys" className={getTabClass('api-keys')}>

@@ -112,7 +112,7 @@ const TodosAnalytics = () => {
   }
 
   return (
-    <section className="relative flex h-full flex-col rounded-2xl border bg-[var(--color-surface)] pt-8">
+    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
       <div className="mb-8 flex items-center justify-between px-8">
         <h2 className="flex items-center text-3xl">
           Analytics

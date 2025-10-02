@@ -3,6 +3,7 @@ import { useMutateCreateKey } from '../../hooks/useMutateCreateKey';
 import { useQueryFetchKeys } from '../../hooks/useQueryFetchKeys';
 import SettingsApiKeysItem from './SettingsApiKeysItem';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 const SettingsApiKeys = () => {
@@ -11,6 +12,9 @@ const SettingsApiKeys = () => {
   const [description, setDescription] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const queryClient = useQueryClient();
+
+  const isCreating = createKey.isPending;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,10 +24,23 @@ const SettingsApiKeys = () => {
   };
 
   const handleConfirmCreate = () => {
-    createKey.mutate({ description });
-    setDescription('');
     setShowConfirm(false);
-    setShowForm(false);
+
+    setTimeout(() => {
+      createKey.mutate(
+        { description: description.trim() },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['api-keys', 'list'] });
+            setDescription('');
+            setShowForm(false);
+          },
+          onError: error => {
+            console.error('Failed to create API key:', error);
+          },
+        }
+      );
+    }, 2000);
   };
 
   const handleCancelCreate = () => {
@@ -31,70 +48,88 @@ const SettingsApiKeys = () => {
   };
 
   return (
-    <section className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-      <div className="flex h-full flex-col">
-        <div className="mb-8 flex items-center justify-between px-8">
+    <section className="flex h-full flex-col overflow-hidden rounded-4xl border bg-[var(--color-surface)]">
+      <div className="flex h-full flex-col overflow-auto px-8 pt-8">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="flex items-center text-3xl">API Keys</h2>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-4xl border px-6 text-base font-medium shadow-md hover:bg-[var(--color-fg)]/[0.03]"
+            className="flex items-center gap-2 rounded-4xl border px-6 py-1 text-base font-medium shadow-md transition-all group-hover:opacity-100 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Create a new API Key"
             onClick={() => setShowForm(!showForm)}
-            disabled={createKey.isPending}
+            disabled={isCreating}
           >
             <PlusIcon className="h-5 w-5" />
-            {createKey.isPending ? 'Creating...' : 'New Key'}
+            {isCreating ? 'Creating...' : 'New Key'}
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-auto rounded-b-4xl px-8 pb-8">
-          {showForm && (
-            <div className="mb-8 rounded-4xl border border-[var(--color-primary)] bg-[var(--color-surface)] p-6 shadow-md">
-              <h3 className="mb-4 text-xl font-semibold">Create New API Key</h3>
-              <form onSubmit={handleSubmit} className="flex items-center gap-4">
+        <p className="mb-4 max-w-2xl text-sm text-[var(--color-accent)]">
+          These keys allow your VSCode extension to connect securely to your
+          account. Treat them like passwords and do not share them.
+        </p>
+        {showForm && (
+          <div className="relative mb-4 rounded-4xl border border-[var(--color-primary)] bg-[var(--color-surface)] p-6 shadow-md">
+            {isCreating && (
+              <div className="bg-opacity-80 absolute inset-0 z-10 flex items-center justify-center rounded-4xl bg-[var(--color-surface)]">
+                <div className="bg-opacity-20 animate-pulse rounded-md bg-[var(--color-primary)] px-6 py-3 font-semibold text-[var(--color-primary)]">
+                  Creating API Key...
+                </div>
+              </div>
+            )}
+            <h3 className="mb-4 text-xl font-semibold">Create New API Key</h3>
+            <form onSubmit={handleSubmit} className="flex items-center gap-4">
+              <fieldset
+                disabled={isCreating}
+                className="flex w-full items-center gap-4"
+              >
                 <input
                   type="text"
                   placeholder="Description"
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className="flex-1 rounded-4xl border px-4 py-2 text-base shadow-md focus:ring-2 focus:ring-[var(--color-fg)] focus:outline-none"
-                  disabled={createKey.isPending}
+                  className="flex-1 rounded-4xl px-4 py-2 text-base outline hover:shadow-md focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   required
                 />
                 <button
                   type="submit"
-                  className="rounded-4xl border px-6 py-2 text-base font-medium shadow-md hover:bg-[var(--color-fg)]/[0.03]"
-                  disabled={createKey.isPending}
+                  className="flex items-center gap-2 rounded-4xl border px-6 py-2 text-base font-medium shadow-md transition-all group-hover:opacity-100 hover:border-green-600 hover:bg-green-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isCreating}
                 >
-                  {createKey.isPending ? 'Creating...' : 'Create Key'}
+                  {isCreating ? 'Creating...' : 'Create Key'}
                 </button>
-              </form>
+              </fieldset>
+            </form>
+          </div>
+        )}
+        <div className="relative flex-1 rounded-4xl pb-8">
+          {isCreating && (
+            <div className="bg-opacity-60 absolute inset-0 z-10 flex items-center justify-center rounded-4xl bg-[var(--color-surface)]">
+              <div className="bg-opacity-20 animate-pulse rounded-md bg-[var(--color-primary)] px-6 py-3 font-semibold text-[var(--color-primary)]">
+                Updating list...
+              </div>
             </div>
           )}
-          <p className="mb-6 max-w-2xl text-sm">
-            These keys allow your VSCode extension to connect securely to your
-            account. Treat them like passwords and do not share them.
-          </p>
-          <div className="min-h-[160px] overflow-auto">
-            {isLoading ? (
-              <div className="flex h-full items-center justify-center text-sm">
+          {isLoading ? (
+            <div className="flex h-full items-center justify-center text-sm">
+              <div className="bg-opacity-20 animate-pulse rounded-md bg-[var(--color-primary)] px-6 py-3 font-semibold text-[var(--color-primary)]">
                 Loading keys...
               </div>
-            ) : keys && keys.length > 0 ? (
-              <ul className="space-y-3">
-                {keys.map((key: any) => (
-                  <SettingsApiKeysItem
-                    key={key.id}
-                    description={key.description}
-                    createdAt={key.createdAt}
-                  />
-                ))}
-              </ul>
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm">
-                No API keys have been created yet.
-              </div>
-            )}
-          </div>
+            </div>
+          ) : keys && keys.length > 0 ? (
+            <ul className="space-y-3">
+              {keys.map((key: any) => (
+                <SettingsApiKeysItem
+                  key={key.id}
+                  description={key.description}
+                  createdAt={key.createdAt}
+                />
+              ))}
+            </ul>
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-[var(--color-accent)]">
+              No API keys have been created yet.
+            </div>
+          )}
         </div>
       </div>
       {showConfirm && (
