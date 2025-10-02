@@ -20,7 +20,7 @@ const ConfirmModal = ({
   const getConfirmButtonStyles = () => {
     switch (confirmVariant) {
       case 'danger':
-        return 'hover:bg-red-600 hover:text-[var(--color-surface)]';
+        return 'hover:bg-red-600 hover:text-white';
       case 'success':
         return 'hover:bg-green-600 hover:text-[var(--color-surface)]';
       default:
@@ -37,16 +37,16 @@ const ConfirmModal = ({
         <p className="mb-6 text-center text-lg font-normal">{message}</p>
         <div className="flex justify-center gap-4">
           <button
-            onClick={onConfirm}
-            className={`rounded-4xl border border-[var(--color-fg)] px-6 py-2 transition-colors ${getConfirmButtonStyles()}`}
-          >
-            {confirmText}
-          </button>
-          <button
             onClick={onCancel}
             className="rounded-4xl border border-[var(--color-fg)] px-6 py-2 transition-colors hover:bg-[var(--color-fg)] hover:text-[var(--color-surface)]"
           >
             {cancelText}
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`rounded-4xl border border-[var(--color-fg)] px-6 py-2 transition-colors ${getConfirmButtonStyles()}`}
+          >
+            {confirmText}
           </button>
         </div>
       </div>
