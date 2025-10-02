@@ -26,11 +26,10 @@ function App() {
             <Route path="settings">
               <Route
                 index
-                element={<Navigate to="/settings/profile" replace />}
+                element={<Navigate to="/settings/account" replace />}
               />
-              <Route path="profile" element={<SettingsPage />} />
-              <Route path="api-keys" element={<SettingsPage />} />
               <Route path="account" element={<SettingsPage />} />
+              <Route path="api-keys" element={<SettingsPage />} />
             </Route>
           </Route>
         </Route>
