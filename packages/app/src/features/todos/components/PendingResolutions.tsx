@@ -1,6 +1,6 @@
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 import useMutateResolveTodos from '../hooks/useMutateResolveTodos';
 import useQueryPendingResolutions from '../hooks/useQueryPendingResolutions';
-import ConfirmModal from './resolutions/ConfirmModal';
 import ResolutionsTable from './resolutions/ResolutionsTable';
 import { type CreateResolution } from '@dev-dashboard/shared';
 import {
@@ -207,7 +207,7 @@ const PendingResolutions = () => {
         </h2>
         <button
           onClick={handleEditButtonClick}
-          className="flex items-center gap-2 rounded-4xl border px-6 text-base font-medium shadow-md hover:bg-[var(--color-fg)]/[0.03]"
+          className={`flex items-center gap-2 rounded-4xl border px-6 py-1 text-base font-medium shadow-md transition-all ${isEditMode ? 'group-hover:opacity-100 hover:border-[var(--color-primary)] hover:bg-red-600' : 'group-hover:opacity-100 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]'} hover:text-white`}
         >
           {isEditMode ? (
             <XMarkIcon className="h-5 w-5" />
@@ -239,10 +239,10 @@ const PendingResolutions = () => {
           <button
             onClick={handleSubmitClick}
             disabled={!hasValidSelection}
-            className={`flex items-center gap-2 rounded-4xl border bg-[var(--color-surface)] px-6 py-2 text-base font-medium shadow-md ${
+            className={`flex items-center gap-2 rounded-4xl border bg-[var(--color-surface)] px-6 py-1 text-base font-medium shadow-md transition-all ${
               !hasValidSelection
                 ? 'cursor-not-allowed opacity-50'
-                : 'cursor-pointer'
+                : 'cursor-pointer group-hover:opacity-100 hover:border-green-600 hover:bg-green-600 hover:text-white'
             }`}
           >
             <CheckIcon className="h-6 w-6" />

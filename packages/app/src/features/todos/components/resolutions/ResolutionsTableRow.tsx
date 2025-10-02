@@ -16,7 +16,7 @@ const ResolutionsTableRow = ({
   onReasonChange,
 }: ResolutionsTableRowProps) => {
   return (
-    <tr className="border-b border-[var(--color-fg)]/10 hover:border-b-2 hover:border-[var(--color-primary)] hover:bg-[var(--color-fg)]/[0.03]">
+    <tr className="border-b border-[var(--color-border)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
       <td className="px-6 py-3 align-middle text-base normal-case">
         <div className="flex items-center gap-2">
           <IconSelector type={resolution.type} />
@@ -36,7 +36,7 @@ const ResolutionsTableRow = ({
           <select
             value={selectedReason}
             onChange={e => onReasonChange(e.target.value)}
-            className="w-full truncate rounded border border-[var(--color-fg)] px-4 text-base"
+            className="w-full truncate rounded border border-[var(--color-border)] px-4 text-base transition-colors hover:border-[var(--color-primary)] focus:border-[var(--color-primary)] focus:outline-none"
           >
             <option value="">Select reason</option>
             {TodoReasonEnum.options.map((option: string) => (

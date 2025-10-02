@@ -57,7 +57,7 @@ const TodosHistory = () => {
   };
 
   return (
-    <div className="flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
+    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
       <div className="mb-8 flex items-center justify-between px-8">
         <h2 className="flex items-center text-3xl">History</h2>
         <TodosHistoryProjectMenu
@@ -71,7 +71,7 @@ const TodosHistory = () => {
       <div className="min-h-0 flex-1 overflow-auto rounded-b-4xl">
         {renderContent()}
       </div>
-    </div>
+    </section>
   );
 };
 
