@@ -53,8 +53,15 @@ export class OnboardingProvider implements vscode.WebviewViewProvider {
           status: 'success',
         });
 
+        await vscode.commands.executeCommand(
+          'setContext',
+          'devDashboard.hasApiKey',
+          true
+        );
+
         setTimeout(() => {
           vscode.commands.executeCommand('dev-dashboard.showTodos');
+          vscode.commands.executeCommand('dev-dashboard.scanTodos');
         }, 1000);
       } else {
         webviewView.webview.postMessage({
