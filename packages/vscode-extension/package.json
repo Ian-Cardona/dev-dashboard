@@ -2,7 +2,7 @@
   "name": "dev-dashboard",
   "displayName": "Dev Dashboard",
   "publisher": "iancardona",
-  "description": "Scan and send TODO comments from your workspace to your dashboard.",
+  "description": "Scan and send TODO from your workspace to your dashboard.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
@@ -21,7 +21,7 @@
         {
           "id": "devDashboard",
           "title": "Dev Dashboard",
-          "icon": "$(list-unordered)"
+          "icon": "$(pass)"
         }
       ]
     },
@@ -41,39 +41,32 @@
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "devDashboardMain",
-        "contents": "No TODOs found in your workspace.\n\nAdd comments like `// TODO: fix this` or `// FIXME: update this` to your code files.\n\n[Scan for TODOs](command:dev-dashboard.scanTodos)\n\nSupported formats:\n• TODO\n• FIXME\n• HACK\n• NOTE\n• BUG",
-        "when": "devDashboard.hasApiKey"
-      }
-    ],
     "commands": [
       {
         "command": "dev-dashboard.scanTodos",
-        "title": "Scan TODOs",
+        "title": "Dev Dashboard: Scan TODOs",
         "icon": "$(search)"
       },
       {
         "command": "dev-dashboard.sendTodos",
-        "title": "Send TODOs",
+        "title": "Dev Dashboard: Send TODOs",
         "icon": "$(cloud-upload)"
       },
       {
         "command": "dev-dashboard.setApiKey",
-        "title": "Set API Key"
+        "title": "Dev Dashboard: Set API Key"
       },
       {
         "command": "dev-dashboard.resetSecrets",
-        "title": "Reset Secrets"
+        "title": "Dev Dashboard: Reset Secrets"
       },
       {
         "command": "dev-dashboard.openTodo",
-        "title": "Open Todo"
+        "title": "Dev Dashboard: Open Todo"
       },
       {
         "command": "dev-dashboard.showTodos",
-        "title": "Show TODOs"
+        "title": "Dev Dashboard: Show TODOs"
       }
     ],
     "menus": {
