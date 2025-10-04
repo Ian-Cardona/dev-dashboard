@@ -14,7 +14,6 @@ class EmptyStateItem extends vscode.TreeItem {
     this.tooltip =
       'Add comments like // TODO: fix this or // FIXME: update this to your code files';
 
-    // Make it clickable to trigger scan
     this.command = {
       command: 'dev-dashboard.scanTodos',
       title: 'Scan for TODOs',
@@ -72,6 +71,7 @@ export class TodosProvider
 
   private _ProcessedTodo: ProcessedTodo[] = [];
   private _projectName: string = '';
+  private _isLoading: boolean = false;
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -93,6 +93,15 @@ export class TodosProvider
 
   getTodos(): ProcessedTodo[] {
     return this._ProcessedTodo;
+  }
+
+  setLoading(isLoading: boolean): void {
+    this._isLoading = isLoading;
+    this.refresh();
+  }
+
+  getLoading(): boolean {
+    return this._isLoading;
   }
 
   getTreeItem(
@@ -133,6 +142,17 @@ export class TodosProvider
 
     if (element) {
       return [];
+    }
+
+    if (this._isLoading) {
+      const loadingItem = new vscode.TreeItem(
+        'Scanning workspace...',
+        vscode.TreeItemCollapsibleState.None
+      );
+      loadingItem.iconPath = new vscode.ThemeIcon('sync~spin');
+      loadingItem.tooltip =
+        'Please wait while scanning your workspace for TODOs.';
+      return [loadingItem];
     }
 
     if (this._ProcessedTodo.length === 0) {

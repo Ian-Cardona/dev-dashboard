@@ -40,7 +40,7 @@ export const getSourceFiles = async (rootPath: string): Promise<string[]> => {
         const fullPath = path.join(dir, item);
 
         try {
-          const stat = await fs.promises.stat(fullPath);
+          const stat = await fs.promises.lstat(fullPath);
 
           if (stat.isDirectory()) {
             if (!skipDirs.includes(item)) {
