@@ -46,7 +46,7 @@ const todos_provider_1 = require("./webviews/todos/todos-provider");
 const vscode = __importStar(require("vscode"));
 const activate = async (context) => {
     vscode.window.showInformationMessage('Thank you for using DevDashboard!');
-    await initializeUI(context);
+    // await initializeUI(context);
     const todosProvider = new todos_provider_1.TodosProvider();
     registerCommands(context, todosProvider);
     registerEventListeners(context, todosProvider);

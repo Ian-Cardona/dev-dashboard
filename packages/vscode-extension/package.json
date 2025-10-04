@@ -44,12 +44,14 @@
     "commands": [
       {
         "command": "dev-dashboard.scanTodos",
-        "title": "Dev Dashboard: Scan TODOs",
-        "icon": "$(search)"
+        "title": "Dev Dashboard: Scan workspace for TODOs",
+        "category": "Dev Dashboard",
+        "icon": "$(refresh)"
       },
       {
         "command": "dev-dashboard.sendTodos",
-        "title": "Dev Dashboard: Send TODOs",
+        "title": "Dev Dashboard: Upload TODOs to Dashboard",
+        "category": "Dev Dashboard",
         "icon": "$(cloud-upload)"
       },
       {
