@@ -11,8 +11,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:devDashboardOnboarding",
-    "onView:devDashboardMain"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -32,12 +31,16 @@
           "name": "Welcome",
           "type": "webview",
           "contextualTitle": "Dev Dashboard",
-          "when": "!devDashboard.hasApiKey"
+          "when": "!devDashboard.hasApiKey",
+          "icon": "$(pass)",
+          "visibility": "visible"
         },
         {
           "id": "devDashboardMain",
           "name": "TODOs",
-          "when": "devDashboard.hasApiKey"
+          "when": "devDashboard.hasApiKey",
+          "icon": "$(pass)",
+          "visibility": "visible"
         }
       ]
     },
