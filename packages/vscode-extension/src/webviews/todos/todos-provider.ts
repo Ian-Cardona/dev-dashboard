@@ -122,26 +122,28 @@ export class TodosProvider
       | ScanPromptItem
       | SupportedFormatsItem
       | FormatItem
-  ): (
-    | TodoItem
-    | EmptyStateItem
-    | ScanPromptItem
-    | SupportedFormatsItem
-    | FormatItem
-  )[] {
+  ): Thenable<
+    (
+      | TodoItem
+      | EmptyStateItem
+      | ScanPromptItem
+      | SupportedFormatsItem
+      | FormatItem
+    )[]
+  > {
     if (element instanceof SupportedFormatsItem) {
-      return [
+      return Promise.resolve([
         new FormatItem('TODO'),
         new FormatItem('FIXME'),
         new FormatItem('HACK'),
         new FormatItem('NOTE'),
         new FormatItem('BUG'),
         new FormatItem('XXX'),
-      ];
+      ]);
     }
 
     if (element) {
-      return [];
+      return Promise.resolve([]);
     }
 
     if (this._isLoading) {
@@ -152,17 +154,17 @@ export class TodosProvider
       loadingItem.iconPath = new vscode.ThemeIcon('sync~spin');
       loadingItem.tooltip =
         'Please wait while scanning your workspace for TODOs.';
-      return [loadingItem];
+      return Promise.resolve([loadingItem]);
     }
 
     if (this._ProcessedTodo.length === 0) {
-      return [
+      return Promise.resolve([
         new EmptyStateItem(),
         new ScanPromptItem(),
         new SupportedFormatsItem(),
-      ];
+      ]);
     }
 
-    return this._ProcessedTodo.map(todo => new TodoItem(todo));
+    return Promise.resolve(this._ProcessedTodo.map(todo => new TodoItem(todo)));
   }
 }

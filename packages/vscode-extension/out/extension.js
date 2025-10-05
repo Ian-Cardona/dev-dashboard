@@ -46,14 +46,15 @@ const todos_provider_1 = require("./webviews/todos/todos-provider");
 const vscode = __importStar(require("vscode"));
 const activate = async (context) => {
     vscode.window.showInformationMessage('Thank you for using DevDashboard!');
-    // await initializeUI(context);
+    const hasApiKey = !!(await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY));
+    await vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', hasApiKey);
+    await initializeUI(context);
     const todosProvider = new todos_provider_1.TodosProvider();
     registerCommands(context, todosProvider);
     registerEventListeners(context, todosProvider);
     context.subscriptions.push(vscode.window.createTreeView('devDashboardMain', {
         treeDataProvider: todosProvider,
     }));
-    const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);
     if (hasApiKey) {
         try {
             await (0, scanSetTodos_1.scanSetTodosCommand)(todosProvider);
@@ -66,16 +67,51 @@ const activate = async (context) => {
 exports.activate = activate;
 const initializeUI = async (context) => {
     const needsOnboarding = await (0, should_show_onboarding_1.shouldShowOnboarding)(context);
-    vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !needsOnboarding);
+    console.log('🔧 initializeUI - needsOnboarding:', needsOnboarding);
+    await vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !needsOnboarding);
     if (needsOnboarding) {
+        console.log('🔮 Setting up onboarding...');
         const onboardingProvider = new onboarding_provider_1.OnboardingProvider(context);
         context.subscriptions.push(vscode.window.registerWebviewViewProvider(onboarding_provider_1.OnboardingProvider.viewType, onboardingProvider));
         vscode.commands.executeCommand('devDashboardOnboarding.focus');
     }
     else {
+        console.log('🚀 Setting up protected client...');
         (0, api_1.setupProtectedClient)(context);
+        // Increase delay and add retry logic
+        setTimeout(() => {
+            console.log('🎯 Attempting to focus main view...');
+            vscode.commands.executeCommand('devDashboardMain.focus');
+            // Retry after another second if still loading
+            setTimeout(() => {
+                vscode.commands.executeCommand('devDashboardMain.focus');
+            }, 1000);
+        }, 1500);
     }
 };
+// const initializeUI = async (context: vscode.ExtensionContext) => {
+//   const needsOnboarding = await shouldShowOnboarding(context);
+//   await vscode.commands.executeCommand(
+//     'setContext',
+//     'devDashboard.hasApiKey',
+//     !needsOnboarding
+//   );
+//   if (needsOnboarding) {
+//     const onboardingProvider = new OnboardingProvider(context);
+//     context.subscriptions.push(
+//       vscode.window.registerWebviewViewProvider(
+//         OnboardingProvider.viewType,
+//         onboardingProvider
+//       )
+//     );
+//     vscode.commands.executeCommand('devDashboardOnboarding.focus');
+//   } else {
+//     setupProtectedClient(context);
+//     setTimeout(() => {
+//       vscode.commands.executeCommand('devDashboardMain.focus');
+//     }, 100);
+//   }
+// };
 const registerCommands = (context, todosProvider) => {
     const withApiKeyGuard = (commandHandler) => async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);

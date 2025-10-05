@@ -12,6 +12,13 @@ import * as vscode from 'vscode';
 export const activate = async (context: vscode.ExtensionContext) => {
   vscode.window.showInformationMessage('Thank you for using DevDashboard!');
 
+  const hasApiKey = !!(await getSecretKey(context, API_KEY));
+  await vscode.commands.executeCommand(
+    'setContext',
+    'devDashboard.hasApiKey',
+    hasApiKey
+  );
+
   await initializeUI(context);
 
   const todosProvider = new TodosProvider();
@@ -24,7 +31,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
     })
   );
 
-  const hasApiKey = await getSecretKey(context, API_KEY);
   if (hasApiKey) {
     try {
       await scanSetTodosCommand(todosProvider);
@@ -36,14 +42,16 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
 const initializeUI = async (context: vscode.ExtensionContext) => {
   const needsOnboarding = await shouldShowOnboarding(context);
+  console.log('🔧 initializeUI - needsOnboarding:', needsOnboarding);
 
-  vscode.commands.executeCommand(
+  await vscode.commands.executeCommand(
     'setContext',
     'devDashboard.hasApiKey',
     !needsOnboarding
   );
 
   if (needsOnboarding) {
+    console.log('🔮 Setting up onboarding...');
     const onboardingProvider = new OnboardingProvider(context);
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
@@ -51,12 +59,51 @@ const initializeUI = async (context: vscode.ExtensionContext) => {
         onboardingProvider
       )
     );
-
     vscode.commands.executeCommand('devDashboardOnboarding.focus');
   } else {
+    console.log('🚀 Setting up protected client...');
     setupProtectedClient(context);
+
+    // Increase delay and add retry logic
+    setTimeout(() => {
+      console.log('🎯 Attempting to focus main view...');
+      vscode.commands.executeCommand('devDashboardMain.focus');
+
+      // Retry after another second if still loading
+      setTimeout(() => {
+        vscode.commands.executeCommand('devDashboardMain.focus');
+      }, 1000);
+    }, 1500);
   }
 };
+
+// const initializeUI = async (context: vscode.ExtensionContext) => {
+//   const needsOnboarding = await shouldShowOnboarding(context);
+
+//   await vscode.commands.executeCommand(
+//     'setContext',
+//     'devDashboard.hasApiKey',
+//     !needsOnboarding
+//   );
+
+//   if (needsOnboarding) {
+//     const onboardingProvider = new OnboardingProvider(context);
+//     context.subscriptions.push(
+//       vscode.window.registerWebviewViewProvider(
+//         OnboardingProvider.viewType,
+//         onboardingProvider
+//       )
+//     );
+
+//     vscode.commands.executeCommand('devDashboardOnboarding.focus');
+//   } else {
+//     setupProtectedClient(context);
+
+//     setTimeout(() => {
+//       vscode.commands.executeCommand('devDashboardMain.focus');
+//     }, 100);
+//   }
+// };
 
 const registerCommands = (
   context: vscode.ExtensionContext,
