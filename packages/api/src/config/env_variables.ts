@@ -34,4 +34,8 @@ export const ENV = {
   API_KEYS_TABLE: process.env.API_KEYS_TABLE || 'API_KEYS',
   // Audience
   CLIENT_APP_NAME: process.env.CLIENT_APP_NAME || 'DevDashboardUI',
+
+  // Github
+  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || 'DrainGang',
+  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || 'DrainGang',
 };
