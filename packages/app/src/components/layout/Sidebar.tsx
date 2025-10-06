@@ -26,6 +26,7 @@ const Sidebar = () => {
       <div className="border-b bg-gradient-to-br from-[var(--color-surface-variant)] to-[var(--color-surface-variant-hover)] p-6">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-[var(--color-primary)] p-2">
+            {/* TODO: Change this to the app icon */}
             <UserCircleIcon className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -74,10 +75,10 @@ const Sidebar = () => {
         </ul>
       </nav>
 
-      <div className="border-t p-4">
+      <div className="border-t px-6 py-4">
         <Link
           to="/settings"
-          className="group flex items-center gap-3 rounded-4xl border border-[var(--color-border)] p-3 transition-all duration-150 hover:bg-[var(--color-surface-variant)] hover:shadow-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none"
+          className="group flex items-center gap-3 rounded-4xl border border-[var(--color-border)] p-4 transition-all duration-150 hover:bg-[var(--color-surface-variant)] hover:shadow-sm focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none"
         >
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="flex items-center gap-2 text-sm font-medium text-[var(--color-fg)] transition-colors duration-150 group-hover:text-[var(--color-primary)]">
