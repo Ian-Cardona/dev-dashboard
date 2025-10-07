@@ -1,24 +1,17 @@
 import { IGithubRepository } from './interfaces/igithub.repository';
-import { GithubAuthCallbackSchema } from '@dev-dashboard/shared';
+import { OAuthGithubCallbackResponseSchema } from '@dev-dashboard/shared';
 import { ENV } from 'src/config/env_variables';
 
 export const GithubRepository = (): IGithubRepository => {
   return {
-    async exchangeCodeForTokenRepository(
+    async exchangeCodeForToken(
       code: string
-    ): Promise<GithubAuthCallbackSchema> {
+    ): Promise<OAuthGithubCallbackResponseSchema> {
       const clientId = ENV.GITHUB_CLIENT_ID;
       const clientSecret = ENV.GITHUB_CLIENT_SECRET;
 
-      if (!clientId) {
-        throw new Error(
-          'GITHUB_CLIENT_ID is not defined in environment variables'
-        );
-      }
-      if (!clientSecret) {
-        throw new Error(
-          'GITHUB_CLIENT_SECRET is not defined in environment variables'
-        );
+      if (!clientId || !clientSecret) {
+        throw new Error('GitHub OAuth credentials not configured');
       }
 
       const response = await fetch(
@@ -37,14 +30,14 @@ export const GithubRepository = (): IGithubRepository => {
         }
       );
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
         throw new Error(
-          `Failed to exchange code for token: ${response.status} ${response.statusText} - ${errorText}`
+          `GitHub OAuth failed: ${data.error_description || data.error || response.statusText}`
         );
       }
 
-      const data = await response.json();
       return data;
     },
   };

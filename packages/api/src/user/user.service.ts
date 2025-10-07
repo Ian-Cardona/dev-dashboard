@@ -17,31 +17,40 @@ export const UserService = (userModel: IUserModel): IUserService => {
       user: AuthenticationRegisterRequestPublicSchema
     ): Promise<UserResponsePublic> {
       try {
-        const { password, ...userWithoutPassword } = user;
+        if (
+          !user.email ||
+          !user.firstName ||
+          !user.lastName ||
+          !user.password
+        ) {
+          throw new Error('Incomplete user data provided for creation');
+        }
 
         const salt = await bcrypt.genSalt(Number(ENV.BCRYPT_SALT_ROUNDS_PW));
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(user.password, salt);
+
+        const now = new Date().toISOString();
 
         const result = await userModel.create({
           id: generateUUID(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: now,
+          updatedAt: now,
           isActive: true,
-          ...userWithoutPassword,
+          onboardingComplete: true,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
           passwordHash: hashedPassword,
           role: 'user',
+          providers: [],
         });
 
-        // TODO: Fix the schemas to avoid manual object manipulation like this
-        const responseUser: UserResponsePublic = {
-          id: result.id,
-          email: result.email,
-          firstName: result.firstName,
-          lastName: result.lastName,
-          isActive: result.isActive,
-        };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = result;
 
-        return responseUser;
+        const newUser: UserResponsePublic = responseUser;
+
+        return newUser;
       } catch (error) {
         if (
           error instanceof Error &&

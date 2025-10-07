@@ -16,26 +16,42 @@ const EMAILS_TABLE = ENV.EMAILS_TABLE;
 export const UserModel = (docClient: DynamoDBDocumentClient): IUserModel => {
   return {
     async create(user: User): Promise<User> {
-      await docClient.send(
-        new TransactWriteCommand({
-          TransactItems: [
-            {
-              Put: {
-                TableName: USERS_TABLE,
-                Item: user,
-                ConditionExpression: 'attribute_not_exists(id)',
+      if (user.email) {
+        await docClient.send(
+          new TransactWriteCommand({
+            TransactItems: [
+              {
+                Put: {
+                  TableName: USERS_TABLE,
+                  Item: user,
+                  ConditionExpression: 'attribute_not_exists(id)',
+                },
               },
-            },
-            {
-              Put: {
-                TableName: EMAILS_TABLE,
-                Item: { email: user.email, id: user.id },
-                ConditionExpression: 'attribute_not_exists(email)',
+              {
+                Put: {
+                  TableName: EMAILS_TABLE,
+                  Item: { email: user.email, id: user.id },
+                  ConditionExpression: 'attribute_not_exists(email)',
+                },
               },
-            },
-          ],
-        })
-      );
+            ],
+          })
+        );
+      } else {
+        await docClient.send(
+          new TransactWriteCommand({
+            TransactItems: [
+              {
+                Put: {
+                  TableName: USERS_TABLE,
+                  Item: user,
+                  ConditionExpression: 'attribute_not_exists(id)',
+                },
+              },
+            ],
+          })
+        );
+      }
 
       return user as User;
     },

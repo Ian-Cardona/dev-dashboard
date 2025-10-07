@@ -1,4 +1,3 @@
-import { IUserService } from '../../user/user.service';
 import { generateJWT, verifyJWT } from '../../utils/jwt.utils';
 import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
 import {
@@ -12,6 +11,7 @@ import {
   RefreshTokenRecordAndPlain,
   RefreshToken,
 } from '@dev-dashboard/shared';
+import { IUserService } from 'src/user/interfaces/iuser.service';
 import { bcryptCompare } from 'src/utils/bcrypt.utils';
 import {
   ConflictError,

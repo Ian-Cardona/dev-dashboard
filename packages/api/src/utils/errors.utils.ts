@@ -19,4 +19,16 @@ class UnauthorizedError extends Error {
   }
 }
 
-export { NotFoundError, ConflictError, UnauthorizedError };
+class ExternalServiceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ExternalServiceError';
+  }
+}
+
+export {
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
+  ExternalServiceError,
+};

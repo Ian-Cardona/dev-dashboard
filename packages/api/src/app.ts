@@ -3,9 +3,11 @@ import authenticationRouter from './auth-related/authentication/authentication.r
 import { authorizationMiddleware } from './middlewares/authorization.middleware';
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
 import { loggerMiddleware } from './middlewares/logger.middleware';
+import githubRouter from './oauth/github/github.route';
 import todoRouter from './todos/todo.route';
 import userRouter from './user/user.route';
 import cookieParser from 'cookie-parser';
+import 'dotenv/config';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -42,6 +44,7 @@ v1Router.use('/auth', authenticationRouter);
 v1Router.use('/todos', todoRouter);
 v1Router.use('/user', authorizationMiddleware, userRouter);
 v1Router.use('/api-keys', apiKeysRouter);
+v1Router.use('/github', githubRouter);
 
 app.use('/v1', v1Router);
 
