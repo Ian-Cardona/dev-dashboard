@@ -3,8 +3,8 @@ import { ApiKeysController } from './api-keys.controller';
 import { ApiKeysModel } from './api-keys.model';
 import { ApiKeysService } from './api-keys.service';
 import { Router } from 'express';
+import { authorizationMiddleware } from 'src/middlewares/access-authorization.middleware';
 import { apiKeysMiddleware } from 'src/middlewares/api-keys.middleware';
-import { authorizationMiddleware } from 'src/middlewares/authorization.middleware';
 
 const router = Router();
 

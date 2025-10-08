@@ -12,6 +12,13 @@ class ConflictError extends Error {
   }
 }
 
+class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
 class UnauthorizedError extends Error {
   constructor(message: string) {
     super(message);
@@ -29,6 +36,7 @@ class ExternalServiceError extends Error {
 export {
   NotFoundError,
   ConflictError,
+  ValidationError,
   UnauthorizedError,
   ExternalServiceError,
 };
