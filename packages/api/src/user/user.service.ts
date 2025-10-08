@@ -1,37 +1,41 @@
 import { ENV } from '../config/env_variables';
-import { ConflictError, NotFoundError } from '../utils/errors.utils';
+import {
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
-import { IUserModel } from './interfaces/iuser.model';
+import { IUserRepository } from './interfaces/iuser.repository';
 import { IUserService } from './interfaces/iuser.service';
 import {
   User,
   UserResponsePublic,
-  AuthenticationRegisterRequestPublicSchema,
+  AuthenticationEmailRegisterRequestSchema,
+  AuthenticationOAuthRegisterRequestSchema,
   UserUpdate,
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 
-export const UserService = (userModel: IUserModel): IUserService => {
+const MODULE_NAME = 'UserService';
+
+export const UserService = (userRepository: IUserRepository): IUserService => {
   return {
-    async create(
-      user: AuthenticationRegisterRequestPublicSchema
+    async createByEmail(
+      user: AuthenticationEmailRegisterRequestSchema
     ): Promise<UserResponsePublic> {
       try {
-        if (
-          !user.email ||
-          !user.firstName ||
-          !user.lastName ||
-          !user.password
-        ) {
-          throw new Error('Incomplete user data provided for creation');
+        const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
+        if (!saltRounds || isNaN(saltRounds)) {
+          throw new Error(
+            `[${MODULE_NAME}] Invalid bcrypt salt rounds configuration`
+          );
         }
-
-        const salt = await bcrypt.genSalt(Number(ENV.BCRYPT_SALT_ROUNDS_PW));
+        const salt = await bcrypt.genSalt(saltRounds);
         const hashedPassword = await bcrypt.hash(user.password, salt);
 
         const now = new Date().toISOString();
 
-        const result = await userModel.create({
+        const result = await userRepository.createByEmail({
           id: generateUUID(),
           createdAt: now,
           updatedAt: now,
@@ -48,23 +52,63 @@ export const UserService = (userModel: IUserModel): IUserService => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { passwordHash, ...responseUser } = result;
 
-        const newUser: UserResponsePublic = responseUser;
-
-        return newUser;
+        return responseUser as UserResponsePublic;
       } catch (error) {
         if (
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new ConflictError('User already exists');
+          throw new ConflictError(
+            `[${MODULE_NAME}] User with this email may already exist or creation failed`
+          );
         }
-        throw new Error('Failed to create user');
+        throw new Error(`[${MODULE_NAME}] Failed to create user`);
+      }
+    },
+
+    async createByOAuth(
+      user: AuthenticationOAuthRegisterRequestSchema
+    ): Promise<UserResponsePublic> {
+      try {
+        const now = new Date().toISOString();
+
+        const result = await userRepository.createByOAuth({
+          id: generateUUID(),
+          createdAt: now,
+          updatedAt: now,
+          isActive: true,
+          onboardingComplete: true,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: 'user',
+          providers: [
+            {
+              provider: user.provider,
+              providerUserId: user.
+            },
+          ],
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { passwordHash, ...responseUser } = result;
+        return responseUser as UserResponsePublic;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          throw new ConflictError(
+            `[${MODULE_NAME}] User with this provider may already exist or creation failed`
+          );
+        }
+        throw new Error(`[${MODULE_NAME}] Failed to create OAuth user`);
       }
     },
 
     async findById(userId: string): Promise<UserResponsePublic> {
       try {
-        const user = await userModel.findById(userId);
+        const user = await userRepository.findById(userId);
         if (!user) {
           throw new NotFoundError('User not found');
         }
@@ -82,7 +126,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
     async findByEmailPrivate(email: string): Promise<User> {
       try {
-        const user = await userModel.findByEmail(email);
+        const user = await userRepository.findByEmail(email);
 
         if (!user) {
           throw new NotFoundError('User not found');
@@ -99,7 +143,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
     async findByEmailPublic(email: string): Promise<UserResponsePublic> {
       try {
-        const user = await userModel.findByEmail(email);
+        const user = await userRepository.findByEmail(email);
 
         if (!user) {
           throw new NotFoundError('User not found');
@@ -119,7 +163,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
     async emailExists(email: string): Promise<boolean> {
       try {
         console.log('Email exists?', email);
-        const user = await userModel.findByEmail(email);
+        const user = await userRepository.findByEmail(email);
         return user !== null;
       } catch (error) {
         if (error instanceof Error) {
@@ -134,7 +178,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
       updates: UserUpdate
     ): Promise<UserResponsePublic> {
       try {
-        const result = await userModel.update(userId, updates);
+        const result = await userRepository.update(userId, updates);
 
         if (!result) {
           throw new NotFoundError('User not found');
@@ -156,7 +200,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
     async delete(userId: string): Promise<void> {
       try {
-        await userModel.delete(userId);
+        await userRepository.delete(userId);
       } catch (error) {
         if (
           error instanceof Error &&
@@ -173,7 +217,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
       timestamp: string
     ): Promise<UserResponsePublic> {
       try {
-        const result = await userModel.updateLastLogin(userId, timestamp);
+        const result = await userRepository.updateLastLogin(userId, timestamp);
 
         if (!result) {
           throw new NotFoundError('User not found');
@@ -198,7 +242,10 @@ export const UserService = (userModel: IUserModel): IUserService => {
       newPasswordHash: string
     ): Promise<UserResponsePublic> {
       try {
-        const result = await userModel.updatePassword(userId, newPasswordHash);
+        const result = await userRepository.updatePassword(
+          userId,
+          newPasswordHash
+        );
 
         if (!result) {
           throw new NotFoundError('User not found');
@@ -220,7 +267,7 @@ export const UserService = (userModel: IUserModel): IUserService => {
 
     async deactivate(userId: string): Promise<UserResponsePublic> {
       try {
-        const result = await userModel.deactivate(userId);
+        const result = await userRepository.deactivate(userId);
 
         if (!result) {
           throw new NotFoundError('User not found');
