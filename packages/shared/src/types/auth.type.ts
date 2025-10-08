@@ -3,16 +3,22 @@ import {
   authenticationResponsePublicSchema,
   authenticationRefreshRequestPrivateSchema,
   authenticationRefreshResponsePrivateSchema,
-  authenticationRegisterRequestPublicSchema,
+  authenticationEmailRegisterRequestSchema,
+  authenticationOAuthRegisterRequestSchema,
   authenticationSuccessResponsePrivateSchema,
   authorizationJwtSchema,
 } from '../schemas/auth.schema';
 import { JwtPayload } from 'jsonwebtoken';
 import z from 'zod';
 
-export type AuthenticationRegisterRequestPublicSchema = z.infer<
-  typeof authenticationRegisterRequestPublicSchema
+// Register
+export type AuthenticationEmailRegisterRequestSchema = z.infer<
+  typeof authenticationEmailRegisterRequestSchema
 >;
+export type AuthenticationOAuthRegisterRequestSchema = z.infer<
+  typeof authenticationOAuthRegisterRequestSchema
+>;
+
 export type AuthenticationLoginRequestPublicSchema = z.infer<
   typeof authenticationLoginRequestPublicSchema
 >;
@@ -33,4 +39,9 @@ export interface AuthorizationTokenPayload extends JwtPayload {
   userId: string;
   email: string;
   isActive: boolean;
+}
+export interface OnboardingTokenPayload extends JwtPayload {
+  userId: string;
+  email: string;
+  type: 'onboarding';
 }

@@ -1,5 +1,5 @@
 import { docClient } from '../../config/dynamodb';
-import { UserModel } from '../../user/user.model';
+import { UserModel } from '../../user/user.repository';
 import { UserService } from '../../user/user.service';
 import { RefreshTokenModel } from '../refresh-token/refresh-token.model';
 import { RefreshTokenService } from '../refresh-token/refresh-token.service';
