@@ -51,11 +51,19 @@ export const loginPasswordSchema = z
   });
 
 // Register Validation
-export const authenticationRegisterRequestPublicSchema = z.object({
+export const authenticationEmailRegisterRequestSchema = z.object({
   email: z.email(),
   password: passwordStrengthValidation(),
-  firstName: z.string().nullish().default(null),
-  lastName: z.string().nullish().default(null),
+  firstName: z.string(),
+  lastName: z.string(),
+});
+
+export const authenticationOAuthRegisterRequestSchema = z.object({
+  provider: z.enum(['github', 'google']),
+  providerUserId: z.string().min(1, 'Provider user ID is required'),
+  email: z.email(),
+  firstName: z.string(),
+  lastName: z.string(),
 });
 
 // Login Validation

@@ -1,14 +1,14 @@
 import { docClient } from '../config/dynamodb';
-import { IUserModel } from './interfaces/iuser.model';
+import { IUserRepository } from './interfaces/iuser.repository';
 import { IUserService } from './interfaces/iuser.service';
 import { UserController } from './user.controller';
-import { UserModel } from './user.model';
+import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
 import { Router } from 'express';
 
 const router = Router();
 
-const userRepositoryInstance: IUserModel = UserModel(docClient);
+const userRepositoryInstance: IUserRepository = UserRepository(docClient);
 const userServiceInstance: IUserService = UserService(userRepositoryInstance);
 const userControllerInstance = UserController(userServiceInstance);
 

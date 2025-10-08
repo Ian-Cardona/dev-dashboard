@@ -1,13 +1,16 @@
 import { ENV } from '../../config/env_variables';
-import { IAuthenticationService } from './authentication.service';
+import { IAuthenticationController } from './interfaces/iauthentication.controller';
+import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
   AuthenticationLoginRequestPublicSchema,
   AuthenticationRefreshRequestPrivateSchema,
+  AuthenticationRegisterIncompleteRequestPublicSchema,
   AuthenticationRegisterRequestPublicSchema,
   AuthenticationResponsePublicSchema,
   AuthorizationJwtSchema,
   authenticationLoginRequestPublicSchema,
   authenticationRefreshRequestPrivateSchema,
+  authenticationRegisterIncompleteRequestPublicSchema,
   authenticationRegisterRequestPublicSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
@@ -15,39 +18,32 @@ import { handleValidationError } from 'src/utils/validation-error.utils';
 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
 
-export interface IAuthenticationController {
-  registerUser: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  loginUser: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  refreshAccessToken: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  logoutUser: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  verifyAccessToken: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-}
-
 export const AuthenticationController = (
   authService: IAuthenticationService
-) => {
+): IAuthenticationController => {
   return {
-    async registerUser(req: Request, res: Response, next: NextFunction) {
+    async registerUserByEmailIncomplete(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const validatedData: AuthenticationRegisterIncompleteRequestPublicSchema =
+          authenticationRegisterIncompleteRequestPublicSchema.parse(req.body);
+        const result =
+          await authService.registerByEmailIncomplete(validatedData);
+
+        res.status(201).json(response);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid registration data');
+      }
+    },
+
+    async registerUser(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
       try {
         const validatedData: AuthenticationRegisterRequestPublicSchema =
           authenticationRegisterRequestPublicSchema.parse(req.body);
@@ -79,7 +75,11 @@ export const AuthenticationController = (
       }
     },
 
-    async loginUser(req: Request, res: Response, next: NextFunction) {
+    async loginUser(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
       try {
         const validatedData: AuthenticationLoginRequestPublicSchema =
           authenticationLoginRequestPublicSchema.parse(req.body);
@@ -111,7 +111,11 @@ export const AuthenticationController = (
       }
     },
 
-    async refreshAccessToken(req: Request, res: Response, next: NextFunction) {
+    async refreshAccessToken(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
       try {
         const refreshTokenIdAndRefreshToken: AuthenticationRefreshRequestPrivateSchema =
           {
@@ -151,7 +155,11 @@ export const AuthenticationController = (
       }
     },
 
-    async logoutUser(req: Request, res: Response, next: NextFunction) {
+    async logoutUser(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
       try {
         const refreshTokenId: string = req.cookies.rt2;
 
@@ -162,7 +170,11 @@ export const AuthenticationController = (
       }
     },
 
-    async verifyAccessToken(req: Request, res: Response, next: NextFunction) {
+    async verifyAccessToken(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
       try {
         const accessToken: string =
           req.headers.authorization?.split(' ')[1] || '';

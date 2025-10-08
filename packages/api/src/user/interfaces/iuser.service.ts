@@ -1,12 +1,16 @@
 import {
-  AuthenticationRegisterRequestPublicSchema,
+  AuthenticationEmailRegisterRequestSchema,
+  AuthenticationOAuthRegisterRequestSchema,
   User,
   UserResponsePublic,
 } from '@dev-dashboard/shared';
 
 export interface IUserService {
-  create(
-    user: AuthenticationRegisterRequestPublicSchema
+  createByEmail(
+    user: AuthenticationEmailRegisterRequestSchema
+  ): Promise<UserResponsePublic>;
+  createByOAuth(
+    user: AuthenticationOAuthRegisterRequestSchema
   ): Promise<UserResponsePublic>;
   findById(userId: string): Promise<UserResponsePublic>;
   findByEmailPrivate(email: string): Promise<User>;

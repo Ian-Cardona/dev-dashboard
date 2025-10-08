@@ -27,75 +27,60 @@ export const linkedProviderSchema = z.object({
   refreshToken: z.string().optional(),
 });
 
-export const userSchema = z
-  .object({
-    id: z.uuidv4({ message: 'Invalid UUID' }),
-    email: z.email({ message: 'Invalid email address' }).nullish(),
-    passwordHash: z
-      .string({ message: 'Invalid password hash' })
-      .trim()
-      .nullish(),
-    firstName: z
-      .string({ message: 'Invalid first name' })
-      .trim()
-      .min(
-        VALIDATION_CONSTANTS.USER.FIRST_NAME.MIN_LENGTH,
-        VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
-      )
-      .max(
-        VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH,
-        VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
-      )
-      .nullish(),
-    lastName: z
-      .string({ message: 'Invalid last name' })
-      .trim()
-      .min(
-        VALIDATION_CONSTANTS.USER.LAST_NAME.MIN_LENGTH,
-        VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
-      )
-      .max(
-        VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH,
-        VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
-      )
-      .nullish(),
-    createdAt: z.iso.datetime({ message: 'Invalid datetime format' }),
-    updatedAt: z.iso.datetime({ message: 'Invalid datetime format' }),
-    lastLoginAt: z.iso
-      .datetime({ message: 'Invalid datetime format' })
-      .nullish(),
-    passwordUpdatedAt: z.iso
-      .datetime({ message: 'Invalid datetime format' })
-      .nullish(),
-    isActive: z.boolean({ message: 'Invalid format' }).default(false),
-    role: z.enum(['user', 'admin']).default('user'),
-    providers: z
-      .array(linkedProviderSchema)
-      .refine(
-        providers => {
-          const names = providers.map(p => p.provider);
-          return new Set(names).size === names.length;
-        },
-        {
-          message: 'Cannot link multiple accounts from the same provider',
-        }
-      )
-      .optional()
-      .default([]),
-    onboardingComplete: z.boolean().default(false),
-  })
-  .refine(
-    data => {
-      if (data.isActive && data.email === null) {
-        return false;
+export const userSchema = z.object({
+  id: z.uuidv4({ message: 'Invalid UUID' }),
+  email: z.email({ message: 'Invalid email address' }),
+  passwordHash: z
+    .string({ message: 'Invalid password hash' })
+    .trim()
+    .optional(),
+  firstName: z
+    .string({ message: 'Invalid first name' })
+    .trim()
+    .min(
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MIN_LENGTH,
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
+    )
+    .max(
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH,
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
+    ),
+  lastName: z
+    .string({ message: 'Invalid last name' })
+    .trim()
+    .min(
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MIN_LENGTH,
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
+    )
+    .max(
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH,
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
+    ),
+  createdAt: z.iso.datetime({ message: 'Invalid datetime format' }),
+  updatedAt: z.iso.datetime({ message: 'Invalid datetime format' }),
+  lastLoginAt: z.iso
+    .datetime({ message: 'Invalid datetime format' })
+    .optional(),
+  passwordUpdatedAt: z.iso
+    .datetime({ message: 'Invalid datetime format' })
+    .optional(),
+  isActive: z.boolean({ message: 'Invalid format' }).default(false),
+  role: z.enum(['user', 'admin']).default('user'),
+  providers: z
+    .array(linkedProviderSchema)
+    .refine(
+      providers => {
+        const names = providers.map(p => p.provider);
+        return new Set(names).size === names.length;
+      },
+      {
+        message: 'Cannot link multiple accounts from the same provider',
       }
-      return true;
-    },
-    {
-      message: 'An active user must have an email address.',
-      path: ['email'],
-    }
-  );
+    )
+    .optional()
+    .default([]),
+  onboardingComplete: z.boolean().default(false),
+});
 
 export const userUpdateSchema = userSchema.pick({
   firstName: true,

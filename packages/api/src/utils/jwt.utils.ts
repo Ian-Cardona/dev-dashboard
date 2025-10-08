@@ -4,11 +4,9 @@ import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
 import { Request } from 'express';
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 
-export const generateJWT = (payload: AuthorizationTokenPayload): string => {
-  if (!ENV.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined in environment variables');
-  }
-
+export const generateAccessJWT = (
+  payload: AuthorizationTokenPayload
+): string => {
   const signOptions: SignOptions = {
     expiresIn: '30m',
     algorithm: 'HS256',
@@ -19,25 +17,29 @@ export const generateJWT = (payload: AuthorizationTokenPayload): string => {
   return jwt.sign(payload, ENV.JWT_SECRET, signOptions);
 };
 
-export const verifyJWT = (token: string): AuthorizationTokenPayload => {
-  if (!ENV.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined in environment variables');
-  }
-
-  const verifyOptions: VerifyOptions = {
-    algorithms: ['HS256'],
+export const generateOnboardingJWT = (
+  payload: AuthorizationTokenPayload
+): string => {
+  const signOptions: SignOptions = {
+    expiresIn: '30m',
+    algorithm: 'HS256',
     issuer: ENV.APP_NAME,
     audience: ENV.CLIENT_APP_NAME,
   };
 
+  return jwt.sign(payload, ENV.JWT_SECRET, signOptions);
+};
+
+export const verifyJWT = <T extends object>(token: string): T => {
   try {
-    return jwt.verify(
-      token,
-      ENV.JWT_SECRET,
-      verifyOptions
-    ) as AuthorizationTokenPayload;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (error) {
+    const verifyOptions: VerifyOptions = {
+      algorithms: ['HS256'],
+      issuer: ENV.APP_NAME,
+      audience: ENV.CLIENT_APP_NAME,
+    };
+
+    return jwt.verify(token, ENV.JWT_SECRET, verifyOptions) as T;
+  } catch {
     throw new UnauthorizedError('Invalid or expired token');
   }
 };
