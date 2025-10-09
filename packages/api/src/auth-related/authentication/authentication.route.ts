@@ -1,20 +1,22 @@
 import { docClient } from '../../config/dynamodb';
-import { UserModel } from '../../user/user.repository';
 import { UserService } from '../../user/user.service';
 import { RefreshTokenModel } from '../refresh-token/refresh-token.model';
 import { RefreshTokenService } from '../refresh-token/refresh-token.service';
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
-import { IAuthenticationService } from './authentication.service';
+import { IAuthenticationService } from './interfaces/iauthentication.service';
 import { Router } from 'express';
+import { onboardingAuthorizationMiddleware } from 'src/middlewares/onboarding-authorization.middleware';
+import { onboardingSessionMiddleware } from 'src/middlewares/onboarding-session.middleware';
+import { UserRepository } from 'src/user/user.repository';
 
 const router = Router();
 
-const refreshTokenModel = RefreshTokenModel(docClient);
-const userModel = UserModel(docClient);
+const refreshTokenRepository = RefreshTokenModel(docClient);
+const userRepository = UserRepository(docClient);
 
-const userServiceInstance = UserService(userModel);
-const refreshTokenServiceInstance = RefreshTokenService(refreshTokenModel);
+const userServiceInstance = UserService(userRepository);
+const refreshTokenServiceInstance = RefreshTokenService(refreshTokenRepository);
 
 const authenticationServiceInstance: IAuthenticationService =
   AuthenticationService(userServiceInstance, refreshTokenServiceInstance);
@@ -22,7 +24,18 @@ const authenticationControllerInstance = AuthenticationController(
   authenticationServiceInstance
 );
 
-router.post('/register', authenticationControllerInstance.registerUser);
+router.post(
+  '/register/email',
+  onboardingAuthorizationMiddleware,
+  onboardingSessionMiddleware,
+  authenticationControllerInstance.registerUserByEmail
+);
+router.post(
+  '/register/oauth',
+  onboardingAuthorizationMiddleware,
+  onboardingSessionMiddleware,
+  authenticationControllerInstance.registerUserByOAuth
+);
 router.post('/login', authenticationControllerInstance.loginUser);
 router.post('/refresh', authenticationControllerInstance.refreshAccessToken);
 router.post('/logout', authenticationControllerInstance.logoutUser);
