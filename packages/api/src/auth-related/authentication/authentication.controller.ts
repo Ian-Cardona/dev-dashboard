@@ -2,16 +2,16 @@ import { ENV } from '../../config/env_variables';
 import { IAuthenticationController } from './interfaces/iauthentication.controller';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
+  AuthenticationEmailRegisterRequestSchema,
   AuthenticationLoginRequestPublicSchema,
+  AuthenticationOAuthRegisterRequestSchema,
   AuthenticationRefreshRequestPrivateSchema,
-  AuthenticationRegisterIncompleteRequestPublicSchema,
-  AuthenticationRegisterRequestPublicSchema,
   AuthenticationResponsePublicSchema,
   AuthorizationJwtSchema,
+  authenticationEmailRegisterRequestSchema,
   authenticationLoginRequestPublicSchema,
+  authenticationOAuthRegisterRequestSchema,
   authenticationRefreshRequestPrivateSchema,
-  authenticationRegisterIncompleteRequestPublicSchema,
-  authenticationRegisterRequestPublicSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
@@ -22,16 +22,35 @@ export const AuthenticationController = (
   authService: IAuthenticationService
 ): IAuthenticationController => {
   return {
-    async registerUserByEmailIncomplete(
+    async registerUserByEmail(
       req: Request,
       res: Response,
       next: NextFunction
-    ) {
+    ): Promise<void> {
       try {
-        const validatedData: AuthenticationRegisterIncompleteRequestPublicSchema =
-          authenticationRegisterIncompleteRequestPublicSchema.parse(req.body);
-        const result =
-          await authService.registerByEmailIncomplete(validatedData);
+        const validatedData: AuthenticationEmailRegisterRequestSchema =
+          authenticationEmailRegisterRequestSchema.parse(req.body);
+        const result = await authService.registerByEmail(validatedData);
+
+        res.cookie('rt1', result.refreshTokenPlain, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        res.cookie('rt2', result.refreshTokenId, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        const response: AuthenticationResponsePublicSchema = {
+          accessToken: result.accessToken,
+          user: result.user,
+        };
 
         res.status(201).json(response);
       } catch (error) {
@@ -39,15 +58,15 @@ export const AuthenticationController = (
       }
     },
 
-    async registerUser(
+    async registerUserByOAuth(
       req: Request,
       res: Response,
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: AuthenticationRegisterRequestPublicSchema =
-          authenticationRegisterRequestPublicSchema.parse(req.body);
-        const result = await authService.register(validatedData);
+        const validatedData: AuthenticationOAuthRegisterRequestSchema =
+          authenticationOAuthRegisterRequestSchema.parse(req.body);
+        const result = await authService.registerByOAuth(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,

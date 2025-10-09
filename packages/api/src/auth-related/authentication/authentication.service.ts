@@ -1,17 +1,17 @@
-import { generateJWT, verifyJWT } from '../../utils/jwt.utils';
+import { generateAccessJWT, verifyJWT } from '../../utils/jwt.utils';
 import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
   AuthenticationLoginRequestPublicSchema,
   AuthenticationRefreshRequestPrivateSchema,
   AuthenticationRefreshResponsePrivateSchema,
-  AuthenticationRegisterRequestPublicSchema,
   AuthenticationSuccessResponsePrivateSchema,
-  AuthorizationTokenPayload,
   UserResponsePublic,
   RefreshTokenRecordAndPlain,
   RefreshToken,
-  AuthenticationRegisterIncompleteRequestPublicSchema,
+  AuthenticationEmailRegisterRequestSchema,
+  AccessTokenPayload,
+  AuthenticationOAuthRegisterRequestSchema,
 } from '@dev-dashboard/shared';
 import { IUserService } from 'src/user/interfaces/iuser.service';
 import { bcryptCompare } from 'src/utils/bcrypt.utils';
@@ -43,31 +43,32 @@ export const AuthenticationService = (
   };
 
   return {
-    async registerByEmailIncomplete(
-      data: AuthenticationRegisterIncompleteRequestPublicSchema
-    ): Promise<UserResponsePublic> {
+    async registerByEmail(
+      data: AuthenticationEmailRegisterRequestSchema
+    ): Promise<AuthenticationSuccessResponsePrivateSchema> {
       try {
-        if (!data.email || !data.password) {
-          throw new Error(
-            'Email and password are required for incomplete registration'
-          );
-        }
-
         const emailAlreadyExists = await userService.emailExists(data.email);
         if (emailAlreadyExists) {
           throw new ConflictError('User already exists');
         }
 
-        const user: UserResponsePublic =
-          await userService.createUsingEmailIncomplete({
-            email: data.email,
-            password: data.password,
-          });
+        const user: UserResponsePublic = await userService.createByEmail(data);
+
+        const accessTokenPayload: AccessTokenPayload = {
+          userId: user.id,
+          email: user.email!,
+          isActive: user.isActive,
+          type: 'access',
+        };
+        const accessToken = generateAccessJWT(accessTokenPayload);
+
+        const refreshToken: RefreshTokenRecordAndPlain =
+          await refreshTokenService.create(user.id);
 
         return {
-          accessToken: newAccessToken,
-          refreshTokenId: newRefreshToken.record.id,
-          refreshTokenPlain: newRefreshToken.plain,
+          accessToken,
+          refreshTokenId: refreshToken.record.id,
+          refreshTokenPlain: refreshToken.plain,
           user: user,
         };
       } catch (error) {
@@ -78,8 +79,8 @@ export const AuthenticationService = (
       }
     },
 
-    async register(
-      data: AuthenticationRegisterRequestPublicSchema
+    async registerByOAuth(
+      data: AuthenticationOAuthRegisterRequestSchema
     ): Promise<AuthenticationSuccessResponsePrivateSchema> {
       try {
         const emailAlreadyExists = await userService.emailExists(data.email);
@@ -87,34 +88,29 @@ export const AuthenticationService = (
           throw new ConflictError('User already exists');
         }
 
-        const user: UserResponsePublic = await userService.create({
-          email: data.email,
-          password: data.password,
-          firstName: data.firstName,
-          lastName: data.lastName,
-        });
+        const user: UserResponsePublic = await userService.createByOAuth(data);
 
-        const accessTokenPayload: AuthorizationTokenPayload = {
+        const accessTokenPayload: AccessTokenPayload = {
           userId: user.id,
           email: user.email!,
           isActive: user.isActive,
+          type: 'access',
         };
-        const newAccessToken = generateJWT(accessTokenPayload);
+        const accessToken = generateAccessJWT(accessTokenPayload);
 
-        const newRefreshToken: RefreshTokenRecordAndPlain =
+        const refreshToken: RefreshTokenRecordAndPlain =
           await refreshTokenService.create(user.id);
 
         return {
-          accessToken: newAccessToken,
-          refreshTokenId: newRefreshToken.record.id,
-          refreshTokenPlain: newRefreshToken.plain,
+          accessToken,
+          refreshTokenId: refreshToken.record.id,
+          refreshTokenPlain: refreshToken.plain,
           user: user,
         };
       } catch (error) {
         if (error instanceof ConflictError) {
           throw error;
         }
-
         throw new Error('Registration failed due to internal error');
       }
     },
@@ -141,12 +137,13 @@ export const AuthenticationService = (
           throw new UnauthorizedError('User account is inactive');
         }
 
-        const accessTokenPayload: AuthorizationTokenPayload = {
+        const accessTokenPayload: AccessTokenPayload = {
           userId: user.id,
           email: user.email!,
           isActive: user.isActive,
+          type: 'access',
         };
-        const newAccessToken = generateJWT(accessTokenPayload);
+        const newAccessToken = generateAccessJWT(accessTokenPayload);
 
         const newRefreshToken = await refreshTokenService.create(user.id);
 
@@ -213,12 +210,13 @@ export const AuthenticationService = (
           await refreshTokenService.deleteAllByUserId(matchedToken.userId);
           throw new UnauthorizedError('Invalid user account.');
         }
-        const newAccessTokenPayload: AuthorizationTokenPayload = {
+        const newAccessTokenPayload: AccessTokenPayload = {
           userId: user.id,
           email: user.email!,
           isActive: user.isActive,
+          type: 'access',
         };
-        const newAccessToken = generateJWT(newAccessTokenPayload);
+        const newAccessToken = generateAccessJWT(newAccessTokenPayload);
         const newRefreshToken = await refreshTokenService.create(user.id);
 
         return {
@@ -236,7 +234,7 @@ export const AuthenticationService = (
     },
 
     async verifyAccessToken(token: string): Promise<UserResponsePublic> {
-      let decodedToken: AuthorizationTokenPayload;
+      let decodedToken: AccessTokenPayload;
 
       try {
         decodedToken = verifyJWT(token);

@@ -1,9 +1,5 @@
 import { ENV } from '../config/env_variables';
-import {
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-} from '../utils/errors.utils';
+import { ConflictError, NotFoundError } from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
 import { IUserRepository } from './interfaces/iuser.repository';
 import { IUserService } from './interfaces/iuser.service';
@@ -82,12 +78,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           firstName: user.firstName,
           lastName: user.lastName,
           role: 'user',
-          providers: [
-            {
-              provider: user.provider,
-              providerUserId: user.
-            },
-          ],
+          providers: user.providers,
         });
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

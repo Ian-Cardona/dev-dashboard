@@ -10,15 +10,15 @@ export const onboardingAuthorizationMiddleware = async (
 ) => {
   try {
     const token = extractBearerToken(req);
-    const payload = verifyJWT<OnboardingTokenPayload>(token);
+    const payload: OnboardingTokenPayload =
+      verifyJWT<OnboardingTokenPayload>(token);
 
     if (!payload || payload.type !== 'onboarding') {
       throw new UnauthorizedError('Invalid onboarding token');
     }
 
-    req.user = {
-      userId: payload.userId,
-      email: payload.email,
+    req.onboarding = {
+      jti: payload.jti,
     };
 
     next();
