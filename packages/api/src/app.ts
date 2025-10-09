@@ -1,6 +1,7 @@
 import apiKeysRouter from './api-keys/api-keys.route';
 import authenticationRouter from './auth-related/authentication/authentication.route';
-import { authorizationMiddleware } from './middlewares/access-authorization.middleware';
+import onboardingRouter from './auth-related/onboarding/onboarding.route';
+import { accessAuthorizationMiddleware } from './middlewares/access-authorization.middleware';
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
 import { loggerMiddleware } from './middlewares/logger.middleware';
 import githubRouter from './oauth/github/github.route';
@@ -42,9 +43,10 @@ app.use(loggerMiddleware);
 const v1Router = express.Router();
 v1Router.use('/auth', authenticationRouter);
 v1Router.use('/todos', todoRouter);
-v1Router.use('/user', authorizationMiddleware, userRouter);
+v1Router.use('/user', accessAuthorizationMiddleware, userRouter);
 v1Router.use('/api-keys', apiKeysRouter);
 v1Router.use('/github', githubRouter);
+v1Router.use('/onboarding', onboardingRouter);
 
 app.use('/v1', v1Router);
 
