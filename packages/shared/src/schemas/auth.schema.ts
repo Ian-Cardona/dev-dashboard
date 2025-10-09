@@ -1,3 +1,4 @@
+import { linkedProviderSchema } from './common/common.schema';
 import { userResponsePublicSchema } from './user.schema';
 import z from 'zod';
 
@@ -50,6 +51,18 @@ export const loginPasswordSchema = z
     message: 'Password contains invalid characters',
   });
 
+// Onboarding Validation
+export const onboardingEmailRegisterRequestSchema = z.object({
+  email: z.email(),
+  password: passwordStrengthValidation(),
+});
+
+export const onboardingOAuthRegisterRequestSchema = z.object({
+  providers: z
+    .array(linkedProviderSchema)
+    .min(1, 'At least one provider is required'),
+});
+
 // Register Validation
 export const authenticationEmailRegisterRequestSchema = z.object({
   email: z.email(),
@@ -59,12 +72,32 @@ export const authenticationEmailRegisterRequestSchema = z.object({
 });
 
 export const authenticationOAuthRegisterRequestSchema = z.object({
-  provider: z.enum(['github', 'google']),
-  providerUserId: z.string().min(1, 'Provider user ID is required'),
-  email: z.email(),
+  email: z.email({ message: 'Invalid email address' }),
   firstName: z.string(),
   lastName: z.string(),
+  providers: z
+    .array(linkedProviderSchema)
+    .min(1, 'At least one provider is required'),
 });
+
+export const onboardingSessionDataSchema = z.discriminatedUnion(
+  'registrationType',
+  [
+    z.object({
+      registrationType: z.literal('email'),
+      email: z.email(),
+      passwordHash: z.string(),
+      createdAt: z.string(),
+    }),
+    z.object({
+      registrationType: z.literal('oauth'),
+      providers: z
+        .array(linkedProviderSchema)
+        .min(1, 'At least one provider is required'),
+      createdAt: z.string(),
+    }),
+  ]
+);
 
 // Login Validation
 export const authenticationLoginRequestPublicSchema = z.object({

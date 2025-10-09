@@ -6,7 +6,6 @@ import {
   adminPasswordResetSchema,
   deactivateUserSchema,
   completeOnboardingSchema,
-  linkedProviderSchema,
 } from '../schemas/user.schema';
 import z from 'zod';
 
@@ -18,4 +17,3 @@ export type PasswordUpdate = z.infer<typeof passwordUpdateSchema>;
 export type AdminPasswordReset = z.infer<typeof adminPasswordResetSchema>;
 export type DeactivateUser = z.infer<typeof deactivateUserSchema>;
 export type CompleteOnboarding = z.infer<typeof completeOnboardingSchema>;
-export type LinkedProvider = z.infer<typeof linkedProviderSchema>;

@@ -1,3 +1,4 @@
+import { IUserController } from './interfaces/iuser.controller';
 import { IUserService } from './interfaces/iuser.service';
 import {
   passwordUpdateSchema,
@@ -7,30 +8,7 @@ import {
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
-export interface IUserController {
-  getUserProfile: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  updateUserAccount: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  updateUserPassword: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  deactivateUserAccount: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-}
-
-export const UserController = (userService: IUserService) => {
+export const UserController = (userService: IUserService): IUserController => {
   return {
     async getUserProfile(req: Request, res: Response, next: NextFunction) {
       try {

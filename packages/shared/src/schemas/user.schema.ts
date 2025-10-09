@@ -1,4 +1,5 @@
 import { VALIDATION_CONSTANTS } from '../constants/validations';
+import { linkedProviderSchema } from './common/common.schema';
 import z from 'zod';
 
 // TODO: Fix the naming scheme here as I created this when I was starting out
@@ -17,15 +18,6 @@ export const passwordSchema = z
     VALIDATION_CONSTANTS.USER.PASSWORD.PATTERN,
     VALIDATION_CONSTANTS.USER.PASSWORD.MESSAGE
   );
-
-const oAuthProviderEnum = z.enum(['google', 'github']);
-
-export const linkedProviderSchema = z.object({
-  provider: oAuthProviderEnum,
-  providerUserId: z.string(),
-  accessToken: z.string().optional(),
-  refreshToken: z.string().optional(),
-});
 
 export const userSchema = z.object({
   id: z.uuidv4({ message: 'Invalid UUID' }),
