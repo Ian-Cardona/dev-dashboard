@@ -3,7 +3,7 @@ import { UserRepository } from '../user/user.repository';
 import { UserService } from '../user/user.service';
 import { UnauthorizedError } from '../utils/errors.utils';
 import { extractBearerToken, verifyJWT } from '../utils/jwt.utils';
-import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
+import { AccessTokenPayload } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 
 const userService = UserService(UserRepository(docClient));
@@ -15,7 +15,7 @@ export const accessAuthorizationMiddleware = async (
 ) => {
   try {
     const token = extractBearerToken(req);
-    const payload: AuthorizationTokenPayload = verifyJWT(token);
+    const payload: AccessTokenPayload = verifyJWT<AccessTokenPayload>(token);
 
     const user = await userService.findById(payload.userId);
     if (!user) {

@@ -1,12 +1,13 @@
 import { ENV } from '../config/env_variables';
 import { UnauthorizedError } from './errors.utils';
-import { AuthorizationTokenPayload } from '@dev-dashboard/shared';
+import {
+  AccessTokenPayload,
+  OnboardingTokenPayload,
+} from '@dev-dashboard/shared';
 import { Request } from 'express';
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
 
-export const generateAccessJWT = (
-  payload: AuthorizationTokenPayload
-): string => {
+export const generateAccessJWT = (payload: AccessTokenPayload): string => {
   const signOptions: SignOptions = {
     expiresIn: '30m',
     algorithm: 'HS256',
@@ -18,10 +19,10 @@ export const generateAccessJWT = (
 };
 
 export const generateOnboardingJWT = (
-  payload: AuthorizationTokenPayload
+  payload: OnboardingTokenPayload
 ): string => {
   const signOptions: SignOptions = {
-    expiresIn: '30m',
+    expiresIn: '1h',
     algorithm: 'HS256',
     issuer: ENV.APP_NAME,
     audience: ENV.CLIENT_APP_NAME,
