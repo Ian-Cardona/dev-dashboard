@@ -2,7 +2,7 @@ import {
   OnboardingEmailRegisterRequestSchema,
   OnboardingSessionData,
 } from '@dev-dashboard/shared';
-import bcrypt from 'bcryptjs/umd/types';
+import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
 import { ENV } from 'src/config/env_variables';
 import { IUserService } from 'src/user/interfaces/iuser.service';

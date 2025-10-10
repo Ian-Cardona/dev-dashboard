@@ -1,6 +1,8 @@
 import { NotFoundError } from '../utils/errors.utils';
 import { OnboardingSessionData } from '@dev-dashboard/shared';
 import type { Request, Response, NextFunction } from 'express';
+import { redisClient } from 'src/config/redis';
+import { bcryptCompare } from 'src/utils/bcrypt.utils';
 import { redisGetJSON } from 'src/utils/redis';
 
 export const onboardingSessionMiddleware = async (
@@ -24,28 +26,43 @@ export const onboardingSessionMiddleware = async (
         typeof onboardingData.email !== 'string' ||
         onboardingData.email.trim() === ''
       ) {
-        throw new NotFoundError(
-          'Incomplete onboarding data: missing or invalid email'
-        );
+        throw new NotFoundError('Invalid onboarding request');
       }
       if (onboardingData.email !== req.body.email) {
-        throw new NotFoundError('Email does not match onboarding data');
+        throw new NotFoundError('Invalid onboarding request');
+      }
+      const password = req.body.password;
+      if (!password) {
+        throw new NotFoundError('Invalid onboarding request');
+      }
+      const isPasswordValid = await bcryptCompare(
+        password,
+        onboardingData.passwordHash
+      );
+      if (!isPasswordValid) {
+        throw new NotFoundError('Invalid onboarding request');
+      }
+      try {
+        await redisClient.del(key);
+      } catch {
+        //
       }
     } else if (onboardingData.registrationType === 'oauth') {
       if (
         !Array.isArray(onboardingData.providers) ||
         onboardingData.providers.length === 0
       ) {
-        throw new NotFoundError(
-          'Incomplete onboarding data: missing or empty providers'
-        );
+        throw new NotFoundError('Invalid onboarding request');
       }
       const provider = req.body.provider;
       if (!provider) {
-        throw new NotFoundError('Missing provider in request body');
+        throw new NotFoundError('Invalid onboarding request');
       }
-      if (!onboardingData.providers.includes(provider)) {
-        throw new NotFoundError('Provider does not match onboarding data');
+      const providerExists = onboardingData.providers.some(
+        p => p.provider === provider
+      );
+      if (!providerExists) {
+        throw new NotFoundError('Invalid onboarding request');
       }
     } else {
       throw new NotFoundError('Unknown registration type in onboarding data');
