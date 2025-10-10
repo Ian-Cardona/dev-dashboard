@@ -7,7 +7,7 @@ import {
 import { Request, Response, NextFunction } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
-const REFRESH_TOKEN_EXPIRY = 3600;
+const REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60;
 
 export const OnboardingController = (
   onboardingService: IOnboardingService

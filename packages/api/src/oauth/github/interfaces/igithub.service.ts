@@ -1,5 +1,7 @@
-import { GithubAuthResponseSchema } from '@dev-dashboard/shared';
+import { OAuthGithubCallbackResponseSchema } from '@dev-dashboard/shared';
 
 export interface IGithubService {
-  exchangeCodeForToken(code: string): Promise<GithubAuthResponseSchema>;
+  exchangeCodeForToken(
+    code: string
+  ): Promise<OAuthGithubCallbackResponseSchema>;
 }

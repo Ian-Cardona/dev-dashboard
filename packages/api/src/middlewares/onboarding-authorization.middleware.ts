@@ -1,5 +1,5 @@
 import { UnauthorizedError } from '../utils/errors.utils';
-import { extractBearerToken, verifyJWT } from '../utils/jwt.utils';
+import { verifyJWT } from '../utils/jwt.utils';
 import { OnboardingTokenPayload } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 
@@ -9,7 +9,9 @@ export const onboardingAuthorizationMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    const token = extractBearerToken(req);
+    // const token = extractBearerToken(req);
+    const token = req.cookies.obt1;
+    if (!token) throw new UnauthorizedError('Missing onboarding token cookie');
     const payload: OnboardingTokenPayload =
       verifyJWT<OnboardingTokenPayload>(token);
 
