@@ -1,25 +1,26 @@
+import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
-  OnboardingEmailRegisterRequestSchema,
-  OnboardingSessionData,
+  RegisterInitEmailRegisterRequest,
+  RegisterInitSessionData,
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
 import { ENV } from 'src/config/env_variables';
 import { IUserService } from 'src/user/interfaces/iuser.service';
 import { ConflictError } from 'src/utils/errors.utils';
-import { generateOnboardingJWT } from 'src/utils/jwt.utils';
+import { generateRegisterInitJWT } from 'src/utils/jwt.utils';
 
-const ONBOARDING_TTL = 3600;
-const REDIS_PREFIX = 'onboarding:';
+const REGISTER_INIT_TTL = 3600;
+const REDIS_PREFIX = 'registerInit:';
 
-export const OnboardingService = (
+export const RegisterInitService = (
   redisClient: RedisClientType,
   userService: IUserService
-) => {
+): IRegisterInitService => {
   return {
-    async initiateEmailOnboarding(
-      data: OnboardingEmailRegisterRequestSchema
-    ): Promise<{ onboardingToken: string }> {
+    async email(
+      data: RegisterInitEmailRegisterRequest
+    ): Promise<{ registerInitToken: string }> {
       const emailAlreadyExists = await userService.emailExists(data.email);
       if (emailAlreadyExists) {
         throw new ConflictError('User already exists');
@@ -30,7 +31,7 @@ export const OnboardingService = (
 
       const jti = crypto.randomUUID();
 
-      const sessionData: OnboardingSessionData = {
+      const sessionData: RegisterInitSessionData = {
         registrationType: 'email',
         email: data.email,
         passwordHash,
@@ -40,20 +41,20 @@ export const OnboardingService = (
       await redisClient.set(
         `${REDIS_PREFIX}${jti}`,
         JSON.stringify(sessionData),
-        { EX: ONBOARDING_TTL }
+        { EX: REGISTER_INIT_TTL }
       );
 
-      const onboardingToken = generateOnboardingJWT({
+      const registerInitToken = generateRegisterInitJWT({
         jti,
-        type: 'onboarding',
+        type: 'register-init',
       });
 
-      return { onboardingToken };
+      return { registerInitToken };
     },
 
-    // async initiateOAuthOnboarding(
-    //   data: OnboardingOAuthRegisterRequestSchema
-    // ): Promise<{ onboardingToken: string }> {
+    // async initiateOAuthRegisterInit(
+    //   data: RegisterInitOAuthRegisterRequestSchema
+    // ): Promise<{ registerInitToken: string }> {
     //   const providerAlreadyExists = await userService.providerExists(
     //     data.providers[0].provider,
     //     data.providers[0].providerUserId
@@ -64,7 +65,7 @@ export const OnboardingService = (
 
     //   const jti = crypto.randomUUID();
 
-    //   const sessionData: OnboardingSessionData = {
+    //   const sessionData: RegisterInitSessionData = {
     //     registrationType: 'oauth',
     //     providers: data.providers,
     //     createdAt: new Date().toISOString(),
@@ -76,12 +77,12 @@ export const OnboardingService = (
     //     { EX: ONBOARDING_TTL }
     //   );
 
-    //   const onboardingToken = generateOnboardingJWT({
+    //   const registerInitToken = generateRegisterInitJWT({
     //     jti,
-    //     type: 'onboarding',
+    //     type: 'registerInit',
     //   });
 
-    //   return { onboardingToken };
+    //   return { registerInitToken };
     // },
   };
 };

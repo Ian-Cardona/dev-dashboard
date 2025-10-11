@@ -1,8 +1,8 @@
 import { docClient } from '../../config/dynamodb';
 import { UserService } from '../../user/user.service';
-import { IOnboardingService } from './interfaces/ionboarding.service';
-import { OnboardingController } from './onboarding.controller';
-import { OnboardingService } from './onboarding.service';
+import { IRegisterInitService } from './interfaces/iregister-init.service';
+import { RegisterInitController } from './register-init.controller';
+import { RegisterInitService } from './register-init.service';
 import { Router } from 'express';
 import { redisClient } from 'src/config/redis';
 import { UserRepository } from 'src/user/user.repository';
@@ -12,18 +12,15 @@ const userRepository = UserRepository(docClient);
 
 const userServiceInstance = UserService(userRepository);
 
-const onboardingServiceInstance: IOnboardingService = OnboardingService(
+const registerInitServiceInstance: IRegisterInitService = RegisterInitService(
   redisClient,
   userServiceInstance
 );
 
-const onboardingControllerInstance = OnboardingController(
-  onboardingServiceInstance
+const registerInitControllerInstance = RegisterInitController(
+  registerInitServiceInstance
 );
 
-router.post(
-  '/initiate/email',
-  onboardingControllerInstance.initiateEmailOnboarding
-);
+router.post('/email', registerInitControllerInstance.email);
 
 export default router;

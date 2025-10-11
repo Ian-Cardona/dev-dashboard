@@ -51,13 +51,12 @@ export const loginPasswordSchema = z
     message: 'Password contains invalid characters',
   });
 
-// Onboarding Validation
-export const onboardingEmailRegisterRequestSchema = z.object({
+export const registerInitEmailRegisterRequestSchema = z.object({
   email: z.email(),
   password: passwordStrengthValidation(),
 });
 
-export const onboardingOAuthRegisterRequestSchema = z.object({
+export const registerInitOAuthRegisterRequestSchema = z.object({
   providers: z
     .array(linkedProviderSchema)
     .min(1, 'At least one provider is required'),
@@ -80,7 +79,7 @@ export const authenticationOAuthRegisterRequestSchema = z.object({
     .min(1, 'At least one provider is required'),
 });
 
-export const onboardingSessionDataSchema = z.discriminatedUnion(
+export const registerInitSessionDataSchema = z.discriminatedUnion(
   'registrationType',
   [
     z.object({

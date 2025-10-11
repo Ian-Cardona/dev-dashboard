@@ -2,12 +2,12 @@ import { ENV } from '../../config/env_variables';
 import { IAuthenticationController } from './interfaces/iauthentication.controller';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
-  AuthenticationEmailRegisterRequestSchema,
-  AuthenticationLoginRequestPublicSchema,
-  AuthenticationOAuthRegisterRequestSchema,
-  AuthenticationRefreshRequestPrivateSchema,
-  AuthenticationResponsePublicSchema,
-  AuthorizationJwtSchema,
+  AuthenticationEmailRegisterRequest,
+  AuthenticationLoginRequestPublic,
+  AuthenticationOAuthRegisterRequest,
+  AuthenticationRefreshRequestPrivate,
+  AuthenticationResponsePublic,
+  AuthorizationJwt,
   authenticationEmailRegisterRequestSchema,
   authenticationLoginRequestPublicSchema,
   authenticationOAuthRegisterRequestSchema,
@@ -28,7 +28,7 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: AuthenticationEmailRegisterRequestSchema =
+        const validatedData: AuthenticationEmailRegisterRequest =
           authenticationEmailRegisterRequestSchema.parse(req.body);
         const result = await authService.registerByEmail(validatedData);
 
@@ -47,7 +47,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationResponsePublicSchema = {
+        const response: AuthenticationResponsePublic = {
           accessToken: result.accessToken,
           user: result.user,
         };
@@ -64,7 +64,7 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: AuthenticationOAuthRegisterRequestSchema =
+        const validatedData: AuthenticationOAuthRegisterRequest =
           authenticationOAuthRegisterRequestSchema.parse(req.body);
         const result = await authService.registerByOAuth(validatedData);
 
@@ -83,7 +83,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationResponsePublicSchema = {
+        const response: AuthenticationResponsePublic = {
           accessToken: result.accessToken,
           user: result.user,
         };
@@ -100,7 +100,7 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: AuthenticationLoginRequestPublicSchema =
+        const validatedData: AuthenticationLoginRequestPublic =
           authenticationLoginRequestPublicSchema.parse(req.body);
         const result = await authService.login(validatedData);
 
@@ -119,7 +119,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationResponsePublicSchema = {
+        const response: AuthenticationResponsePublic = {
           accessToken: result.accessToken,
           user: result.user,
         };
@@ -136,13 +136,13 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const refreshTokenIdAndRefreshToken: AuthenticationRefreshRequestPrivateSchema =
+        const refreshTokenIdAndRefreshToken: AuthenticationRefreshRequestPrivate =
           {
             refreshTokenId: req.cookies.rt2,
             refreshTokenPlain: req.cookies.rt1,
           };
 
-        const validatedData: AuthenticationRefreshRequestPrivateSchema =
+        const validatedData: AuthenticationRefreshRequestPrivate =
           authenticationRefreshRequestPrivateSchema.parse(
             refreshTokenIdAndRefreshToken
           );
@@ -164,7 +164,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthorizationJwtSchema = {
+        const response: AuthorizationJwt = {
           accessToken: result.accessToken,
         };
 

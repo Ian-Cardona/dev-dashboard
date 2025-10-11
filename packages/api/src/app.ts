@@ -1,6 +1,6 @@
 import apiKeysRouter from './api-keys/api-keys.route';
 import authenticationRouter from './auth-related/authentication/authentication.route';
-import onboardingRouter from './auth-related/onboarding/onboarding.route';
+import registerInitRouter from './auth-related/register-init/register-init.route';
 import { accessAuthorizationMiddleware } from './middlewares/access-authorization.middleware';
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
 import { loggerMiddleware } from './middlewares/logger.middleware';
@@ -46,7 +46,7 @@ v1Router.use('/todos', todoRouter);
 v1Router.use('/user', accessAuthorizationMiddleware, userRouter);
 v1Router.use('/api-keys', apiKeysRouter);
 v1Router.use('/github', githubRouter);
-v1Router.use('/onboarding', onboardingRouter);
+v1Router.use('/init', registerInitRouter);
 
 app.use('/v1', v1Router);
 
