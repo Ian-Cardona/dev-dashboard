@@ -2,16 +2,16 @@ import { generateAccessJWT, verifyJWT } from '../../utils/jwt.utils';
 import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
-  AuthenticationLoginRequestPublicSchema,
-  AuthenticationRefreshRequestPrivateSchema,
-  AuthenticationRefreshResponsePrivateSchema,
-  AuthenticationSuccessResponsePrivateSchema,
+  AuthenticationLoginRequestPublic,
+  AuthenticationRefreshRequestPrivate,
+  AuthenticationRefreshResponsePrivate,
+  AuthenticationSuccessResponsePrivate,
   UserResponsePublic,
   RefreshTokenRecordAndPlain,
   RefreshToken,
-  AuthenticationEmailRegisterRequestSchema,
+  AuthenticationEmailRegisterRequest,
   AccessTokenPayload,
-  AuthenticationOAuthRegisterRequestSchema,
+  AuthenticationOAuthRegisterRequest,
 } from '@dev-dashboard/shared';
 import { IUserService } from 'src/user/interfaces/iuser.service';
 import { bcryptCompare } from 'src/utils/bcrypt.utils';
@@ -44,8 +44,8 @@ export const AuthenticationService = (
 
   return {
     async registerByEmail(
-      data: AuthenticationEmailRegisterRequestSchema
-    ): Promise<AuthenticationSuccessResponsePrivateSchema> {
+      data: AuthenticationEmailRegisterRequest
+    ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
         const emailAlreadyExists = await userService.emailExists(data.email);
         if (emailAlreadyExists) {
@@ -80,8 +80,8 @@ export const AuthenticationService = (
     },
 
     async registerByOAuth(
-      data: AuthenticationOAuthRegisterRequestSchema
-    ): Promise<AuthenticationSuccessResponsePrivateSchema> {
+      data: AuthenticationOAuthRegisterRequest
+    ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
         const emailAlreadyExists = await userService.emailExists(data.email);
         if (emailAlreadyExists) {
@@ -116,8 +116,8 @@ export const AuthenticationService = (
     },
 
     async login(
-      data: AuthenticationLoginRequestPublicSchema
-    ): Promise<AuthenticationSuccessResponsePrivateSchema> {
+      data: AuthenticationLoginRequestPublic
+    ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
         const user = await userService.findByEmailPrivate(data.email);
 
@@ -184,8 +184,8 @@ export const AuthenticationService = (
     },
 
     async refreshAccessToken(
-      data: AuthenticationRefreshRequestPrivateSchema
-    ): Promise<AuthenticationRefreshResponsePrivateSchema> {
+      data: AuthenticationRefreshRequestPrivate
+    ): Promise<AuthenticationRefreshResponsePrivate> {
       try {
         const matchedToken = await refreshTokenService.findByIdAndMatch(
           data.refreshTokenId,

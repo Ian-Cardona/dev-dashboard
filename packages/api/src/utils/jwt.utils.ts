@@ -2,7 +2,7 @@ import { ENV } from '../config/env_variables';
 import { UnauthorizedError } from './errors.utils';
 import {
   AccessTokenPayload,
-  OnboardingTokenPayload,
+  RegisterInitTokenPayload,
 } from '@dev-dashboard/shared';
 import { Request } from 'express';
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
@@ -18,8 +18,8 @@ export const generateAccessJWT = (payload: AccessTokenPayload): string => {
   return jwt.sign(payload, ENV.JWT_SECRET, signOptions);
 };
 
-export const generateOnboardingJWT = (
-  payload: OnboardingTokenPayload
+export const generateRegisterInitJWT = (
+  payload: RegisterInitTokenPayload
 ): string => {
   const signOptions: SignOptions = {
     expiresIn: '1h',

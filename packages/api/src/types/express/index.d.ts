@@ -4,7 +4,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: { userId: string; email?: string };
-      onboarding?: { jti: string };
+      registerInit?: { jti: string };
     }
   }
 }

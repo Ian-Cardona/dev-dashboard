@@ -1,26 +1,26 @@
 import {
-  AuthenticationEmailRegisterRequestSchema,
-  AuthenticationLoginRequestPublicSchema,
-  AuthenticationOAuthRegisterRequestSchema,
-  AuthenticationRefreshRequestPrivateSchema,
-  AuthenticationRefreshResponsePrivateSchema,
-  AuthenticationSuccessResponsePrivateSchema,
+  AuthenticationEmailRegisterRequest,
+  AuthenticationLoginRequestPublic,
+  AuthenticationOAuthRegisterRequest,
+  AuthenticationRefreshRequestPrivate,
+  AuthenticationRefreshResponsePrivate,
+  AuthenticationSuccessResponsePrivate,
   UserResponsePublic,
 } from '@dev-dashboard/shared';
 
 export interface IAuthenticationService {
   registerByEmail(
-    data: AuthenticationEmailRegisterRequestSchema
-  ): Promise<AuthenticationSuccessResponsePrivateSchema>;
+    data: AuthenticationEmailRegisterRequest
+  ): Promise<AuthenticationSuccessResponsePrivate>;
   registerByOAuth(
-    data: AuthenticationOAuthRegisterRequestSchema
-  ): Promise<AuthenticationSuccessResponsePrivateSchema>;
+    data: AuthenticationOAuthRegisterRequest
+  ): Promise<AuthenticationSuccessResponsePrivate>;
   login(
-    data: AuthenticationLoginRequestPublicSchema
-  ): Promise<AuthenticationSuccessResponsePrivateSchema>;
+    data: AuthenticationLoginRequestPublic
+  ): Promise<AuthenticationSuccessResponsePrivate>;
   logout(refreshTokenId: string): Promise<void>;
   refreshAccessToken(
-    data: AuthenticationRefreshRequestPrivateSchema
-  ): Promise<AuthenticationRefreshResponsePrivateSchema>;
+    data: AuthenticationRefreshRequestPrivate
+  ): Promise<AuthenticationRefreshResponsePrivate>;
   verifyAccessToken(token: string): Promise<UserResponsePublic>;
 }

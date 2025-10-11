@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
-export interface IOnboardingController {
-  initiateEmailOnboarding: (
+export interface IRegisterInitController {
+  email: (
     req: Request,
     res: Response,
     next: NextFunction
