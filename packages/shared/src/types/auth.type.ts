@@ -7,53 +7,55 @@ import {
   authenticationOAuthRegisterRequestSchema,
   authenticationSuccessResponsePrivateSchema,
   authorizationJwtSchema,
-  onboardingSessionDataSchema,
-  onboardingOAuthRegisterRequestSchema,
-  onboardingEmailRegisterRequestSchema,
+  registerInitSessionDataSchema,
+  registerInitOAuthRegisterRequestSchema,
+  registerInitEmailRegisterRequestSchema,
 } from '../schemas/auth.schema';
 import { JwtPayload } from 'jsonwebtoken';
 import z from 'zod';
 
-// Onboarding
-export type OnboardingEmailRegisterRequestSchema = z.infer<
-  typeof onboardingEmailRegisterRequestSchema
+export type RegisterInitEmailRegisterRequest = z.infer<
+  typeof registerInitEmailRegisterRequestSchema
 >;
-export type OnboardingOAuthRegisterRequestSchema = z.infer<
-  typeof onboardingOAuthRegisterRequestSchema
+export type RegisterInitOAuthRegisterRequest = z.infer<
+  typeof registerInitOAuthRegisterRequestSchema
+>;
+export type RegisterInitSessionData = z.infer<
+  typeof registerInitSessionDataSchema
 >;
 
-// Register
-export type AuthenticationEmailRegisterRequestSchema = z.infer<
+export type AuthenticationEmailRegisterRequest = z.infer<
   typeof authenticationEmailRegisterRequestSchema
 >;
-export type AuthenticationOAuthRegisterRequestSchema = z.infer<
+export type AuthenticationOAuthRegisterRequest = z.infer<
   typeof authenticationOAuthRegisterRequestSchema
 >;
 
-export type AuthenticationLoginRequestPublicSchema = z.infer<
+export type AuthenticationLoginRequestPublic = z.infer<
   typeof authenticationLoginRequestPublicSchema
 >;
-export type AuthenticationSuccessResponsePrivateSchema = z.infer<
+export type AuthenticationSuccessResponsePrivate = z.infer<
   typeof authenticationSuccessResponsePrivateSchema
 >;
-export type AuthenticationRefreshRequestPrivateSchema = z.infer<
+
+export type AuthenticationRefreshRequestPrivate = z.infer<
   typeof authenticationRefreshRequestPrivateSchema
 >;
-export type AuthenticationRefreshResponsePrivateSchema = z.infer<
+export type AuthenticationRefreshResponsePrivate = z.infer<
   typeof authenticationRefreshResponsePrivateSchema
 >;
-export type AuthenticationResponsePublicSchema = z.infer<
+export type AuthenticationResponsePublic = z.infer<
   typeof authenticationResponsePublicSchema
 >;
-export type AuthorizationJwtSchema = z.infer<typeof authorizationJwtSchema>;
+export type AuthorizationJwt = z.infer<typeof authorizationJwtSchema>;
+
 export interface AccessTokenPayload extends JwtPayload {
   userId: string;
   email: string;
   isActive: boolean;
   type: 'access';
 }
-export interface OnboardingTokenPayload extends JwtPayload {
+export interface RegisterInitTokenPayload extends JwtPayload {
   jti: string;
-  type: 'onboarding';
+  type: 'register-init';
 }
-export type OnboardingSessionData = z.infer<typeof onboardingSessionDataSchema>;
