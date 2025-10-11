@@ -1,5 +1,7 @@
-import { useRegisterInitForm } from '../../hooks';
-import { useRegisterInitMutation } from '../../hooks/useRegisterInitMutation';
+import { useRegisterInitForm } from '../hooks';
+import { useRegisterInitMutation } from '../hooks/useRegisterInitMutation';
+import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 
 const GithubIcon = () => (
   <svg
@@ -21,6 +23,7 @@ const RegisterForm = () => {
   const { email, password, setEmail, setPassword, isValid, resetForm } =
     useRegisterInitForm();
   const registerInitMutation = useRegisterInitMutation();
+  const [showValidationError, setShowValidationError] = useState(false);
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -28,18 +31,46 @@ const RegisterForm = () => {
       registerInitMutation.mutate(
         { email, password },
         {
-          onSuccess: () => resetForm(),
+          onSuccess: () => {
+            resetForm();
+            setShowValidationError(false);
+          },
         }
       );
+    } else {
+      setShowValidationError(true);
     }
   };
 
+  const passwordChecks = [
+    {
+      label: 'At least 8 characters',
+      test: (pw: string) => pw.length >= 8,
+    },
+    {
+      label: 'One uppercase letter',
+      test: (pw: string) => /[A-Z]/.test(pw),
+    },
+    {
+      label: 'One lowercase letter',
+      test: (pw: string) => /[a-z]/.test(pw),
+    },
+    {
+      label: 'One number',
+      test: (pw: string) => /[0-9]/.test(pw),
+    },
+    {
+      label: 'One special character',
+      test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
+    },
+  ];
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
       <div>
         <label
           htmlFor="email"
-          className="mb-2 block text-sm font-medium text-[var(--color-fg)]"
+          className="mb-3 block text-sm font-medium text-[var(--color-fg)]"
         >
           Email
         </label>
@@ -56,7 +87,7 @@ const RegisterForm = () => {
       <div>
         <label
           htmlFor="password"
-          className="mb-2 block text-sm font-medium text-[var(--color-fg)]"
+          className="mb-3 block text-sm font-medium text-[var(--color-fg)]"
         >
           Password
         </label>
@@ -69,6 +100,34 @@ const RegisterForm = () => {
           required
           className="w-full rounded-lg border bg-transparent p-3 text-base text-[var(--color-fg)] transition-colors duration-200 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none"
         />
+        <div className="mt-3 flex flex-col gap-2">
+          {passwordChecks.map(({ label, test }) => {
+            const valid = test(password);
+            return (
+              <div key={label} className="flex items-center gap-2 text-sm">
+                {valid ? (
+                  <CheckIcon className="h-5 w-5 text-[var(--color-accent)]" />
+                ) : (
+                  <XMarkIcon className="h-5 w-5 text-[var(--color-danger)]" />
+                )}
+                <span
+                  className={
+                    valid
+                      ? 'text-[var(--color-accent)] line-through'
+                      : 'text-[var(--color-danger)]'
+                  }
+                >
+                  {label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        {showValidationError && (
+          <p className="mt-3 text-sm text-[var(--color-danger)]">
+            Please enter a valid email and password.
+          </p>
+        )}
       </div>
       <button
         type="submit"
@@ -86,7 +145,7 @@ const RegisterForm = () => {
       </div>
       <button
         type="button"
-        className="hover:bg-opacity-10 flex w-full items-center justify-center gap-3 rounded-lg border bg-transparent py-3 text-base font-semibold text-[var(--color-fg)] transition-colors duration-200 hover:bg-white"
+        className="flex w-full items-center justify-center gap-3 rounded-lg border bg-transparent py-3 text-base font-semibold text-[var(--color-fg)] shadow-md transition-all hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
       >
         <GithubIcon />
         Sign up with GitHub
