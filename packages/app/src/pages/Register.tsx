@@ -1,17 +1,17 @@
 import RegisterForm from '../features/register/components/RegisterForm';
-import { UserPlusIcon } from '@heroicons/react/24/outline';
+import RegisterInfoPanel from '../features/register/components/RegisterInfoPanel';
 
 const RegisterPage = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--color-background)] p-16">
-      <div className="w-full max-w-md">
-        <header className="mb-8 flex items-center justify-center gap-2">
-          <UserPlusIcon className="h-6 w-6" />
-          <h1 className="text-3xl font-semibold">Sign up to Dev Dashboard</h1>
-        </header>
-        <section className="relative flex flex-col rounded-2xl border bg-[var(--color-surface)] p-10">
+    <div className="flex min-h-screen bg-[var(--color-background)]">
+      <div className="hidden flex-1 p-8 lg:flex">
+        <RegisterInfoPanel />
+      </div>
+
+      <div className="flex flex-1 items-center justify-center bg-[var(--color-surface)] p-8">
+        <div className="w-full max-w-md">
           <RegisterForm />
-        </section>
+        </div>
       </div>
     </div>
   );
