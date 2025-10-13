@@ -5,6 +5,17 @@ import type {
   AuthenticationResponsePublic,
 } from '@dev-dashboard/shared';
 
+export const fetchEmailSessionById = async (
+  sessionId: string
+): Promise<{ email: string }> => {
+  if (!sessionId) throw new Error('Email session ID is required for fetching.');
+
+  const response = await publicClient.get(
+    `/init/email/session?session=${sessionId}`
+  );
+  return response.data;
+};
+
 export const registerInitEmail = async (
   data: RegisterInitEmailRegisterRequest
 ): Promise<void> => {
@@ -12,7 +23,7 @@ export const registerInitEmail = async (
   if (response.status !== 201) throw new Error('Failed to initiate register');
 };
 
-export const registerApi = async (
+export const register = async (
   data: AuthenticationEmailRegisterRequest
 ): Promise<AuthenticationResponsePublic> => {
   const response = await publicClient.post('/auth/register/email', data);
