@@ -21,6 +21,7 @@ const registerInitControllerInstance = RegisterInitController(
   registerInitServiceInstance
 );
 
+router.get('/email/session', registerInitControllerInstance.getEmailSession);
 router.post('/email', registerInitControllerInstance.email);
 
 export default router;
