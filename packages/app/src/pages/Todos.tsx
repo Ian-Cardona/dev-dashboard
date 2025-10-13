@@ -31,7 +31,7 @@ const TodosPage = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-background)] p-8">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-bg)] p-8">
       <header className="mb-4 flex flex-shrink-0 items-center gap-2">
         <DocumentTextIcon className="h-8 w-8" />
         <h1 className="text-4xl">Todos</h1>

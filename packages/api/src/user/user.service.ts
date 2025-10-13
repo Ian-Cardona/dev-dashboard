@@ -6,8 +6,8 @@ import { IUserService } from './interfaces/iuser.service';
 import {
   User,
   UserResponsePublic,
-  AuthenticationEmailRegisterRequestSchema,
-  AuthenticationOAuthRegisterRequestSchema,
+  AuthenticationEmailRegisterRequest,
+  AuthenticationOAuthRegisterRequest,
   UserUpdate,
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
@@ -17,7 +17,7 @@ const MODULE_NAME = 'UserService';
 export const UserService = (userRepository: IUserRepository): IUserService => {
   return {
     async createByEmail(
-      user: AuthenticationEmailRegisterRequestSchema
+      user: AuthenticationEmailRegisterRequest
     ): Promise<UserResponsePublic> {
       try {
         const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
@@ -63,7 +63,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
     },
 
     async createByOAuth(
-      user: AuthenticationOAuthRegisterRequestSchema
+      user: AuthenticationOAuthRegisterRequest
     ): Promise<UserResponsePublic> {
       try {
         const now = new Date().toISOString();

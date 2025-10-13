@@ -1,2 +1,2 @@
 export * from './useRegisterForm';
-export * from './useRegisterMutation';
+export * from './useMutateRegister';

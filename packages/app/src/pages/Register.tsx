@@ -1,9 +1,9 @@
-import RegisterForm from '../features/register/components/RegisterForm';
-import RegisterInfoPanel from '../features/register/components/RegisterInfoPanel';
+import RegisterForm from '../features/register/components/register/RegisterForm';
+import RegisterInfoPanel from '../features/register/components/register/RegisterInfoPanel';
 
 const RegisterPage = () => {
   return (
-    <div className="flex min-h-screen bg-[var(--color-background)]">
+    <div className="flex min-h-screen bg-[var(--color-bg)]">
       <div className="hidden flex-1 p-8 lg:flex">
         <RegisterInfoPanel />
       </div>

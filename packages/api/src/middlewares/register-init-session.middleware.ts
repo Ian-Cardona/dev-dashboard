@@ -17,7 +17,6 @@ export const registerInitSessionMiddleware = async (
     const key = `registerInit:${jti}`;
 
     const registerInitData = await redisGetJSON<RegisterInitSessionData>(key);
-    console.log(registerInitData);
     if (!registerInitData) {
       throw new NotFoundError('Data not found or expired');
     }
