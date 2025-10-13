@@ -2,6 +2,7 @@ import AppLayout from './components/layout/AppLayout';
 import { PublicRoute, ProtectedRoute } from './components/routes/Routes';
 import CustomToast from './components/ui/CustomToast';
 import { LoginPage, TodosPage, RegisterPage, SettingsPage } from './pages';
+import OnboardingPage from './pages/Onboarding';
 import { Routes, Route, Navigate } from 'react-router';
 
 function App() {
@@ -10,7 +11,10 @@ function App() {
       <Routes>
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register">
+            <Route index element={<RegisterPage />} />
+            <Route path="onboarding" element={<OnboardingPage />} />
+          </Route>
         </Route>
 
         <Route element={<ProtectedRoute />}>

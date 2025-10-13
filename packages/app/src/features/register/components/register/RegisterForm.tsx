@@ -1,5 +1,5 @@
-import { useRegisterInitForm } from '../hooks';
-import { useRegisterInitMutation } from '../hooks/useRegisterInitMutation';
+import { useRegisterInitForm } from '../../hooks';
+import { useRegisterInitMutation } from '../../hooks/useMutateRegisterInit';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
