@@ -2,15 +2,15 @@ import { generateUUID } from '../utils/uuid.utils';
 import { ITodoModel } from './interfaces/itodo.model';
 import { ComparisonResult, ITodoService } from './interfaces/itodo.service';
 import {
-  TodoMeta,
-  TodoBatch,
-  ProjectNames,
-  TodosInfo,
-  RawTodoBatch,
-  RawTodo,
-  Todo,
-  TodoResolution,
   CreateResolution,
+  ProjectNames,
+  RawTodo,
+  RawTodoBatch,
+  Todo,
+  TodoBatch,
+  TodoMeta,
+  TodoResolution,
+  TodosInfo,
 } from '@dev-dashboard/shared';
 import crypto from 'crypto';
 

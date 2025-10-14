@@ -3,13 +3,13 @@ import { useMutateCreateKey } from '../../hooks/useMutateCreateKey';
 import { useQueryFetchKeys } from '../../hooks/useQueryFetchKeys';
 import SettingsApiKeysItem from './SettingsApiKeysItem';
 import {
-  PlusIcon,
   CheckIcon,
   ClipboardDocumentIcon,
+  PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const SettingsApiKeys = () => {
   const { data: keys, isLoading } = useQueryFetchKeys();

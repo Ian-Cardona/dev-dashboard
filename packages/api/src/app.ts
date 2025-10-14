@@ -1,3 +1,6 @@
+// eslint-disable-next-line prettier/prettier
+import 'dotenv/config';
+
 import apiKeysRouter from './api-keys/api-keys.route';
 import authenticationRouter from './auth-related/authentication/authentication.route';
 import registerInitRouter from './auth-related/register-init/register-init.route';
@@ -8,7 +11,6 @@ import githubRouter from './oauth/github/github.route';
 import todoRouter from './todos/todo.route';
 import userRouter from './user/user.route';
 import cookieParser from 'cookie-parser';
-import 'dotenv/config';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';

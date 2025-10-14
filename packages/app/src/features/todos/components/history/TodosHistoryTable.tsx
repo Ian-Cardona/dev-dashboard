@@ -2,9 +2,9 @@ import TodosHistoryTableHeader from './TodosHistoryTableHeader';
 import TodosHistoryTableRow from './TodosHistoryTableRow';
 import type { FlattenedTodo, TodoBatch } from '@dev-dashboard/shared';
 import {
+  ChevronDownIcon,
   ChevronUpDownIcon,
   ChevronUpIcon,
-  ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
 

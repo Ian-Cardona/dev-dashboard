@@ -1,9 +1,9 @@
 import { useMutateUpdateUserProfile } from '../../hooks/useMutateUpdateUserProfile';
 import { useQueryFetchUserProfile } from '../../hooks/useQueryFetchUserProfile';
 import {
+  CheckIcon,
   PencilSquareIcon,
   XMarkIcon,
-  CheckIcon,
 } from '@heroicons/react/24/outline';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';

@@ -4,16 +4,16 @@ import useQueryPendingResolutions from '../hooks/useQueryPendingResolutions';
 import ResolutionsTable from './resolutions/ResolutionsTable';
 import { type CreateResolution } from '@dev-dashboard/shared';
 import {
+  CheckIcon,
   ChevronDownIcon,
   ChevronUpDownIcon,
   ChevronUpIcon,
   InformationCircleIcon,
   PencilSquareIcon,
   XMarkIcon,
-  CheckIcon,
 } from '@heroicons/react/24/outline';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState, type JSX } from 'react';
+import { type JSX, useMemo, useState } from 'react';
 
 type TypeFilter = '' | 'bug' | 'feature' | 'chore' | string;
 type SortField = 'type' | 'content' | 'createdAt' | null;

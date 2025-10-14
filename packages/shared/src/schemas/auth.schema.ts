@@ -1,4 +1,8 @@
-import { linkedProviderSchema } from './common/common.schema';
+import { VALIDATION_CONSTANTS } from '../constants/validations';
+import {
+  linkedProviderSchema,
+  oAuthProviderEnum,
+} from './common/common.schema';
 import { userResponsePublicSchema } from './user.schema';
 import z from 'zod';
 
@@ -57,27 +61,56 @@ export const registerInitEmailRegisterRequestSchema = z.object({
 });
 
 export const registerInitOAuthRegisterRequestSchema = z.object({
-  providers: z
-    .array(linkedProviderSchema)
-    .min(1, 'At least one provider is required'),
+  provider: oAuthProviderEnum,
+  id: z.string(),
+  login: z.string(),
 });
 
 // Register Validation
-export const authenticationEmailRegisterRequestSchema = z.object({
+export const onboardingInfoRequestSchema = z.object({
   email: z.email(),
-  password: passwordStrengthValidation(),
-  firstName: z.string(),
-  lastName: z.string(),
+  firstName: z
+    .string({ message: 'Invalid first name' })
+    .trim()
+    .min(
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MIN_LENGTH,
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
+    )
+    .max(
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MAX_LENGTH,
+      VALIDATION_CONSTANTS.USER.FIRST_NAME.MESSAGE
+    ),
+  lastName: z
+    .string({ message: 'Invalid last name' })
+    .trim()
+    .min(
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MIN_LENGTH,
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
+    )
+    .max(
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MAX_LENGTH,
+      VALIDATION_CONSTANTS.USER.LAST_NAME.MESSAGE
+    ),
 });
 
-export const authenticationOAuthRegisterRequestSchema = z.object({
-  email: z.email({ message: 'Invalid email address' }),
-  firstName: z.string(),
-  lastName: z.string(),
-  providers: z
-    .array(linkedProviderSchema)
-    .min(1, 'At least one provider is required'),
-});
+// export const authenticationEmailRegisterRequestSchema =
+//   onboardingInfoRequestSchema.extend({
+//     password: passwordStrengthValidation(),
+//   });
+
+export const authenticationEmailRegisterRequestSchema =
+  onboardingInfoRequestSchema.extend({
+    passwordHash: z
+      .string({ message: 'Invalid password hash' })
+      .min(10, 'Invalid hash length'),
+  });
+
+export const authenticationOAuthRegisterRequestSchema =
+  onboardingInfoRequestSchema.extend({
+    providers: z
+      .array(linkedProviderSchema)
+      .min(1, 'At least one provider is required'),
+  });
 
 export const registerInitSessionDataSchema = z.discriminatedUnion(
   'registrationType',
@@ -90,9 +123,9 @@ export const registerInitSessionDataSchema = z.discriminatedUnion(
     }),
     z.object({
       registrationType: z.literal('oauth'),
-      providers: z
-        .array(linkedProviderSchema)
-        .min(1, 'At least one provider is required'),
+      provider: oAuthProviderEnum,
+      providerUserId: z.string(),
+      providerUserLogin: z.string(),
       createdAt: z.string(),
     }),
   ]

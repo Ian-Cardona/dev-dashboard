@@ -1,12 +1,12 @@
 import {
-  DocumentTextIcon,
-  WrenchScrewdriverIcon,
-  ChatBubbleLeftRightIcon,
   BugAntIcon,
-  XMarkIcon,
-  QuestionMarkCircleIcon,
-  FireIcon,
+  ChatBubbleLeftRightIcon,
   CheckCircleIcon,
+  DocumentTextIcon,
+  FireIcon,
+  QuestionMarkCircleIcon,
+  WrenchScrewdriverIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 interface IconSelectorProps {

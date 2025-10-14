@@ -2,8 +2,8 @@ import {
   findPivotRoot,
   getSourceFiles,
   makeRelativePathTodo,
-  tagTodos,
   scanFile,
+  tagTodos,
 } from './scan';
 import { ProcessedTodo, RawTodo } from '@dev-dashboard/shared';
 import * as vscode from 'vscode';

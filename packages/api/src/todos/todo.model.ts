@@ -1,10 +1,10 @@
 import { ENV } from '../config/env_variables';
 import { ITodoModel } from './interfaces/itodo.model';
 import {
+  BatchWriteCommand,
   DynamoDBDocumentClient,
   PutCommand,
   QueryCommand,
-  BatchWriteCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ProjectNames, TodoBatch, TodoResolution } from '@dev-dashboard/shared';
 
