@@ -1,15 +1,16 @@
 import {
+  authenticationEmailRegisterRequestSchema,
   authenticationLoginRequestPublicSchema,
-  authenticationResponsePublicSchema,
+  authenticationOAuthRegisterRequestSchema,
   authenticationRefreshRequestPrivateSchema,
   authenticationRefreshResponsePrivateSchema,
-  authenticationEmailRegisterRequestSchema,
-  authenticationOAuthRegisterRequestSchema,
+  authenticationResponsePublicSchema,
   authenticationSuccessResponsePrivateSchema,
   authorizationJwtSchema,
-  registerInitSessionDataSchema,
-  registerInitOAuthRegisterRequestSchema,
+  onboardingInfoRequestSchema,
   registerInitEmailRegisterRequestSchema,
+  registerInitOAuthRegisterRequestSchema,
+  registerInitSessionDataSchema,
 } from '../schemas/auth.schema';
 import { JwtPayload } from 'jsonwebtoken';
 import z from 'zod';
@@ -23,6 +24,8 @@ export type RegisterInitOAuthRegisterRequest = z.infer<
 export type RegisterInitSessionData = z.infer<
   typeof registerInitSessionDataSchema
 >;
+
+export type OnboardingInfoRequest = z.infer<typeof onboardingInfoRequestSchema>;
 
 export type AuthenticationEmailRegisterRequest = z.infer<
   typeof authenticationEmailRegisterRequestSchema

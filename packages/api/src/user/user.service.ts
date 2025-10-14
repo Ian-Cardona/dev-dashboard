@@ -1,16 +1,18 @@
-import { ENV } from '../config/env_variables';
+// import { ENV } from '../config/env_variables';
 import { ConflictError, NotFoundError } from '../utils/errors.utils';
 import { generateUUID } from '../utils/uuid.utils';
 import { IUserRepository } from './interfaces/iuser.repository';
 import { IUserService } from './interfaces/iuser.service';
 import {
-  User,
-  UserResponsePublic,
   AuthenticationEmailRegisterRequest,
   AuthenticationOAuthRegisterRequest,
+  User,
+  UserResponsePublic,
   UserUpdate,
 } from '@dev-dashboard/shared';
-import bcrypt from 'bcryptjs';
+import { isBcryptHash } from 'src/utils/bcrypt.utils';
+
+// import bcrypt from 'bcryptjs';
 
 const MODULE_NAME = 'UserService';
 
@@ -20,14 +22,18 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       user: AuthenticationEmailRegisterRequest
     ): Promise<UserResponsePublic> {
       try {
-        const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
-        if (!saltRounds || isNaN(saltRounds)) {
-          throw new Error(
-            `[${MODULE_NAME}] Invalid bcrypt salt rounds configuration`
-          );
+        // const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
+        // if (!saltRounds || isNaN(saltRounds)) {
+        //   throw new Error(
+        //     `[${MODULE_NAME}] Invalid bcrypt salt rounds configuration`
+        //   );
+        // }
+        // const salt = await bcrypt.genSalt(saltRounds);
+        // const hashedPassword = await bcrypt.hash(user.passwordHash, salt);
+
+        if (!isBcryptHash(user.passwordHash)) {
+          throw new Error(`[${MODULE_NAME}] Invalid bcrypt hash provided`);
         }
-        const salt = await bcrypt.genSalt(saltRounds);
-        const hashedPassword = await bcrypt.hash(user.password, salt);
 
         const now = new Date().toISOString();
 
@@ -40,7 +46,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          passwordHash: hashedPassword,
+          passwordHash: user.passwordHash,
           role: 'user',
           providers: [],
         });
@@ -153,14 +159,25 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
 
     async emailExists(email: string): Promise<boolean> {
       try {
-        console.log('Email exists?', email);
         const user = await userRepository.findByEmail(email);
-        return user !== null;
-      } catch (error) {
-        if (error instanceof Error) {
-          throw error;
-        }
-        throw new Error('Could not check email existence');
+        return !!user;
+      } catch {
+        throw new Error(`[${MODULE_NAME}] Failed to check email existence`);
+      }
+    },
+
+    async providerExists(
+      provider: string,
+      providerUserId: string
+    ): Promise<boolean> {
+      try {
+        const user = await userRepository.findByProvider(
+          provider,
+          providerUserId
+        );
+        return !!user;
+      } catch {
+        throw new Error(`[${MODULE_NAME}] Failed to check provider existence`);
       }
     },
 

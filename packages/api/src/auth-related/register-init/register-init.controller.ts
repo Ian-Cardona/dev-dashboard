@@ -1,10 +1,11 @@
 import { IRegisterInitController } from './interfaces/iregister-init.controller';
 import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
-  registerInitEmailRegisterRequestSchema,
   RegisterInitEmailRegisterRequest,
+  registerInitEmailRegisterRequestSchema,
+  registerInitOAuthRegisterRequestSchema,
 } from '@dev-dashboard/shared';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 import z from 'zod';
 
@@ -74,6 +75,35 @@ export const RegisterInitController = (
         res.status(201).json();
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid registration data');
+      }
+    },
+    async oauth(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
+      try {
+        const validatedData = registerInitOAuthRegisterRequestSchema.parse(
+          req.body
+        );
+        const result = await registerInitService.oauth(validatedData);
+
+        res.cookie('rit1', result.registerInitToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: '/',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        res.status(201).json();
+      } catch (error) {
+        handleValidationError(
+          error,
+          res,
+          next,
+          'Invalid OAuth registration data'
+        );
       }
     },
   };

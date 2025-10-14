@@ -1,11 +1,11 @@
 import {
-  userSchema,
-  userResponsePublicSchema,
-  userUpdateSchema,
-  passwordUpdateSchema,
   adminPasswordResetSchema,
-  deactivateUserSchema,
   completeOnboardingSchema,
+  deactivateUserSchema,
+  passwordUpdateSchema,
+  userResponsePublicSchema,
+  userSchema,
+  userUpdateSchema,
 } from '../schemas/user.schema';
 import z from 'zod';
 

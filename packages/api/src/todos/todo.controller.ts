@@ -1,9 +1,9 @@
 import { ITodoService } from './interfaces/itodo.service';
 import {
+  VALIDATION_CONSTANTS,
   createResolutionSchema,
   rawTodoBatchSchema,
   uuidSchema,
-  VALIDATION_CONSTANTS,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';

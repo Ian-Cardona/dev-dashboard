@@ -1,6 +1,6 @@
 import {
-  oAuthGithubCodeSchema,
   oAuthGithubCallbackResponseSchema,
+  oAuthGithubCodeSchema,
 } from '../schemas/oauth.schema';
 import z from 'zod';
 

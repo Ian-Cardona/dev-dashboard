@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import winston from 'winston';
 
 const isDevelopment = process.env.NODE_ENV === 'development';

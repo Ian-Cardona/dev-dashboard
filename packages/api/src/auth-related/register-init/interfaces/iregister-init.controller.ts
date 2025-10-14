@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 export interface IRegisterInitController {
   getEmailSession: (
@@ -7,6 +7,11 @@ export interface IRegisterInitController {
     next: NextFunction
   ) => void | Promise<void>;
   email: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>;
+  oauth: (
     req: Request,
     res: Response,
     next: NextFunction

@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react';
+import { useRegisterMutation } from '../../hooks';
+import { type FormEvent, useState } from 'react';
 
 interface OnboardingFormProps {
   email: string;
@@ -8,12 +9,23 @@ const OnboardingForm = ({ email }: OnboardingFormProps) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const isValid = firstName.trim() !== '' && lastName.trim() !== '';
+  const registerMutation = useRegisterMutation();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!isValid) return;
-    console.log({ email, firstName, lastName });
-    // TODO: Call your final registration mutation here
+    registerMutation.mutate(
+      { email, firstName, lastName },
+      {
+        onSuccess: () => {
+          console.log('Registration complete');
+          // TODO: Replace with navigation to dashboard or success page
+        },
+        onError: err => {
+          console.error('Failed to complete registration:', err);
+        },
+      }
+    );
   };
 
   return (

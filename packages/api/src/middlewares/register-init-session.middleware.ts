@@ -1,8 +1,6 @@
 import { NotFoundError } from '../utils/errors.utils';
 import { RegisterInitSessionData } from '@dev-dashboard/shared';
-import type { Request, Response, NextFunction } from 'express';
-import { redisClient } from 'src/config/redis';
-import { bcryptCompare } from 'src/utils/bcrypt.utils';
+import type { NextFunction, Request, Response } from 'express';
 import { redisGetJSON } from 'src/utils/redis';
 
 export const registerInitSessionMiddleware = async (
@@ -14,7 +12,7 @@ export const registerInitSessionMiddleware = async (
     const jti = req.registerInit?.jti;
     if (!jti) throw new NotFoundError('Missing validation reference');
 
-    const key = `registerInit:${jti}`;
+    const key = `register-init:${jti}`;
 
     const registerInitData = await redisGetJSON<RegisterInitSessionData>(key);
     if (!registerInitData) {
@@ -28,42 +26,36 @@ export const registerInitSessionMiddleware = async (
       ) {
         throw new NotFoundError('Invalid registerInit request');
       }
-      if (registerInitData.email !== req.body.email) {
-        throw new NotFoundError('Invalid registerInit request');
+
+      if (req.body.email !== registerInitData.email) {
+        throw new NotFoundError('Email does not match registerInit data');
       }
-      const password = req.body.password;
-      if (!password) {
-        throw new NotFoundError('Invalid registerInit request');
-      }
-      const isPasswordValid = await bcryptCompare(
-        password,
-        registerInitData.passwordHash
-      );
-      if (!isPasswordValid) {
-        throw new NotFoundError('Invalid registerInit request');
-      }
-      try {
-        await redisClient.del(key);
-      } catch {
-        //
-      }
+
+      req.onboardingData = {
+        email: registerInitData.email,
+        passwordHash: registerInitData.passwordHash,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+      };
     } else if (registerInitData.registrationType === 'oauth') {
       if (
-        !Array.isArray(registerInitData.providers) ||
-        registerInitData.providers.length === 0
+        typeof registerInitData.providerUserId !== 'string' ||
+        registerInitData.providerUserId.trim() === '' ||
+        typeof registerInitData.providerUserLogin !== 'string' ||
+        registerInitData.providerUserLogin.trim() === ''
       ) {
         throw new NotFoundError('Invalid registerInit request');
+      } else if (req.body.providerUserId !== registerInitData.providerUserId) {
+        throw new NotFoundError(
+          'Provider user ID does not match registerInit data'
+        );
       }
-      const provider = req.body.provider;
-      if (!provider) {
-        throw new NotFoundError('Invalid registerInit request');
-      }
-      const providerExists = registerInitData.providers.some(
-        p => p.provider === provider
-      );
-      if (!providerExists) {
-        throw new NotFoundError('Invalid registerInit request');
-      }
+      // req.onboardingData = {
+      //   providerUserId: registerInitData.providerUserId,
+      //   providerUserLogin: registerInitData.providerUserLogin,
+      //   firstName: req.body.firstName,
+      //   lastName: req.body.lastName,
+      // };
     } else {
       throw new NotFoundError('Unknown registration type in registerInit data');
     }
