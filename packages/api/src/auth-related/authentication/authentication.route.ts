@@ -30,6 +30,7 @@ router.post(
   registerInitSessionMiddleware,
   authenticationControllerInstance.registerUserByEmail
 );
+// TODO: Start with this
 router.post(
   '/register/oauth',
   registerInitAuthorizationMiddleware,

@@ -2,8 +2,8 @@ import { IUserController } from './interfaces/iuser.controller';
 import { IUserService } from './interfaces/iuser.service';
 import {
   passwordUpdateSchema,
-  uuidSchema,
   userUpdateSchema,
+  uuidSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';

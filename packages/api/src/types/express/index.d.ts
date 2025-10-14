@@ -1,3 +1,4 @@
+import { AuthenticationEmailRegisterRequest } from '@dev-dashboard/shared';
 import * as express from 'express';
 
 declare global {
@@ -5,6 +6,7 @@ declare global {
     interface Request {
       user?: { userId: string; email?: string };
       registerInit?: { jti: string };
+      onboardingData: AuthenticationEmailRegisterRequest;
     }
   }
 }

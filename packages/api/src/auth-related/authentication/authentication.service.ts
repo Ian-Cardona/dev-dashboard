@@ -2,16 +2,16 @@ import { generateAccessJWT, verifyJWT } from '../../utils/jwt.utils';
 import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
+  AccessTokenPayload,
+  AuthenticationEmailRegisterRequest,
   AuthenticationLoginRequestPublic,
+  AuthenticationOAuthRegisterRequest,
   AuthenticationRefreshRequestPrivate,
   AuthenticationRefreshResponsePrivate,
   AuthenticationSuccessResponsePrivate,
-  UserResponsePublic,
-  RefreshTokenRecordAndPlain,
   RefreshToken,
-  AuthenticationEmailRegisterRequest,
-  AccessTokenPayload,
-  AuthenticationOAuthRegisterRequest,
+  RefreshTokenRecordAndPlain,
+  UserResponsePublic,
 } from '@dev-dashboard/shared';
 import { IUserService } from 'src/user/interfaces/iuser.service';
 import { bcryptCompare } from 'src/utils/bcrypt.utils';
@@ -83,6 +83,15 @@ export const AuthenticationService = (
       data: AuthenticationOAuthRegisterRequest
     ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
+        const providerAlreadyExists = await userService.providerExists(
+          data.providers[0].provider,
+          data.providers[0].providerUserId
+        );
+
+        if (providerAlreadyExists) {
+          throw new ConflictError('Provider already linked to another account');
+        }
+
         const emailAlreadyExists = await userService.emailExists(data.email);
         if (emailAlreadyExists) {
           throw new ConflictError('User already exists');

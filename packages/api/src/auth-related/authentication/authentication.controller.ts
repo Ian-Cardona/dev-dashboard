@@ -14,6 +14,7 @@ import {
   authenticationRefreshRequestPrivateSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
+import { redisClient } from 'src/config/redis';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
@@ -28,8 +29,9 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
+        console.log('registerUserByEmail - req.body:', req.body);
         const validatedData: AuthenticationEmailRegisterRequest =
-          authenticationEmailRegisterRequestSchema.parse(req.body);
+          authenticationEmailRegisterRequestSchema.parse(req.onboardingData);
         const result = await authService.registerByEmail(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {
@@ -51,6 +53,8 @@ export const AuthenticationController = (
           accessToken: result.accessToken,
           user: result.user,
         };
+
+        await redisClient.del(`register-init:${req.registerInit?.jti}`);
 
         res.status(201).json(response);
       } catch (error) {

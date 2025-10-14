@@ -13,6 +13,7 @@ import { ConflictError } from 'src/utils/errors.utils';
 
 const USERS_TABLE = ENV.USERS_TABLE;
 const EMAILS_TABLE = ENV.EMAILS_TABLE;
+const PROVIDERS_TABLE = ENV.PROVIDERS_TABLE;
 
 const MODULE_NAME = 'UserRepository';
 
@@ -90,6 +91,37 @@ export const UserRepository = (
       );
 
       return (result.Items?.[0] as User) ?? null;
+    },
+
+    async findByProvider(
+      provider: string,
+      providerUserId: string
+    ): Promise<User | null> {
+      const providerResult = await docClient.send(
+        new QueryCommand({
+          TableName: PROVIDERS_TABLE,
+          IndexName: 'ProviderIndex',
+          KeyConditionExpression:
+            'provider = :provider AND providerUserId = :providerUserId',
+          ExpressionAttributeValues: {
+            ':provider': provider,
+            ':providerUserId': providerUserId,
+          },
+          Limit: 1,
+        })
+      );
+
+      const providerItem = providerResult.Items?.[0];
+      if (!providerItem || !providerItem.userId) return null;
+
+      const userResult = await docClient.send(
+        new GetCommand({
+          TableName: USERS_TABLE,
+          Key: { id: providerItem.userId },
+        })
+      );
+
+      return userResult.Item ? (userResult.Item as User) : null;
     },
 
     async update(id: string, updates: UserUpdate): Promise<User> {
