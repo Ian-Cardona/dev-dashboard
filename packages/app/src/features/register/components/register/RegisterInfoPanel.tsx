@@ -1,8 +1,8 @@
 import FeatureNode from './FeatureNode';
 import {
-  CodeBracketIcon,
-  CloudArrowUpIcon,
   CheckCircleIcon,
+  CloudArrowUpIcon,
+  CodeBracketIcon,
 } from '@heroicons/react/24/outline';
 
 const RegisterInfoPanel = () => {

@@ -1,9 +1,9 @@
 import AppLayout from './components/layout/AppLayout';
-import { PublicRoute, ProtectedRoute } from './components/routes/Routes';
+import { ProtectedRoute, PublicRoute } from './components/routes/Routes';
 import CustomToast from './components/ui/CustomToast';
-import { LoginPage, TodosPage, RegisterPage, SettingsPage } from './pages';
+import { LoginPage, RegisterPage, SettingsPage, TodosPage } from './pages';
 import OnboardingPage from './pages/Onboarding';
-import { Routes, Route, Navigate } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
 
 function App() {
   return (

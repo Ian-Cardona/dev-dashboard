@@ -4,12 +4,12 @@ import { authApi } from '../lib/auth';
 import { userApi } from '../lib/user';
 import { isAxiosError } from 'axios';
 import {
+  type Dispatch,
+  type ReactNode,
   createContext,
   useEffect,
   useReducer,
   useRef,
-  type Dispatch,
-  type ReactNode,
 } from 'react';
 
 type State = {

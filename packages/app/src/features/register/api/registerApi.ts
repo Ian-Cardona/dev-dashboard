@@ -1,8 +1,9 @@
 import { publicClient } from '../../../lib/api';
 import type {
   AuthenticationEmailRegisterRequest,
-  RegisterInitEmailRegisterRequest,
   AuthenticationResponsePublic,
+  OnboardingInfoRequest,
+  RegisterInitEmailRegisterRequest,
 } from '@dev-dashboard/shared';
 
 export const fetchEmailSessionById = async (
@@ -24,7 +25,7 @@ export const registerInitEmail = async (
 };
 
 export const register = async (
-  data: AuthenticationEmailRegisterRequest
+  data: OnboardingInfoRequest
 ): Promise<AuthenticationResponsePublic> => {
   const response = await publicClient.post('/auth/register/email', data);
   return response.data;
