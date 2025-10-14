@@ -20,12 +20,13 @@ export const GithubRepository = (): IGithubRepository => {
           method: 'POST',
           headers: {
             Accept: 'application/json',
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: JSON.stringify({
+          body: new URLSearchParams({
             client_id: clientId,
             client_secret: clientSecret,
             code,
+            redirect_uri: ENV.GITHUB_REDIRECT_URI,
           }),
         }
       );

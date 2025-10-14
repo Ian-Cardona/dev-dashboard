@@ -28,6 +28,7 @@ export const ENV = {
   // Users Related Tables
   USERS_TABLE: process.env.USERS_TABLE || 'USERS',
   EMAILS_TABLE: process.env.EMAILS_TABLE || 'EMAILS',
+  PROVIDERS_TABLE: process.env.PROVIDERS_TABLE || 'PROVIDERS',
 
   // Token Related Tables
   REFRESH_TOKENS_TABLE: process.env.REFRESH_TOKENS_TABLE || 'REFRESH_TOKENS',
@@ -38,4 +39,7 @@ export const ENV = {
   // Github
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || 'DrainGang',
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || 'DrainGang',
+  GITHUB_REDIRECT_URI:
+    process.env.GITHUB_REDIRECT_URI ||
+    'http://localhost:3000/v1/github/oauth/callback',
 };

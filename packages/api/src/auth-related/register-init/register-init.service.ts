@@ -1,6 +1,7 @@
 import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
   RegisterInitEmailRegisterRequest,
+  RegisterInitOAuthRegisterRequest,
   RegisterInitSessionData,
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
@@ -14,6 +15,8 @@ import { generateUUID } from 'src/utils/uuid.utils';
 const REGISTER_INIT_TTL = 3600;
 const REDIS_AUTH_PREFIX = 'register-init:';
 const REDIS_EMAIL_PREFIX = 'onboarding:email:';
+
+const MODULE_NAME = 'RegisterInitService';
 
 export const RegisterInitService = (
   redisClient: RedisClientType,
@@ -41,7 +44,14 @@ export const RegisterInitService = (
         throw new ConflictError('User already exists');
       }
 
-      const salt = await bcrypt.genSalt(Number(ENV.BCRYPT_SALT_ROUNDS_PW));
+      const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
+      if (!saltRounds || isNaN(saltRounds)) {
+        throw new Error(
+          `[${MODULE_NAME}] Invalid bcrypt salt rounds configuration`
+        );
+      }
+
+      const salt = await bcrypt.genSalt(saltRounds);
       const passwordHash = await bcrypt.hash(data.password, salt);
 
       const registerInitJti = generateUUID();
@@ -74,37 +84,47 @@ export const RegisterInitService = (
       return { registerInitToken, emailSessionId: emailSessionId };
     },
 
-    // async initiateOAuthRegisterInit(
-    //   data: RegisterInitOAuthRegisterRequestSchema
-    // ): Promise<{ registerInitToken: string }> {
-    //   const providerAlreadyExists = await userService.providerExists(
-    //     data.providers[0].provider,
-    //     data.providers[0].providerUserId
-    //   );
-    //   if (providerAlreadyExists) {
-    //     throw new ConflictError('User with this provider already exists');
-    //   }
+    async oauth(
+      data: RegisterInitOAuthRegisterRequest
+    ): Promise<{ registerInitToken: string }> {
+      const { provider, id: providerUserId, login: providerUserLogin } = data;
 
-    //   const jti = crypto.randomUUID();
+      try {
+        const exists = await userService.providerExists(
+          provider,
+          providerUserId
+        );
+        if (exists) {
+          throw new ConflictError('User with this provider already exists');
+        }
 
-    //   const sessionData: RegisterInitSessionData = {
-    //     registrationType: 'oauth',
-    //     providers: data.providers,
-    //     createdAt: new Date().toISOString(),
-    //   };
+        const registerInitJti = generateUUID();
 
-    //   await redisClient.set(
-    //     `${REDIS_AUTH_PREFIX}${jti}`,
-    //     JSON.stringify(sessionData),
-    //     { EX: ONBOARDING_TTL }
-    //   );
+        const sessionData: RegisterInitSessionData = {
+          registrationType: 'oauth',
+          provider,
+          providerUserId,
+          providerUserLogin,
+          createdAt: new Date().toISOString(),
+        };
 
-    //   const registerInitToken = generateRegisterInitJWT({
-    //     jti,
-    //     type: 'registerInit',
-    //   });
+        await redisClient.set(
+          `${REDIS_AUTH_PREFIX}${registerInitJti}`,
+          JSON.stringify(sessionData),
+          {
+            EX: REGISTER_INIT_TTL,
+          }
+        );
 
-    //   return { registerInitToken };
-    // },
+        const registerInitToken = generateRegisterInitJWT({
+          jti: registerInitJti,
+          type: 'register-init',
+        });
+
+        return { registerInitToken };
+      } catch {
+        throw new Error(`[${MODULE_NAME}] Failed to initialize OAuth register`);
+      }
+    },
   };
 };

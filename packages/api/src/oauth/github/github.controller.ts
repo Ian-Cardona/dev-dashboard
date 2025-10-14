@@ -1,7 +1,7 @@
 import { IGithubService } from './interfaces/igithub.service';
 import {
-  oAuthGithubCallbackResponseSchema,
   OAuthGithubCallbackResponseSchema,
+  oAuthGithubCallbackResponseSchema,
   oAuthGithubCodeSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';

@@ -5,7 +5,7 @@ import {
   UnauthorizedError,
 } from '../utils/errors.utils';
 import { logger } from './logger.middleware';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 export const errorHandlerMiddleware = (
   error: unknown,
