@@ -71,7 +71,6 @@ export const userSchema = z.object({
     )
     .optional()
     .default([]),
-  onboardingComplete: z.boolean().default(false),
 });
 
 export const userUpdateSchema = userSchema.pick({
@@ -86,7 +85,6 @@ export const userResponsePublicSchema = userSchema.pick({
   firstName: true,
   lastName: true,
   isActive: true,
-  onboardingComplete: true,
 });
 
 export const completeOnboardingSchema = userSchema.pick({

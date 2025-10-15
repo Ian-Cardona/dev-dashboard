@@ -42,7 +42,6 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           createdAt: now,
           updatedAt: now,
           isActive: true,
-          onboardingComplete: true,
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -79,7 +78,6 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           createdAt: now,
           updatedAt: now,
           isActive: true,
-          onboardingComplete: true,
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -166,16 +164,20 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       }
     },
 
-    async providerExists(
+    async findByProvider(
       provider: string,
       providerUserId: string
-    ): Promise<boolean> {
+    ): Promise<UserResponsePublic> {
       try {
         const user = await userRepository.findByProvider(
           provider,
           providerUserId
         );
-        return !!user;
+        if (!user) {
+          throw new NotFoundError('User not found');
+        }
+
+        return user;
       } catch {
         throw new Error(`[${MODULE_NAME}] Failed to check provider existence`);
       }

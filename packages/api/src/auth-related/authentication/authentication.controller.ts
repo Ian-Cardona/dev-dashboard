@@ -8,10 +8,12 @@ import {
   AuthenticationRefreshRequestPrivate,
   AuthenticationResponsePublic,
   AuthorizationJwt,
+  RegisterInitOAuthRegisterRequest,
   authenticationEmailRegisterRequestSchema,
   authenticationLoginRequestPublicSchema,
   authenticationOAuthRegisterRequestSchema,
   authenticationRefreshRequestPrivateSchema,
+  registerInitOAuthRegisterRequestSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { redisClient } from 'src/config/redis';
@@ -29,7 +31,6 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        console.log('registerUserByEmail - req.body:', req.body);
         const validatedData: AuthenticationEmailRegisterRequest =
           authenticationEmailRegisterRequestSchema.parse(req.onboardingData);
         const result = await authService.registerByEmail(validatedData);
@@ -92,13 +93,15 @@ export const AuthenticationController = (
           user: result.user,
         };
 
+        await redisClient.del(`register-init:${req.registerInit?.jti}`);
+
         res.status(201).json(response);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid registration data');
       }
     },
 
-    async loginUser(
+    async loginUserByEmail(
       req: Request,
       res: Response,
       next: NextFunction
@@ -106,7 +109,43 @@ export const AuthenticationController = (
       try {
         const validatedData: AuthenticationLoginRequestPublic =
           authenticationLoginRequestPublicSchema.parse(req.body);
-        const result = await authService.login(validatedData);
+        const result = await authService.loginByEmail(validatedData);
+
+        res.cookie('rt1', result.refreshTokenPlain, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        res.cookie('rt2', result.refreshTokenId, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        const response: AuthenticationResponsePublic = {
+          accessToken: result.accessToken,
+          user: result.user,
+        };
+
+        res.status(200).json(response);
+      } catch (error) {
+        handleValidationError(error, res, next, 'Invalid login data');
+      }
+    },
+
+    async loginUserByOAuth(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
+      try {
+        const validatedData: RegisterInitOAuthRegisterRequest =
+          registerInitOAuthRegisterRequestSchema.parse(req.body);
+        const result = await authService.loginByOAuth(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,

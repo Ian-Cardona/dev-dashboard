@@ -15,8 +15,11 @@ export interface IUserService {
   findById(userId: string): Promise<UserResponsePublic>;
   findByEmailPrivate(email: string): Promise<User>;
   findByEmailPublic(email: string): Promise<UserResponsePublic>;
+  findByProvider(
+    provider: string,
+    providerUserId: string
+  ): Promise<UserResponsePublic>;
   emailExists(email: string): Promise<boolean>;
-  providerExists(provider: string, providerUserId: string): Promise<boolean>;
   update(
     userId: string,
     updates: Partial<Omit<User, 'userId' | 'email' | 'createdAt'>>

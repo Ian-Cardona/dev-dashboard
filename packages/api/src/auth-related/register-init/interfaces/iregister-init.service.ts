@@ -1,4 +1,5 @@
 import {
+  RegisterGithubAuthLinkResponse,
   RegisterInitEmailRegisterRequest,
   RegisterInitOAuthRegisterRequest,
 } from '@dev-dashboard/shared';
@@ -8,6 +9,7 @@ export interface IRegisterInitService {
   email(
     data: RegisterInitEmailRegisterRequest
   ): Promise<{ registerInitToken: string; emailSessionId: string }>;
+  getGithubAuthorizeLink(): Promise<RegisterGithubAuthLinkResponse>;
   oauth(
     data: RegisterInitOAuthRegisterRequest
   ): Promise<{ registerInitToken: string }>;

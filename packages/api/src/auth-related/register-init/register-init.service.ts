@@ -3,6 +3,8 @@ import {
   RegisterInitEmailRegisterRequest,
   RegisterInitOAuthRegisterRequest,
   RegisterInitSessionData,
+  UserResponsePublic,
+  RegisterGithubAuthLinkResponse,
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
@@ -36,6 +38,7 @@ export const RegisterInitService = (
         throw new Error('Failed to retrieve email session');
       }
     },
+
     async email(
       data: RegisterInitEmailRegisterRequest
     ): Promise<{ registerInitToken: string; emailSessionId: string }> {
@@ -84,17 +87,37 @@ export const RegisterInitService = (
       return { registerInitToken, emailSessionId: emailSessionId };
     },
 
+    async getGithubAuthorizeLink(): Promise<RegisterGithubAuthLinkResponse> {
+      try {
+        const clientId = ENV.GITHUB_OAUTH_CLIENT_ID;
+        const authorizeUri = ENV.GITHUB_OAUTH_AUTHORIZE_URI;
+        if (!clientId || !authorizeUri) {
+          throw new Error('GitHub OAuth is not properly configured.');
+        }
+
+        const params = new URLSearchParams({
+          client_id: clientId,
+        });
+
+        return {
+          provider: 'github',
+          authorize_uri: `${authorizeUri}?${params.toString()}`,
+        };
+      } catch {
+        throw new Error('Failed to retrieve GitHub link');
+      }
+    },
+
     async oauth(
       data: RegisterInitOAuthRegisterRequest
     ): Promise<{ registerInitToken: string }> {
-      const { provider, id: providerUserId, login: providerUserLogin } = data;
-
       try {
-        const exists = await userService.providerExists(
-          provider,
-          providerUserId
-        );
-        if (exists) {
+        const userProvider: UserResponsePublic =
+          await userService.findByProvider(data.provider, data.id);
+
+        const providerExists = !!userProvider;
+
+        if (providerExists) {
           throw new ConflictError('User with this provider already exists');
         }
 
@@ -102,9 +125,9 @@ export const RegisterInitService = (
 
         const sessionData: RegisterInitSessionData = {
           registrationType: 'oauth',
-          provider,
-          providerUserId,
-          providerUserLogin,
+          provider: data.provider,
+          providerUserId: data.id,
+          providerUserLogin: data.login,
           createdAt: new Date().toISOString(),
         };
 

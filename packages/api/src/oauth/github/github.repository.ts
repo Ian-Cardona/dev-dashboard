@@ -7,35 +7,35 @@ export const GithubRepository = (): IGithubRepository => {
     async exchangeCodeForToken(
       code: string
     ): Promise<OAuthGithubCallbackResponseSchema> {
-      const clientId = ENV.GITHUB_CLIENT_ID;
-      const clientSecret = ENV.GITHUB_CLIENT_SECRET;
+      const clientId = ENV.GITHUB_OAUTH_CLIENT_ID;
+      const clientSecret = ENV.GITHUB_OAUTH_CLIENT_SECRET;
+      const accessTokenUri = ENV.GITHUB_OAUTH_ACCESS_TOKEN_URI;
 
-      if (!clientId || !clientSecret) {
+      if (!clientId || !clientSecret || !accessTokenUri) {
         throw new Error('GitHub OAuth credentials not configured');
       }
 
-      const response = await fetch(
-        'https://github.com/login/oauth/access_token',
-        {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            code,
-            redirect_uri: ENV.GITHUB_REDIRECT_URI,
-          }),
-        }
-      );
+      const response = await fetch(accessTokenUri, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: ENV.GITHUB_OAUTH_REDIRECT_URI,
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok || data.error) {
         throw new Error(
-          `GitHub OAuth failed: ${data.error_description || data.error || response.statusText}`
+          `GitHub OAuth failed (status ${response.status}): ${
+            data.error_description || data.error || response.statusText
+          }`
         );
       }
 

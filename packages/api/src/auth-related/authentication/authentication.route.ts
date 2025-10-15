@@ -30,14 +30,14 @@ router.post(
   registerInitSessionMiddleware,
   authenticationControllerInstance.registerUserByEmail
 );
-// TODO: Start with this
 router.post(
   '/register/oauth',
   registerInitAuthorizationMiddleware,
   registerInitSessionMiddleware,
   authenticationControllerInstance.registerUserByOAuth
 );
-router.post('/login', authenticationControllerInstance.loginUser);
+router.post('/login', authenticationControllerInstance.loginUserByEmail);
+router.post('/login/oauth', authenticationControllerInstance.loginUserByOAuth);
 router.post('/refresh', authenticationControllerInstance.refreshAccessToken);
 router.post('/logout', authenticationControllerInstance.logoutUser);
 router.post('/verify', authenticationControllerInstance.verifyAccessToken);

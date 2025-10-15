@@ -37,9 +37,16 @@ export const ENV = {
   CLIENT_APP_NAME: process.env.CLIENT_APP_NAME || 'DevDashboardUI',
 
   // Github
-  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || 'DrainGang',
-  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || 'DrainGang',
-  GITHUB_REDIRECT_URI:
-    process.env.GITHUB_REDIRECT_URI ||
+  GITHUB_OAUTH_CLIENT_ID: process.env.GITHUB_OAUTH_CLIENT_ID || 'DrainGang',
+  GITHUB_OAUTH_CLIENT_SECRET:
+    process.env.GITHUB_OAUTH_CLIENT_SECRET || 'DrainGang',
+  GITHUB_OAUTH_REDIRECT_URI:
+    process.env.GITHUB_OAUTH_REDIRECT_URI ||
     'http://localhost:3000/v1/github/oauth/callback',
+  GITHUB_OAUTH_ACCESS_TOKEN_URI:
+    process.env.GITHUB_OAUTH_ACCESS_TOKEN_URI ||
+    'https://github.com/login/oauth/access_token',
+  GITHUB_OAUTH_AUTHORIZE_URI:
+    process.env.GITHUB_OAUTH_AUTHORIZE_URI ||
+    'https://github.com/login/oauth/authorize',
 };
