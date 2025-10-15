@@ -11,6 +11,11 @@ export interface IRegisterInitController {
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
+  getGithubAuthorizeLink: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>;
   oauth: (
     req: Request,
     res: Response,

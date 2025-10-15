@@ -45,6 +45,7 @@ export const RegisterInitController = (
         );
       }
     },
+
     async email(
       req: Request,
       res: Response,
@@ -77,6 +78,26 @@ export const RegisterInitController = (
         handleValidationError(error, res, next, 'Invalid registration data');
       }
     },
+
+    async getGithubAuthorizeLink(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
+      try {
+        const result = await registerInitService.getGithubAuthorizeLink();
+
+        res.status(200).json(result);
+      } catch (error) {
+        handleValidationError(
+          error,
+          res,
+          next,
+          'Failed to retrieve GitHub link'
+        );
+      }
+    },
+
     async oauth(
       req: Request,
       res: Response,
