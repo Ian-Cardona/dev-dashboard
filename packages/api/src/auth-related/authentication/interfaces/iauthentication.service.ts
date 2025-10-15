@@ -5,6 +5,7 @@ import {
   AuthenticationRefreshRequestPrivate,
   AuthenticationRefreshResponsePrivate,
   AuthenticationSuccessResponsePrivate,
+  RegisterInitOAuthRegisterRequest,
   UserResponsePublic,
 } from '@dev-dashboard/shared';
 
@@ -15,8 +16,12 @@ export interface IAuthenticationService {
   registerByOAuth(
     data: AuthenticationOAuthRegisterRequest
   ): Promise<AuthenticationSuccessResponsePrivate>;
-  login(
+  loginByEmail(
     data: AuthenticationLoginRequestPublic
+  ): Promise<AuthenticationSuccessResponsePrivate>;
+  loginByOAuth(
+    // HACK: Gotta refactor the schema to make this cleaner
+    data: RegisterInitOAuthRegisterRequest
   ): Promise<AuthenticationSuccessResponsePrivate>;
   logout(refreshTokenId: string): Promise<void>;
   refreshAccessToken(

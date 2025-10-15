@@ -9,6 +9,7 @@ import {
   AuthenticationRefreshRequestPrivate,
   AuthenticationRefreshResponsePrivate,
   AuthenticationSuccessResponsePrivate,
+  RegisterInitOAuthRegisterRequest,
   RefreshToken,
   RefreshTokenRecordAndPlain,
   UserResponsePublic,
@@ -72,6 +73,7 @@ export const AuthenticationService = (
           user: user,
         };
       } catch (error) {
+        console.log(error);
         if (error instanceof ConflictError) {
           throw error;
         }
@@ -83,10 +85,12 @@ export const AuthenticationService = (
       data: AuthenticationOAuthRegisterRequest
     ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
-        const providerAlreadyExists = await userService.providerExists(
+        const providerExists = await userService.findByProvider(
           data.providers[0].provider,
           data.providers[0].providerUserId
         );
+
+        const providerAlreadyExists = !!providerExists;
 
         if (providerAlreadyExists) {
           throw new ConflictError('Provider already linked to another account');
@@ -124,7 +128,7 @@ export const AuthenticationService = (
       }
     },
 
-    async login(
+    async loginByEmail(
       data: AuthenticationLoginRequestPublic
     ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
@@ -162,7 +166,6 @@ export const AuthenticationService = (
           firstName: user.firstName,
           lastName: user.lastName,
           isActive: user.isActive,
-          onboardingComplete: user.onboardingComplete,
         };
 
         return {
@@ -176,6 +179,54 @@ export const AuthenticationService = (
           throw error;
         }
 
+        throw new Error('Login failed due to internal error');
+      }
+    },
+
+    async loginByOAuth(
+      data: RegisterInitOAuthRegisterRequest
+    ): Promise<AuthenticationSuccessResponsePrivate> {
+      try {
+        const provider = await userService.findByProvider(
+          data.provider,
+          data.id
+        );
+
+        if (!provider) {
+          throw new UnauthorizedError('No account linked to this provider');
+        }
+
+        const user = await userService.findById(provider.id);
+
+        if (!user || !user.isActive) {
+          throw new UnauthorizedError('User account is inactive or not found');
+        }
+
+        const accessTokenPayload: AccessTokenPayload = {
+          userId: user.id,
+          email: user.email,
+          isActive: user.isActive,
+          type: 'access',
+        };
+        const newAccessToken = generateAccessJWT(accessTokenPayload);
+        const newRefreshToken = await refreshTokenService.create(user.id);
+
+        const responseUser: UserResponsePublic = {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isActive: user.isActive,
+        };
+
+        return {
+          accessToken: newAccessToken,
+          refreshTokenId: newRefreshToken.record.id,
+          refreshTokenPlain: newRefreshToken.plain,
+          user: responseUser,
+        };
+      } catch (error) {
+        if (error instanceof UnauthorizedError) throw error;
         throw new Error('Login failed due to internal error');
       }
     },

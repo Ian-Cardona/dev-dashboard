@@ -6,6 +6,7 @@ import {
   GetCommand,
   QueryCommand,
   TransactWriteCommand,
+  TransactWriteCommandInput,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { User, UserUpdate } from '@dev-dashboard/shared';
@@ -21,24 +22,41 @@ export const UserRepository = (
   docClient: DynamoDBDocumentClient
 ): IUserRepository => {
   const _createUserRecord = async (user: User): Promise<User> => {
+    const transactItems: NonNullable<
+      TransactWriteCommandInput['TransactItems']
+    > = [
+      {
+        Put: {
+          TableName: USERS_TABLE,
+          Item: user,
+          ConditionExpression: 'attribute_not_exists(id)',
+        },
+      },
+      {
+        Put: {
+          TableName: EMAILS_TABLE,
+          Item: { email: user.email, id: user.id },
+          ConditionExpression: 'attribute_not_exists(email)',
+        },
+      },
+    ];
+    if (user.providers && user.providers.length > 0) {
+      transactItems.push({
+        Put: {
+          TableName: PROVIDERS_TABLE,
+          Item: {
+            provider: user.providers[0].provider,
+            providerUserId: user.providers[0].providerUserId,
+            userId: user.id,
+          },
+          ConditionExpression:
+            'attribute_not_exists(provider) AND attribute_not_exists(providerUserId)',
+        },
+      });
+    }
     await docClient.send(
       new TransactWriteCommand({
-        TransactItems: [
-          {
-            Put: {
-              TableName: USERS_TABLE,
-              Item: user,
-              ConditionExpression: 'attribute_not_exists(id)',
-            },
-          },
-          {
-            Put: {
-              TableName: EMAILS_TABLE,
-              Item: { email: user.email, id: user.id },
-              ConditionExpression: 'attribute_not_exists(email)',
-            },
-          },
-        ],
+        TransactItems: transactItems,
       })
     );
     return user;

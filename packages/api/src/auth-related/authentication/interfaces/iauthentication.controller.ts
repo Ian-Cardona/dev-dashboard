@@ -11,7 +11,12 @@ export interface IAuthenticationController {
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
-  loginUser: (
+  loginUserByEmail: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>;
+  loginUserByOAuth: (
     req: Request,
     res: Response,
     next: NextFunction
