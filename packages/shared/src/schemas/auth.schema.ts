@@ -66,6 +66,11 @@ export const registerInitOAuthRegisterRequestSchema = z.object({
   login: z.string(),
 });
 
+export const registerGithubAuthLinkResponseSchema = z.object({
+  provider: z.literal('github'),
+  authorize_uri: z.url(),
+});
+
 // Register Validation
 export const onboardingInfoRequestSchema = z.object({
   email: z.email(),

@@ -1,6 +1,5 @@
 import { publicClient } from '../../../lib/api';
 import type {
-  AuthenticationEmailRegisterRequest,
   AuthenticationResponsePublic,
   OnboardingInfoRequest,
   RegisterInitEmailRegisterRequest,
@@ -28,5 +27,12 @@ export const register = async (
   data: OnboardingInfoRequest
 ): Promise<AuthenticationResponsePublic> => {
   const response = await publicClient.post('/auth/register/email', data);
+  return response.data;
+};
+
+export const registerInitGithub = async (
+  data: OnboardingInfoRequest
+): Promise<AuthenticationResponsePublic> => {
+  const response = await publicClient.post('/auth/register/github', data);
   return response.data;
 };

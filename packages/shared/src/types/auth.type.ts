@@ -11,6 +11,7 @@ import {
   registerInitEmailRegisterRequestSchema,
   registerInitOAuthRegisterRequestSchema,
   registerInitSessionDataSchema,
+  registerGithubAuthLinkResponseSchema,
 } from '../schemas/auth.schema';
 import { JwtPayload } from 'jsonwebtoken';
 import z from 'zod';
@@ -23,6 +24,9 @@ export type RegisterInitOAuthRegisterRequest = z.infer<
 >;
 export type RegisterInitSessionData = z.infer<
   typeof registerInitSessionDataSchema
+>;
+export type RegisterGithubAuthLinkResponse = z.infer<
+  typeof registerGithubAuthLinkResponseSchema
 >;
 
 export type OnboardingInfoRequest = z.infer<typeof onboardingInfoRequestSchema>;
