@@ -10,7 +10,7 @@ import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
 import { ENV } from 'src/config/env_variables';
 import { IUserService } from 'src/user/interfaces/iuser.service';
-import { ConflictError } from 'src/utils/errors.utils';
+import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { generateRegisterInitJWT } from 'src/utils/jwt.utils';
 import { generateUUID } from 'src/utils/uuid.utils';
 
@@ -112,8 +112,24 @@ export const RegisterInitService = (
       data: RegisterInitOAuthRegisterRequest
     ): Promise<{ registerInitToken: string }> {
       try {
-        const userProvider: UserResponsePublic =
-          await userService.findByProvider(data.provider, data.id);
+        let userProvider: UserResponsePublic | null = null;
+
+        try {
+          userProvider = await userService.findByProvider(
+            data.provider,
+            data.id
+          );
+        } catch (err) {
+          if (err instanceof NotFoundError) {
+            console.log('No user found with this provider, proceeding.');
+            userProvider = null;
+          } else {
+            console.error('Unexpected error in findByProvider:', err);
+            throw err;
+          }
+        }
+
+        console.log('User provider lookup result:', userProvider);
 
         const providerExists = !!userProvider;
 
@@ -145,7 +161,8 @@ export const RegisterInitService = (
         });
 
         return { registerInitToken };
-      } catch {
+      } catch (error) {
+        console.log('Error in OAuth registration:', error);
         throw new Error(`[${MODULE_NAME}] Failed to initialize OAuth register`);
       }
     },

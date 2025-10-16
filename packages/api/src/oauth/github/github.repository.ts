@@ -41,5 +41,28 @@ export const GithubRepository = (): IGithubRepository => {
 
       return data;
     },
+
+    async getUserProfile(accessToken: string) {
+      const url = 'https://api.github.com/user';
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'User-Agent': ENV.APP_NAME || 'dev-dashboard',
+        },
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(
+          `Failed to fetch GitHub user profile (status ${response.status}): ${message}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    },
   };
 };

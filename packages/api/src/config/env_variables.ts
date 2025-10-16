@@ -3,6 +3,7 @@ export const ENV = {
   APP_NAME: process.env.APP_NAME || 'DevDashboard',
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: process.env.PORT || 3000,
+  APP_BASE_URL: process.env.BASE_URL || 'http://localhost:5173',
   // AWS
   AWS_REGION: process.env.AWS_REGION || 'ap-southeast-1',
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || 'fake',
