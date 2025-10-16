@@ -178,7 +178,10 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         }
 
         return user;
-      } catch {
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw error;
+        }
         throw new Error(`[${MODULE_NAME}] Failed to check provider existence`);
       }
     },

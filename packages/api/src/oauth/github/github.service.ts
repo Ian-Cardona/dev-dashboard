@@ -1,6 +1,9 @@
 import { IGithubRepository } from './interfaces/igithub.repository';
 import { IGithubService } from './interfaces/igithub.service';
-import { OAuthGithubCallbackResponseSchema } from '@dev-dashboard/shared';
+import {
+  GithubUserSchema,
+  OAuthGithubCallbackResponseSchema,
+} from '@dev-dashboard/shared';
 import { ExternalServiceError } from 'src/utils/errors.utils';
 
 export const GithubService = (
@@ -19,6 +22,19 @@ export const GithubService = (
         }
         throw new ExternalServiceError(
           `GitHub token exchange failed ${errorMessage}`
+        );
+      }
+    },
+    async getUserProfile(accessToken: string): Promise<GithubUserSchema> {
+      try {
+        return await repository.getUserProfile(accessToken);
+      } catch (error) {
+        let errorMessage;
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        throw new ExternalServiceError(
+          `GitHub user profile fetch failed ${errorMessage}`
         );
       }
     },

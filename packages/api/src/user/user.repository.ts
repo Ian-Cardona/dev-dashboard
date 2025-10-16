@@ -116,21 +116,14 @@ export const UserRepository = (
       providerUserId: string
     ): Promise<User | null> {
       const providerResult = await docClient.send(
-        new QueryCommand({
+        new GetCommand({
           TableName: PROVIDERS_TABLE,
-          IndexName: 'ProviderIndex',
-          KeyConditionExpression:
-            'provider = :provider AND providerUserId = :providerUserId',
-          ExpressionAttributeValues: {
-            ':provider': provider,
-            ':providerUserId': providerUserId,
-          },
-          Limit: 1,
+          Key: { provider, providerUserId },
         })
       );
 
-      const providerItem = providerResult.Items?.[0];
-      if (!providerItem || !providerItem.userId) return null;
+      const providerItem = providerResult.Item;
+      if (!providerItem?.userId) return null;
 
       const userResult = await docClient.send(
         new GetCommand({
