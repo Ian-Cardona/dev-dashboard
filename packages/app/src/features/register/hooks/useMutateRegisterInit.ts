@@ -2,7 +2,7 @@ import { registerInitEmail } from '../api/registerApi';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 
-export const useRegisterInitMutation = () => {
+export const useRegisterInitEmailMutation = () => {
   const navigate = useNavigate();
 
   return useMutation({

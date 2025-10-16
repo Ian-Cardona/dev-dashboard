@@ -3,6 +3,8 @@ import type {
   AuthenticationResponsePublic,
   OnboardingInfoRequest,
   RegisterInitEmailRegisterRequest,
+  RegisterGithubAuthLinkResponse,
+  RegisterInitOAuthRegisterRequest,
 } from '@dev-dashboard/shared';
 
 export const fetchEmailSessionById = async (
@@ -16,6 +18,20 @@ export const fetchEmailSessionById = async (
   return response.data;
 };
 
+export const fetchRegisterInitGithub =
+  async (): Promise<RegisterGithubAuthLinkResponse> => {
+    const response = await publicClient.get('/init/github/authorize');
+    return response.data;
+  };
+
+export const registerInitOAuth = async (
+  data: RegisterInitOAuthRegisterRequest
+): Promise<void> => {
+  const response = await publicClient.post('/init/oauth', data);
+  if (response.status !== 201)
+    throw new Error('Failed to initialize OAuth registration.');
+};
+
 export const registerInitEmail = async (
   data: RegisterInitEmailRegisterRequest
 ): Promise<void> => {
@@ -27,12 +43,5 @@ export const register = async (
   data: OnboardingInfoRequest
 ): Promise<AuthenticationResponsePublic> => {
   const response = await publicClient.post('/auth/register/email', data);
-  return response.data;
-};
-
-export const registerInitGithub = async (
-  data: OnboardingInfoRequest
-): Promise<AuthenticationResponsePublic> => {
-  const response = await publicClient.post('/auth/register/github', data);
   return response.data;
 };

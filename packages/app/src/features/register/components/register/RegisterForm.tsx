@@ -1,5 +1,6 @@
 import { useRegisterInitForm } from '../../hooks';
-import { useRegisterInitMutation } from '../../hooks/useMutateRegisterInit';
+import { useRegisterInitEmailMutation } from '../../hooks/useMutateRegisterInit';
+import useQueryFetchRegisterInitGithub from '../../hooks/useQueryFetchGithubAuthLink';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -8,7 +9,8 @@ const RegisterForm = () => {
   const navigate = useNavigate();
   const { email, password, setEmail, setPassword, isValid, resetForm } =
     useRegisterInitForm();
-  const registerInitMutation = useRegisterInitMutation();
+  const registerInitMutation = useRegisterInitEmailMutation();
+  const registerInitGithub = useQueryFetchRegisterInitGithub();
   const [showValidationError, setShowValidationError] = useState(false);
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
@@ -50,6 +52,13 @@ const RegisterForm = () => {
       test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
     },
   ];
+
+  // Handler for GitHub signup
+  const handleGithubSignup = async () => {
+    const response = await registerInitGithub.refetch();
+    const url = response?.data?.authorize_uri;
+    if (url) window.location.href = url;
+  };
 
   return (
     <div className="w-full">
@@ -144,6 +153,7 @@ const RegisterForm = () => {
 
         <button
           type="button"
+          onClick={handleGithubSignup}
           className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/30 bg-transparent py-4 text-base font-medium text-[var(--color-fg)] transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5"
         >
           <svg
