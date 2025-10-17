@@ -2,7 +2,7 @@ import { registerInitEmail } from '../api/registerApi';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 
-export const useRegisterInitEmailMutation = () => {
+export const useMutateRegisterInitEmail = () => {
   const navigate = useNavigate();
 
   return useMutation({
@@ -14,7 +14,7 @@ export const useRegisterInitEmailMutation = () => {
         ?.split('=')[1];
 
       if (sessionId) {
-        navigate(`/register/onboarding?session=${sessionId}`);
+        navigate(`/register/onboarding?flow=email&session=${sessionId}`);
       } else {
         console.error('Registration session cookie not found after success.');
         navigate('/register/error');

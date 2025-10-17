@@ -1,25 +1,35 @@
-import { useRegisterMutation } from '../../hooks';
+import { useMutateRegisterEmail } from '../../hooks/useMutateRegisterEmail';
+import { useMutateRegisterOauth } from '../../hooks/useMutateRegisterOauth';
 import { type FormEvent, useState } from 'react';
+import { useSearchParams } from 'react-router';
 
 interface OnboardingFormProps {
-  email: string;
+  email?: string;
 }
 
-const OnboardingForm = ({ email }: OnboardingFormProps) => {
+const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
+  const [searchParams] = useSearchParams();
+  const flow = searchParams.get('flow');
+
+  const [email, setEmail] = useState(emailProp || '');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const isValid = firstName.trim() !== '' && lastName.trim() !== '';
-  const registerMutation = useRegisterMutation();
+
+  const isValid =
+    email.trim() !== '' && firstName.trim() !== '' && lastName.trim() !== '';
+
+  const registerMutation =
+    flow === 'email' ? useMutateRegisterEmail() : useMutateRegisterOauth();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!isValid) return;
+
     registerMutation.mutate(
       { email, firstName, lastName },
       {
         onSuccess: () => {
           console.log('Registration complete');
-          // TODO: Replace with navigation to dashboard or success page
         },
         onError: err => {
           console.error('Failed to complete registration:', err);
@@ -54,9 +64,11 @@ const OnboardingForm = ({ email }: OnboardingFormProps) => {
             id="email"
             type="email"
             value={email}
-            readOnly
-            className="w-full cursor-not-allowed rounded-lg border border-[var(--color-accent)]/40 bg-[var(--color-bg)]/50 p-4 text-base text-[var(--color-accent)] transition-all duration-200 focus:outline-none"
+            onChange={e => setEmail(e.target.value)}
+            readOnly={flow === 'email'}
+            className="w-full rounded-lg border border-[var(--color-accent)]/40 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)]/70 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:bg-[var(--color-bg)]/50 disabled:text-[var(--color-accent)]"
             placeholder="you@example.com"
+            required
           />
         </div>
 
@@ -99,10 +111,10 @@ const OnboardingForm = ({ email }: OnboardingFormProps) => {
 
       <button
         type="submit"
-        disabled={!isValid}
+        disabled={!isValid || registerMutation.isPending}
         className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        Continue
+        {registerMutation.isPending ? 'Loading...' : 'Continue'}
       </button>
     </form>
   );

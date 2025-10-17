@@ -39,9 +39,16 @@ export const registerInitEmail = async (
   if (response.status !== 201) throw new Error('Failed to initiate register');
 };
 
-export const register = async (
+export const registerEmail = async (
   data: OnboardingInfoRequest
 ): Promise<AuthenticationResponsePublic> => {
   const response = await publicClient.post('/auth/register/email', data);
+  return response.data;
+};
+
+export const registerOauth = async (
+  data: OnboardingInfoRequest
+): Promise<AuthenticationResponsePublic> => {
+  const response = await publicClient.post('/auth/register/oauth', data);
   return response.data;
 };
