@@ -33,9 +33,9 @@ export const registerInitSessionMiddleware = async (
 
       req.onboardingData = {
         email: registerInitData.email,
-        passwordHash: registerInitData.passwordHash,
         firstName: req.body.firstName,
         lastName: req.body.lastName,
+        passwordHash: registerInitData.passwordHash,
       };
     } else if (registerInitData.registrationType === 'oauth') {
       if (
@@ -45,17 +45,19 @@ export const registerInitSessionMiddleware = async (
         registerInitData.providerUserLogin.trim() === ''
       ) {
         throw new NotFoundError('Invalid registerInit request');
-      } else if (req.body.providerUserId !== registerInitData.providerUserId) {
-        throw new NotFoundError(
-          'Provider user ID does not match registerInit data'
-        );
       }
-      // req.onboardingData = {
-      //   providerUserId: registerInitData.providerUserId,
-      //   providerUserLogin: registerInitData.providerUserLogin,
-      //   firstName: req.body.firstName,
-      //   lastName: req.body.lastName,
-      // };
+
+      req.onboardingData = {
+        email: req.body.email,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        providers: [
+          {
+            provider: registerInitData.provider,
+            providerUserId: registerInitData.providerUserId,
+          },
+        ],
+      };
     } else {
       throw new NotFoundError('Unknown registration type in registerInit data');
     }

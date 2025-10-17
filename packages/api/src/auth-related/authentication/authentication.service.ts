@@ -85,10 +85,19 @@ export const AuthenticationService = (
       data: AuthenticationOAuthRegisterRequest
     ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
-        const providerExists = await userService.findByProvider(
-          data.providers[0].provider,
-          data.providers[0].providerUserId
-        );
+        let providerExists;
+        try {
+          providerExists = await userService.findByProvider(
+            data.providers[0].provider,
+            data.providers[0].providerUserId
+          );
+        } catch (error) {
+          if (error instanceof NotFoundError) {
+            providerExists = null;
+          } else {
+            throw error;
+          }
+        }
 
         const providerAlreadyExists = !!providerExists;
 
@@ -121,6 +130,7 @@ export const AuthenticationService = (
           user: user,
         };
       } catch (error) {
+        console.log(error);
         if (error instanceof ConflictError) {
           throw error;
         }

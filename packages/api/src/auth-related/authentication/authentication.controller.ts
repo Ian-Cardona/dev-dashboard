@@ -70,7 +70,7 @@ export const AuthenticationController = (
     ): Promise<void> {
       try {
         const validatedData: AuthenticationOAuthRegisterRequest =
-          authenticationOAuthRegisterRequestSchema.parse(req.body);
+          authenticationOAuthRegisterRequestSchema.parse(req.onboardingData);
         const result = await authService.registerByOAuth(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {

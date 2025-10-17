@@ -34,9 +34,13 @@ export const GithubController = (
           login: githubUser.login,
         });
 
-        return res.redirect(
-          `${ENV.APP_BASE_URL}/register?provider=github&token=${token.registerInitToken}`
-        );
+        const redirectUrl = new URL('/register', ENV.APP_BASE_URL);
+        redirectUrl.searchParams.append('provider', 'github');
+        redirectUrl.searchParams.append('id', githubUser.id.toString());
+        redirectUrl.searchParams.append('login', githubUser.login);
+        redirectUrl.searchParams.append('token', token.registerInitToken);
+
+        return res.redirect(redirectUrl.toString());
       } catch (error) {
         handleValidationError(
           error,
