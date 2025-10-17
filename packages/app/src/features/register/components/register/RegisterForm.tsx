@@ -1,6 +1,6 @@
-import { useRegisterInitForm } from '../../hooks';
-import { useRegisterInitEmailMutation } from '../../hooks/useMutateRegisterInit';
+import { useMutateRegisterInitEmail } from '../../hooks/useMutateRegisterInitEmail';
 import useQueryFetchRegisterInitGithub from '../../hooks/useQueryFetchGithubAuthLink';
+import { useRegisterInitForm } from '../../hooks/useRegisterForm';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -9,7 +9,7 @@ const RegisterForm = () => {
   const navigate = useNavigate();
   const { email, password, setEmail, setPassword, isValid, resetForm } =
     useRegisterInitForm();
-  const registerInitMutation = useRegisterInitEmailMutation();
+  const registerInitMutation = useMutateRegisterInitEmail();
   const registerInitGithub = useQueryFetchRegisterInitGithub();
   const [showValidationError, setShowValidationError] = useState(false);
 

@@ -1,6 +1,6 @@
 import RegisterForm from '../features/register/components/register/RegisterForm';
 import RegisterInfoPanel from '../features/register/components/register/RegisterInfoPanel';
-import { useRegisterInitGithubMutation } from '../features/register/hooks/useMutateRegisterInitGithub';
+import { useMutateRegisterInitGithub } from '../features/register/hooks/useMutateRegisterInitGithub';
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 
@@ -10,17 +10,17 @@ const RegisterPage = () => {
   const id = params.get('id');
   const login = params.get('login');
 
-  const mutation = useRegisterInitGithubMutation();
+  const mutation = useMutateRegisterInitGithub();
 
   useEffect(() => {
-    if (provider && id && login) {
+    if (provider && id && login && !mutation.isPending) {
       mutation.mutate({
         provider: provider as 'github',
         id,
         login,
       });
     }
-  }, [provider, id, login, mutation]);
+  }, [provider, id, login]);
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg)]">

@@ -6,18 +6,16 @@ export const ProtectedRoute = () => {
   const { state } = useAuth();
 
   if (state.status === 'loading') return <LoadingSpinner />;
-  if (state.status === 'unauthenticated')
-    return <Navigate to="/login" replace />;
-  if (state.status === 'authenticated') return <Outlet />;
-  return null;
+  if (state.status !== 'authenticated') return <Navigate to="/login" replace />;
+
+  return <Outlet />;
 };
 
 export const PublicRoute = () => {
   const { state } = useAuth();
 
   if (state.status === 'loading') return <LoadingSpinner />;
-  if (state.status === 'authenticated') {
-    return <Navigate to="/todos" replace />;
-  }
+  if (state.status === 'authenticated') return <Navigate to="/todos" replace />;
+
   return <Outlet />;
 };

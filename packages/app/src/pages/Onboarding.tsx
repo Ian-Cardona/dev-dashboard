@@ -3,18 +3,29 @@ import useQueryFetchEmailSession from '../features/register/hooks/useQueryFetchE
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
+type OnboardingFlow = 'oauth' | 'email';
+
 const OnboardingPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const sessionId = searchParams.get('session');
 
-  const { data, isLoading, isError } = useQueryFetchEmailSession(sessionId);
+  const flow = searchParams.get('flow') as OnboardingFlow | null;
+  const session = searchParams.get('session');
+
+  const { data, isLoading, isError } = useQueryFetchEmailSession(
+    flow === 'email' ? session : null
+  );
 
   useEffect(() => {
-    if (isError || !sessionId) {
+    if (!flow || !['oauth', 'email'].includes(flow)) {
+      navigate('/register/invalid-link');
+      return;
+    }
+
+    if (flow === 'email' && (!session || isError)) {
       navigate('/register/invalid-link');
     }
-  }, [isError, sessionId, navigate]);
+  }, [flow, session, isError, navigate]);
 
   if (isLoading) {
     return (
@@ -24,13 +35,14 @@ const OnboardingPage = () => {
     );
   }
 
-  if (isError || !sessionId) {
+  if (!flow || (flow === 'email' && (isError || !data))) {
     return null;
   }
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-[var(--color-bg)] p-12">
-      {data && <OnboardingForm email={data.email} />}
+      {flow === 'oauth' && <OnboardingForm />}
+      {flow === 'email' && data && <OnboardingForm email={data.email} />}
     </div>
   );
 };
