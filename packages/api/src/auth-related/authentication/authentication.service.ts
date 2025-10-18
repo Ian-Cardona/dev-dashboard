@@ -85,7 +85,7 @@ export const AuthenticationService = (
       data: AuthenticationOAuthRegisterRequest
     ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
-        let providerExists;
+        let providerExists: UserResponsePublic | null;
         try {
           providerExists = await userService.findByProvider(
             data.providers[0].provider,
@@ -197,10 +197,15 @@ export const AuthenticationService = (
       data: RegisterInitOAuthRegisterRequest
     ): Promise<AuthenticationSuccessResponsePrivate> {
       try {
-        const provider = await userService.findByProvider(
-          data.provider,
-          data.id
-        );
+        let provider;
+        try {
+          provider = await userService.findByProvider(data.provider, data.id);
+        } catch (error) {
+          if (error instanceof NotFoundError) {
+            throw new UnauthorizedError('No account linked to this provider');
+          }
+          throw error;
+        }
 
         if (!provider) {
           throw new UnauthorizedError('No account linked to this provider');
