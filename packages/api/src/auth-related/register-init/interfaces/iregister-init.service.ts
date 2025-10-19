@@ -1,16 +1,12 @@
 import {
-  RegisterGithubAuthLinkResponse,
-  RegisterInitEmailRegisterRequest,
-  RegisterInitOAuthRegisterRequest,
+  RegisterInitEmailRequest,
+  OAuthRequest,
+  RegistrationInitToken,
+  RegistrationSession,
 } from '@dev-dashboard/shared';
 
 export interface IRegisterInitService {
   getEmailSession(emailSessionId: string): Promise<string | null>;
-  email(
-    data: RegisterInitEmailRegisterRequest
-  ): Promise<{ registerInitToken: string; emailSessionId: string }>;
-  getGithubAuthorizeLink(): Promise<RegisterGithubAuthLinkResponse>;
-  oauth(
-    data: RegisterInitOAuthRegisterRequest
-  ): Promise<{ registerInitToken: string }>;
+  email(data: RegisterInitEmailRequest): Promise<RegistrationSession>;
+  github(data: OAuthRequest): Promise<RegistrationInitToken>;
 }

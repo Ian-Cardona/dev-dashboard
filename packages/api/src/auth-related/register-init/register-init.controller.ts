@@ -1,9 +1,9 @@
 import { IRegisterInitController } from './interfaces/iregister-init.controller';
 import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
-  RegisterInitEmailRegisterRequest,
-  registerInitEmailRegisterRequestSchema,
-  registerInitOAuthRegisterRequestSchema,
+  RegisterInitEmailRequest,
+  registerInitEmailRequestSchema,
+  oauthRequestSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
@@ -52,12 +52,11 @@ export const RegisterInitController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: RegisterInitEmailRegisterRequest =
-          registerInitEmailRegisterRequestSchema.parse(req.body);
+        const validatedData: RegisterInitEmailRequest =
+          registerInitEmailRequestSchema.parse(req.body);
         const result = await registerInitService.email(validatedData);
 
-        // TODO: Make variables dynamic later on
-        res.cookie('rit1', result.registerInitToken, {
+        res.cookie('rit1', result.registrationToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'strict',
@@ -65,7 +64,7 @@ export const RegisterInitController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        res.cookie('esi1', result.emailSessionId, {
+        res.cookie('esi1', result.registrationId, {
           httpOnly: false,
           secure: true,
           sameSite: 'strict',
@@ -79,37 +78,16 @@ export const RegisterInitController = (
       }
     },
 
-    async getGithubAuthorizeLink(
+    async github(
       req: Request,
       res: Response,
       next: NextFunction
     ): Promise<void> {
       try {
-        const result = await registerInitService.getGithubAuthorizeLink();
+        const validatedData = oauthRequestSchema.parse(req.body);
+        const result = await registerInitService.github(validatedData);
 
-        res.status(200).json(result);
-      } catch (error) {
-        handleValidationError(
-          error,
-          res,
-          next,
-          'Failed to retrieve GitHub link'
-        );
-      }
-    },
-
-    async oauth(
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ): Promise<void> {
-      try {
-        const validatedData = registerInitOAuthRegisterRequestSchema.parse(
-          req.body
-        );
-        const result = await registerInitService.oauth(validatedData);
-
-        res.cookie('rit1', result.registerInitToken, {
+        res.cookie('rit1', result.registrationToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'strict',

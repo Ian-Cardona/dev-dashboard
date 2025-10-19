@@ -11,12 +11,7 @@ export interface IRegisterInitController {
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
-  getGithubAuthorizeLink: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  oauth: (
+  github: (
     req: Request,
     res: Response,
     next: NextFunction
