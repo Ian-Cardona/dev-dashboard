@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
 export interface IAuthenticationController {
-  registerUserByEmail: (
+  completeRegisterUserByEmail: (
     req: Request,
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
-  registerUserByOAuth: (
+  completeRegisterUserByOAuth: (
     req: Request,
     res: Response,
     next: NextFunction

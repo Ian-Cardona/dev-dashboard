@@ -2,18 +2,18 @@ import { ENV } from '../../config/env_variables';
 import { IAuthenticationController } from './interfaces/iauthentication.controller';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
-  AuthenticationEmailRegisterRequest,
-  AuthenticationLoginRequestPublic,
-  AuthenticationOAuthRegisterRequest,
-  AuthenticationRefreshRequestPrivate,
-  AuthenticationResponsePublic,
   AuthorizationJwt,
-  RegisterInitOAuthRegisterRequest,
-  authenticationEmailRegisterRequestSchema,
-  authenticationLoginRequestPublicSchema,
-  authenticationOAuthRegisterRequestSchema,
-  authenticationRefreshRequestPrivateSchema,
-  registerInitOAuthRegisterRequestSchema,
+  CompleteRegisterByEmailRequest,
+  completeRegisterByEmailRequestSchema,
+  CompleteRegisterByOAuthRequest,
+  completeRegisterByOAuthRequestSchema,
+  LoginPublic,
+  LoginRequestPublic,
+  loginRequestPublicSchema,
+  OAuthRequest,
+  oauthRequestSchema,
+  RefreshRequestPrivate,
+  refreshRequestPrivateSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { redisClient } from 'src/config/redis';
@@ -25,15 +25,15 @@ export const AuthenticationController = (
   authService: IAuthenticationService
 ): IAuthenticationController => {
   return {
-    async registerUserByEmail(
+    async completeRegisterUserByEmail(
       req: Request,
       res: Response,
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: AuthenticationEmailRegisterRequest =
-          authenticationEmailRegisterRequestSchema.parse(req.onboardingData);
-        const result = await authService.registerByEmail(validatedData);
+        const validatedData: CompleteRegisterByEmailRequest =
+          completeRegisterByEmailRequestSchema.parse(req.onboardingData);
+        const result = await authService.completeRegisterByEmail(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
@@ -50,7 +50,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationResponsePublic = {
+        const response: LoginPublic = {
           accessToken: result.accessToken,
           user: result.user,
         };
@@ -63,15 +63,15 @@ export const AuthenticationController = (
       }
     },
 
-    async registerUserByOAuth(
+    async completeRegisterUserByOAuth(
       req: Request,
       res: Response,
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: AuthenticationOAuthRegisterRequest =
-          authenticationOAuthRegisterRequestSchema.parse(req.onboardingData);
-        const result = await authService.registerByOAuth(validatedData);
+        const validatedData: CompleteRegisterByOAuthRequest =
+          completeRegisterByOAuthRequestSchema.parse(req.onboardingData);
+        const result = await authService.completeRegisterByOAuth(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
@@ -88,7 +88,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationResponsePublic = {
+        const response: LoginPublic = {
           accessToken: result.accessToken,
           user: result.user,
         };
@@ -107,8 +107,8 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: AuthenticationLoginRequestPublic =
-          authenticationLoginRequestPublicSchema.parse(req.body);
+        const validatedData: LoginRequestPublic =
+          loginRequestPublicSchema.parse(req.body);
         const result = await authService.loginByEmail(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {
@@ -126,7 +126,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationResponsePublic = {
+        const response: LoginPublic = {
           accessToken: result.accessToken,
           user: result.user,
         };
@@ -143,8 +143,7 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const validatedData: RegisterInitOAuthRegisterRequest =
-          registerInitOAuthRegisterRequestSchema.parse(req.body);
+        const validatedData: OAuthRequest = oauthRequestSchema.parse(req.body);
         const result = await authService.loginByOAuth(validatedData);
 
         res.cookie('rt1', result.refreshTokenPlain, {
@@ -162,7 +161,7 @@ export const AuthenticationController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        const response: AuthenticationResponsePublic = {
+        const response: LoginPublic = {
           accessToken: result.accessToken,
           user: result.user,
         };
@@ -179,16 +178,13 @@ export const AuthenticationController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const refreshTokenIdAndRefreshToken: AuthenticationRefreshRequestPrivate =
-          {
-            refreshTokenId: req.cookies.rt2,
-            refreshTokenPlain: req.cookies.rt1,
-          };
+        const refreshTokenIdAndRefreshToken: RefreshRequestPrivate = {
+          refreshTokenId: req.cookies.rt2,
+          refreshTokenPlain: req.cookies.rt1,
+        };
 
-        const validatedData: AuthenticationRefreshRequestPrivate =
-          authenticationRefreshRequestPrivateSchema.parse(
-            refreshTokenIdAndRefreshToken
-          );
+        const validatedData: RefreshRequestPrivate =
+          refreshRequestPrivateSchema.parse(refreshTokenIdAndRefreshToken);
 
         const result = await authService.refreshAccessToken(validatedData);
 

@@ -2,17 +2,17 @@ import { generateAccessJWT, verifyJWT } from '../../utils/jwt.utils';
 import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
-  AccessTokenPayload,
-  AuthenticationEmailRegisterRequest,
-  AuthenticationLoginRequestPublic,
-  AuthenticationOAuthRegisterRequest,
-  AuthenticationRefreshRequestPrivate,
-  AuthenticationRefreshResponsePrivate,
-  AuthenticationSuccessResponsePrivate,
-  RegisterInitOAuthRegisterRequest,
   RefreshToken,
+  CompleteRegisterByEmailRequest,
+  CompleteRegisterByOAuthRequest,
+  LoginPrivate,
+  UserPublic,
+  AccessTokenPayload,
   RefreshTokenRecordAndPlain,
-  UserResponsePublic,
+  LoginRequestPublic,
+  OAuthRequest,
+  RefreshRequestPrivate,
+  RefreshPrivate,
 } from '@dev-dashboard/shared';
 import { IUserService } from 'src/user/interfaces/iuser.service';
 import { bcryptCompare } from 'src/utils/bcrypt.utils';
@@ -44,16 +44,16 @@ export const AuthenticationService = (
   };
 
   return {
-    async registerByEmail(
-      data: AuthenticationEmailRegisterRequest
-    ): Promise<AuthenticationSuccessResponsePrivate> {
+    async completeRegisterByEmail(
+      data: CompleteRegisterByEmailRequest
+    ): Promise<LoginPrivate> {
       try {
         const emailAlreadyExists = await userService.emailExists(data.email);
         if (emailAlreadyExists) {
           throw new ConflictError('User already exists');
         }
 
-        const user: UserResponsePublic = await userService.createByEmail(data);
+        const user: UserPublic = await userService.createByEmail(data);
 
         const accessTokenPayload: AccessTokenPayload = {
           userId: user.id,
@@ -81,11 +81,11 @@ export const AuthenticationService = (
       }
     },
 
-    async registerByOAuth(
-      data: AuthenticationOAuthRegisterRequest
-    ): Promise<AuthenticationSuccessResponsePrivate> {
+    async completeRegisterByOAuth(
+      data: CompleteRegisterByOAuthRequest
+    ): Promise<LoginPrivate> {
       try {
-        let providerExists: UserResponsePublic | null;
+        let providerExists: UserPublic | null;
         try {
           providerExists = await userService.findByProvider(
             data.providers[0].provider,
@@ -110,7 +110,7 @@ export const AuthenticationService = (
           throw new ConflictError('User already exists');
         }
 
-        const user: UserResponsePublic = await userService.createByOAuth(data);
+        const user: UserPublic = await userService.createByOAuth(data);
 
         const accessTokenPayload: AccessTokenPayload = {
           userId: user.id,
@@ -138,9 +138,7 @@ export const AuthenticationService = (
       }
     },
 
-    async loginByEmail(
-      data: AuthenticationLoginRequestPublic
-    ): Promise<AuthenticationSuccessResponsePrivate> {
+    async loginByEmail(data: LoginRequestPublic): Promise<LoginPrivate> {
       try {
         const user = await userService.findByEmailPrivate(data.email);
 
@@ -170,7 +168,7 @@ export const AuthenticationService = (
 
         const newRefreshToken = await refreshTokenService.create(user.id);
 
-        const responseUser: UserResponsePublic = {
+        const responseUser: UserPublic = {
           id: user.id,
           email: user.email,
           firstName: user.firstName,
@@ -193,9 +191,7 @@ export const AuthenticationService = (
       }
     },
 
-    async loginByOAuth(
-      data: RegisterInitOAuthRegisterRequest
-    ): Promise<AuthenticationSuccessResponsePrivate> {
+    async loginByOAuth(data: OAuthRequest): Promise<LoginPrivate> {
       try {
         let provider;
         try {
@@ -226,7 +222,7 @@ export const AuthenticationService = (
         const newAccessToken = generateAccessJWT(accessTokenPayload);
         const newRefreshToken = await refreshTokenService.create(user.id);
 
-        const responseUser: UserResponsePublic = {
+        const responseUser: UserPublic = {
           id: user.id,
           email: user.email,
           firstName: user.firstName,
@@ -259,8 +255,8 @@ export const AuthenticationService = (
     },
 
     async refreshAccessToken(
-      data: AuthenticationRefreshRequestPrivate
-    ): Promise<AuthenticationRefreshResponsePrivate> {
+      data: RefreshRequestPrivate
+    ): Promise<RefreshPrivate> {
       try {
         const matchedToken = await refreshTokenService.findByIdAndMatch(
           data.refreshTokenId,
@@ -308,7 +304,7 @@ export const AuthenticationService = (
       }
     },
 
-    async verifyAccessToken(token: string): Promise<UserResponsePublic> {
+    async verifyAccessToken(token: string): Promise<UserPublic> {
       let decodedToken: AccessTokenPayload;
 
       try {
