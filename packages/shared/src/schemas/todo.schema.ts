@@ -1,4 +1,4 @@
-import { VALIDATION_CONSTANTS } from '../constants/validations';
+import { VALIDATION_CONSTANTS } from '../utils/constants';
 import z from 'zod';
 
 export const TodoReasonEnum = z.enum([

@@ -1,61 +1,48 @@
 import {
-  authenticationEmailRegisterRequestSchema,
-  authenticationLoginRequestPublicSchema,
-  authenticationOAuthRegisterRequestSchema,
-  authenticationRefreshRequestPrivateSchema,
-  authenticationRefreshResponsePrivateSchema,
-  authenticationResponsePublicSchema,
-  authenticationSuccessResponsePrivateSchema,
   authorizationJwtSchema,
-  onboardingInfoRequestSchema,
-  registerInitEmailRegisterRequestSchema,
-  registerInitOAuthRegisterRequestSchema,
-  registerInitSessionDataSchema,
-  registerGithubAuthLinkResponseSchema,
+  completeRegisterByEmailRequestSchema,
+  completeRegisterByOAuthRequestSchema,
+  loginPrivateSchema,
+  loginPublicSchema,
+  loginRequestPublicSchema,
+  refreshPrivateSchema,
+  refreshRequestPrivateSchema,
+  registerInitEmailRequestSchema,
+  registerInitTokenSchema,
+  registrationInfoRequestSchema,
+  registrationJtiSchema,
+  registrationSessionSchema,
+  oauthRequestSchema,
 } from '../schemas/auth.schema';
 import { JwtPayload } from 'jsonwebtoken';
 import z from 'zod';
 
-export type RegisterInitEmailRegisterRequest = z.infer<
-  typeof registerInitEmailRegisterRequestSchema
+export type RegisterInitEmailRequest = z.infer<
+  typeof registerInitEmailRequestSchema
 >;
-export type RegisterInitOAuthRegisterRequest = z.infer<
-  typeof registerInitOAuthRegisterRequestSchema
->;
-export type RegisterInitSessionData = z.infer<
-  typeof registerInitSessionDataSchema
->;
-export type RegisterGithubAuthLinkResponse = z.infer<
-  typeof registerGithubAuthLinkResponseSchema
+export type OAuthRequest = z.infer<typeof oauthRequestSchema>;
+export type RegistrationJti = z.infer<typeof registrationJtiSchema>;
+export type RegistrationInitToken = z.infer<typeof registerInitTokenSchema>;
+export type RegistrationSession = z.infer<typeof registrationSessionSchema>;
+export type RegistrationInfoRequest = z.infer<
+  typeof registrationInfoRequestSchema
 >;
 
-export type OnboardingInfoRequest = z.infer<typeof onboardingInfoRequestSchema>;
-
-export type AuthenticationEmailRegisterRequest = z.infer<
-  typeof authenticationEmailRegisterRequestSchema
+export type CompleteRegisterByEmailRequest = z.infer<
+  typeof completeRegisterByEmailRequestSchema
 >;
-export type AuthenticationOAuthRegisterRequest = z.infer<
-  typeof authenticationOAuthRegisterRequestSchema
+export type CompleteRegisterByOAuthRequest = z.infer<
+  typeof completeRegisterByOAuthRequestSchema
 >;
 
-export type AuthenticationLoginRequestPublic = z.infer<
-  typeof authenticationLoginRequestPublicSchema
->;
-export type AuthenticationSuccessResponsePrivate = z.infer<
-  typeof authenticationSuccessResponsePrivateSchema
->;
+export type LoginRequestPublic = z.infer<typeof loginRequestPublicSchema>;
+export type LoginPrivate = z.infer<typeof loginPrivateSchema>;
+export type LoginPublic = z.infer<typeof loginPublicSchema>;
 
-export type AuthenticationRefreshRequestPrivate = z.infer<
-  typeof authenticationRefreshRequestPrivateSchema
->;
-export type AuthenticationRefreshResponsePrivate = z.infer<
-  typeof authenticationRefreshResponsePrivateSchema
->;
-export type AuthenticationResponsePublic = z.infer<
-  typeof authenticationResponsePublicSchema
->;
+export type RefreshPrivate = z.infer<typeof refreshPrivateSchema>;
+export type RefreshRequestPrivate = z.infer<typeof refreshRequestPrivateSchema>;
+
 export type AuthorizationJwt = z.infer<typeof authorizationJwtSchema>;
-
 export interface AccessTokenPayload extends JwtPayload {
   userId: string;
   email: string;
