@@ -1,4 +1,4 @@
-import { User, UserUpdate } from '@dev-dashboard/shared';
+import { User, UpdateUser } from '@dev-dashboard/shared';
 
 export interface IUserRepository {
   createByEmail(user: User): Promise<User>;
@@ -9,7 +9,7 @@ export interface IUserRepository {
     provider: string,
     providerUserId: string
   ): Promise<User | null>;
-  update(id: string, updates: UserUpdate): Promise<User>;
+  update(id: string, updates: UpdateUser): Promise<User>;
   delete(id: string): Promise<void>;
   updateLastLogin(id: string, timestamp: string): Promise<User>;
   updatePassword(id: string, passwordHash: string): Promise<User>;
