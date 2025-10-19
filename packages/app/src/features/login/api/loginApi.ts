@@ -1,19 +1,20 @@
-import type {
-  AuthenticationLoginRequestPublic,
-  AuthenticationResponsePublic,
-} from '../../../../../shared/src/types/auth.type';
 import { publicClient } from '../../../lib/api';
+import type {
+  LoginPublic,
+  LoginRequestPublic,
+  OAuthRequest,
+} from '@dev-dashboard/shared';
 
 export const loginByEmail = async (
-  data: AuthenticationLoginRequestPublic
-): Promise<AuthenticationResponsePublic> => {
+  data: LoginRequestPublic
+): Promise<LoginPublic> => {
   const response = await publicClient.post('/auth/login/email', data);
   return response.data;
 };
 
 export const loginByOAuth = async (
-  data: AuthenticationLoginRequestPublic
-): Promise<AuthenticationResponsePublic> => {
-  const response = await publicClient.post('/auth/login', data);
+  data: OAuthRequest
+): Promise<LoginPublic> => {
+  const response = await publicClient.post('/auth/login/oauth', data);
   return response.data;
 };
