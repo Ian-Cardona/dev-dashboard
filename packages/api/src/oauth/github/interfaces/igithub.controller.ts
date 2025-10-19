@@ -1,7 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 
 export interface IGithubController {
-  githubAuthCallback: (
+  getAuthorizationCallbackUrl: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>;
+  getAuthorizeLink: (
     req: Request,
     res: Response,
     next: NextFunction

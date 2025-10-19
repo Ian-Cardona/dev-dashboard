@@ -1,11 +1,6 @@
-import {
-  GithubUserSchema,
-  OAuthGithubCallbackResponseSchema,
-} from '@dev-dashboard/shared';
+import { GithubCallbackRequest, GithubUser } from '@dev-dashboard/shared';
 
 export interface IGithubRepository {
-  exchangeCodeForToken(
-    code: string
-  ): Promise<OAuthGithubCallbackResponseSchema>;
-  getUserProfile(accessToken: string): Promise<GithubUserSchema>;
+  exchangeCodeForToken(code: string): Promise<GithubCallbackRequest>;
+  getUserProfile(accessToken: string): Promise<GithubUser>;
 }

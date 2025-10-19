@@ -1,18 +1,18 @@
 import { IGithubRepository } from './interfaces/igithub.repository';
 import { IGithubService } from './interfaces/igithub.service';
 import {
-  GithubUserSchema,
-  OAuthGithubCallbackResponseSchema,
+  GithubUser,
+  GithubCallbackRequest,
+  GithubAuthorizeUri,
 } from '@dev-dashboard/shared';
+import { ENV } from 'src/config/env_variables';
 import { ExternalServiceError } from 'src/utils/errors.utils';
 
 export const GithubService = (
   repository: IGithubRepository
 ): IGithubService => {
   return {
-    async exchangeCodeForToken(
-      code: string
-    ): Promise<OAuthGithubCallbackResponseSchema> {
+    async exchangeCodeForToken(code: string): Promise<GithubCallbackRequest> {
       try {
         return await repository.exchangeCodeForToken(code);
       } catch (error) {
@@ -25,7 +25,8 @@ export const GithubService = (
         );
       }
     },
-    async getUserProfile(accessToken: string): Promise<GithubUserSchema> {
+
+    async getUserProfile(accessToken: string): Promise<GithubUser> {
       try {
         return await repository.getUserProfile(accessToken);
       } catch (error) {
@@ -36,6 +37,32 @@ export const GithubService = (
         throw new ExternalServiceError(
           `GitHub user profile fetch failed ${errorMessage}`
         );
+      }
+    },
+
+    async getAuthorizeLink(
+      flow: 'register' | 'login'
+    ): Promise<GithubAuthorizeUri> {
+      try {
+        const clientId = ENV.GITHUB_OAUTH_CLIENT_ID;
+        const authorizeUri = ENV.GITHUB_OAUTH_AUTHORIZE_URI;
+        const redirectUri = `${ENV.GITHUB_OAUTH_REDIRECT_URI}?flow=${flow}`;
+
+        if (!clientId || !authorizeUri) {
+          throw new Error('GitHub OAuth is not properly configured.');
+        }
+
+        const params = new URLSearchParams({
+          client_id: clientId,
+          redirect_uri: redirectUri,
+        });
+
+        return {
+          provider: 'github',
+          authorize_uri: `${authorizeUri}?${params.toString()}`,
+        };
+      } catch {
+        throw new Error('Failed to retrieve GitHub link');
       }
     },
   };
