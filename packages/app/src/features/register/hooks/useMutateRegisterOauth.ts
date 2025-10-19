@@ -1,7 +1,7 @@
 import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
 import { useAuth } from '../../../hooks/useAuth';
-import { registerOauth } from '../api/registerApi';
-import type { OnboardingInfoRequest } from '@dev-dashboard/shared';
+import { completeRegistrationOAuth } from '../api/registerApi';
+import type { RegistrationInfoRequest } from '@dev-dashboard/shared';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 
@@ -10,7 +10,8 @@ export const useMutateRegisterOauth = () => {
   const { dispatch } = useAuth();
 
   return useMutation({
-    mutationFn: (data: OnboardingInfoRequest) => registerOauth(data),
+    mutationFn: (data: RegistrationInfoRequest) =>
+      completeRegistrationOAuth(data),
     onSuccess: data => {
       dispatch({
         type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,

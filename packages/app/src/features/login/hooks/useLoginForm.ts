@@ -1,4 +1,4 @@
-import { authenticationLoginRequestPublicSchema } from '@dev-dashboard/shared';
+import { loginRequestPublicSchema } from '@dev-dashboard/shared';
 import { useState } from 'react';
 
 export const useLoginForm = () => {
@@ -10,7 +10,7 @@ export const useLoginForm = () => {
     setPassword('');
   };
 
-  const isValid = authenticationLoginRequestPublicSchema.safeParse({
+  const isValid = loginRequestPublicSchema.safeParse({
     email,
     password,
   }).success;

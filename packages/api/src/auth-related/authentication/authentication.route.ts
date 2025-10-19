@@ -28,15 +28,15 @@ router.post(
   '/register/email',
   registerInitAuthorizationMiddleware,
   registerInitSessionMiddleware,
-  authenticationControllerInstance.registerUserByEmail
+  authenticationControllerInstance.completeRegisterUserByEmail
 );
 router.post(
   '/register/oauth',
   registerInitAuthorizationMiddleware,
   registerInitSessionMiddleware,
-  authenticationControllerInstance.registerUserByOAuth
+  authenticationControllerInstance.completeRegisterUserByEmail
 );
-router.post('/login', authenticationControllerInstance.loginUserByEmail);
+router.post('/login/email', authenticationControllerInstance.loginUserByEmail);
 router.post('/login/oauth', authenticationControllerInstance.loginUserByOAuth);
 router.post('/refresh', authenticationControllerInstance.refreshAccessToken);
 router.post('/logout', authenticationControllerInstance.logoutUser);

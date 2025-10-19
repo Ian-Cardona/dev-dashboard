@@ -1,5 +1,5 @@
 import { registerInitOAuth } from '../api/registerApi';
-import type { RegisterInitOAuthRegisterRequest } from '@dev-dashboard/shared';
+import type { OAuthRequest } from '@dev-dashboard/shared';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 
@@ -7,8 +7,7 @@ export const useMutateRegisterInitGithub = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (body: RegisterInitOAuthRegisterRequest) =>
-      registerInitOAuth(body),
+    mutationFn: (data: OAuthRequest) => registerInitOAuth(data),
     onSuccess: () => {
       navigate('/register/onboarding?flow=oauth', { replace: true });
     },

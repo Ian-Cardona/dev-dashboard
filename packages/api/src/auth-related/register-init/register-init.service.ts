@@ -1,10 +1,11 @@
 import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
-  RegisterInitEmailRegisterRequest,
-  RegisterInitOAuthRegisterRequest,
-  RegisterInitSessionData,
-  UserResponsePublic,
-  RegisterGithubAuthLinkResponse,
+  RegisterInitEmailRequest,
+  OAuthRequest,
+  RegistrationInitToken,
+  RegistrationJti,
+  RegistrationSession,
+  UserPublic,
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
@@ -25,9 +26,9 @@ export const RegisterInitService = (
   userService: IUserService
 ): IRegisterInitService => {
   return {
-    async getEmailSession(emailSessionId: string): Promise<string | null> {
+    async getEmailSession(sessionId: string): Promise<string | null> {
       try {
-        const key = `${REDIS_EMAIL_PREFIX}${emailSessionId}`;
+        const key = `${REDIS_EMAIL_PREFIX}${sessionId}`;
         const result = await redisClient.get(key);
         if (!result) return null;
 
@@ -39,9 +40,7 @@ export const RegisterInitService = (
       }
     },
 
-    async email(
-      data: RegisterInitEmailRegisterRequest
-    ): Promise<{ registerInitToken: string; emailSessionId: string }> {
+    async email(data: RegisterInitEmailRequest): Promise<RegistrationSession> {
       const emailAlreadyExists = await userService.emailExists(data.email);
       if (emailAlreadyExists) {
         throw new ConflictError('User already exists');
@@ -57,10 +56,10 @@ export const RegisterInitService = (
       const salt = await bcrypt.genSalt(saltRounds);
       const passwordHash = await bcrypt.hash(data.password, salt);
 
-      const registerInitJti = generateUUID();
-      const emailSessionId = generateUUID();
+      const registrationJti = generateUUID();
+      const registrationId = generateUUID();
 
-      const sessionData: RegisterInitSessionData = {
+      const registrationJtiData: RegistrationJti = {
         registrationType: 'email',
         email: data.email,
         passwordHash,
@@ -68,51 +67,31 @@ export const RegisterInitService = (
       };
 
       await redisClient.set(
-        `${REDIS_AUTH_PREFIX}${registerInitJti}`,
-        JSON.stringify(sessionData),
+        `${REDIS_AUTH_PREFIX}${registrationJti}`,
+        JSON.stringify(registrationJtiData),
         { EX: REGISTER_INIT_TTL }
       );
 
       await redisClient.set(
-        `${REDIS_EMAIL_PREFIX}${emailSessionId}`,
+        `${REDIS_EMAIL_PREFIX}${registrationId}`,
         JSON.stringify({ email: data.email, createdAt: Date.now() }),
         { EX: REGISTER_INIT_TTL }
       );
 
-      const registerInitToken = generateRegisterInitJWT({
-        jti: registerInitJti,
+      const registrationToken = generateRegisterInitJWT({
+        jti: registrationJti,
         type: 'register-init',
       });
 
-      return { registerInitToken, emailSessionId: emailSessionId };
+      return {
+        registrationToken,
+        registrationId,
+      } as RegistrationSession;
     },
 
-    async getGithubAuthorizeLink(): Promise<RegisterGithubAuthLinkResponse> {
+    async github(data: OAuthRequest): Promise<RegistrationInitToken> {
       try {
-        const clientId = ENV.GITHUB_OAUTH_CLIENT_ID;
-        const authorizeUri = ENV.GITHUB_OAUTH_AUTHORIZE_URI;
-        if (!clientId || !authorizeUri) {
-          throw new Error('GitHub OAuth is not properly configured.');
-        }
-
-        const params = new URLSearchParams({
-          client_id: clientId,
-        });
-
-        return {
-          provider: 'github',
-          authorize_uri: `${authorizeUri}?${params.toString()}`,
-        };
-      } catch {
-        throw new Error('Failed to retrieve GitHub link');
-      }
-    },
-
-    async oauth(
-      data: RegisterInitOAuthRegisterRequest
-    ): Promise<{ registerInitToken: string }> {
-      try {
-        let userProvider: UserResponsePublic | null = null;
+        let userProvider: UserPublic | null = null;
 
         try {
           userProvider = await userService.findByProvider(
@@ -137,9 +116,9 @@ export const RegisterInitService = (
           throw new ConflictError('User with this provider already exists');
         }
 
-        const registerInitJti = generateUUID();
+        const registrationJti = generateUUID();
 
-        const sessionData: RegisterInitSessionData = {
+        const registrationJtiData: RegistrationJti = {
           registrationType: 'oauth',
           provider: data.provider,
           providerUserId: data.id,
@@ -148,19 +127,19 @@ export const RegisterInitService = (
         };
 
         await redisClient.set(
-          `${REDIS_AUTH_PREFIX}${registerInitJti}`,
-          JSON.stringify(sessionData),
+          `${REDIS_AUTH_PREFIX}${registrationJti}`,
+          JSON.stringify(registrationJtiData),
           {
             EX: REGISTER_INIT_TTL,
           }
         );
 
-        const registerInitToken = generateRegisterInitJWT({
-          jti: registerInitJti,
+        const registrationToken = generateRegisterInitJWT({
+          jti: registrationJti,
           type: 'register-init',
         });
 
-        return { registerInitToken };
+        return { registrationToken } as RegistrationInitToken;
       } catch (error) {
         console.log('Error in OAuth registration:', error);
         throw new Error(`[${MODULE_NAME}] Failed to initialize OAuth register`);

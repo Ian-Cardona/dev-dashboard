@@ -1,10 +1,9 @@
 import { publicClient } from '../../../lib/api';
 import type {
-  AuthenticationResponsePublic,
-  OnboardingInfoRequest,
-  RegisterInitEmailRegisterRequest,
-  RegisterGithubAuthLinkResponse,
-  RegisterInitOAuthRegisterRequest,
+  LoginPublic,
+  OAuthRequest,
+  RegisterInitEmailRequest,
+  RegistrationInfoRequest,
 } from '@dev-dashboard/shared';
 
 export const fetchEmailSessionById = async (
@@ -18,37 +17,29 @@ export const fetchEmailSessionById = async (
   return response.data;
 };
 
-export const fetchRegisterInitGithub =
-  async (): Promise<RegisterGithubAuthLinkResponse> => {
-    const response = await publicClient.get('/init/github/authorize');
-    return response.data;
-  };
-
-export const registerInitOAuth = async (
-  data: RegisterInitOAuthRegisterRequest
-): Promise<void> => {
+export const registerInitOAuth = async (data: OAuthRequest): Promise<void> => {
   const response = await publicClient.post('/init/oauth', data);
   if (response.status !== 201)
     throw new Error('Failed to initialize OAuth registration.');
 };
 
 export const registerInitEmail = async (
-  data: RegisterInitEmailRegisterRequest
+  data: RegisterInitEmailRequest
 ): Promise<void> => {
   const response = await publicClient.post('/init/email', data);
   if (response.status !== 201) throw new Error('Failed to initiate register');
 };
 
-export const registerEmail = async (
-  data: OnboardingInfoRequest
-): Promise<AuthenticationResponsePublic> => {
+export const completeRegistrationEmail = async (
+  data: RegistrationInfoRequest
+): Promise<LoginPublic> => {
   const response = await publicClient.post('/auth/register/email', data);
   return response.data;
 };
 
-export const registerOauth = async (
-  data: OnboardingInfoRequest
-): Promise<AuthenticationResponsePublic> => {
+export const completeRegistrationOAuth = async (
+  data: RegistrationInfoRequest
+): Promise<LoginPublic> => {
   const response = await publicClient.post('/auth/register/oauth', data);
   return response.data;
 };

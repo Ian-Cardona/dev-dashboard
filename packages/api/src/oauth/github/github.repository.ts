@@ -1,12 +1,10 @@
 import { IGithubRepository } from './interfaces/igithub.repository';
-import { OAuthGithubCallbackResponseSchema } from '@dev-dashboard/shared';
+import { GithubCallbackRequest } from '@dev-dashboard/shared';
 import { ENV } from 'src/config/env_variables';
 
 export const GithubRepository = (): IGithubRepository => {
   return {
-    async exchangeCodeForToken(
-      code: string
-    ): Promise<OAuthGithubCallbackResponseSchema> {
+    async exchangeCodeForToken(code: string): Promise<GithubCallbackRequest> {
       const clientId = ENV.GITHUB_OAUTH_CLIENT_ID;
       const clientSecret = ENV.GITHUB_OAUTH_CLIENT_SECRET;
       const accessTokenUri = ENV.GITHUB_OAUTH_ACCESS_TOKEN_URI;

@@ -1,64 +1,22 @@
-import useQueryFetchGithubOAuthLink from '../../../../oauth/hooks/useQueryFetchGithubAuthLink';
-import { useMutateRegisterInitEmail } from '../../hooks/useMutateRegisterInitEmail';
-import { useRegisterInitForm } from '../../hooks/useRegisterForm';
-import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
+import { useLoginForm } from '../hooks/useLoginForm';
+import { useMutateLoginEmail } from '../hooks/useMutateLoginEmail';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-interface RegisterFormProps {
-  isRegisterPending?: boolean;
+interface LoginFormProps {
+  isLoginPending?: boolean;
 }
 
-const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
+const LoginForm = ({ isLoginPending = false }: LoginFormProps) => {
   const navigate = useNavigate();
   const { email, password, setEmail, setPassword, isValid, resetForm } =
-    useRegisterInitForm();
-  const registerInitMutation = useMutateRegisterInitEmail();
-  const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('register');
-  const [showValidationError, setShowValidationError] = useState(false);
+    useLoginForm();
+  const mutateLoginEmail = useMutateLoginEmail();
+  const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('login');
   const [isConnecting, setIsConnecting] = useState(false);
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    if (isValid) {
-      registerInitMutation.mutate(
-        { email, password },
-        {
-          onSuccess: () => {
-            resetForm();
-            setShowValidationError(false);
-          },
-        }
-      );
-    } else {
-      setShowValidationError(true);
-    }
-  };
-
-  const passwordChecks = [
-    {
-      label: 'At least 8 characters',
-      test: (pw: string) => pw.length >= 8,
-    },
-    {
-      label: 'One uppercase letter',
-      test: (pw: string) => /[A-Z]/.test(pw),
-    },
-    {
-      label: 'One lowercase letter',
-      test: (pw: string) => /[a-z]/.test(pw),
-    },
-    {
-      label: 'One number',
-      test: (pw: string) => /[0-9]/.test(pw),
-    },
-    {
-      label: 'One special character',
-      test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
-    },
-  ];
-
-  const handleGithubSignup = async () => {
+  const handleGithubLoginClick = async () => {
     setIsConnecting(true);
     try {
       const response = await githubAuthorizeQuery.refetch();
@@ -72,25 +30,46 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
 
       window.location.href = url;
     } catch (error) {
-      console.error('Failed to initiate GitHub register:', error);
+      console.error('Failed to initiate GitHub login:', error);
       setIsConnecting(false);
     }
   };
 
-  const isPending = isRegisterPending || registerInitMutation.isPending;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isValid) {
+      mutateLoginEmail.mutate(
+        { email, password },
+        {
+          onSuccess: () => {
+            resetForm();
+            navigate('/');
+          },
+        }
+      );
+    }
+  };
+
+  if (isLoginPending) {
+    return (
+      <div className="w-full py-10 text-center text-[var(--color-accent)]">
+        Logging in with OAuth...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
       <div className="mb-8 text-center">
         <h1 className="mb-2 text-3xl font-bold text-[var(--color-fg)]">
-          Sign up
+          Log in
         </h1>
         <p className="text-base text-[var(--color-accent)]">
-          Create your account to get started
+          Welcome back to your workspace
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
         <div>
           <label
             htmlFor="email"
@@ -105,8 +84,9 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
             onChange={e => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            disabled={isPending}
+            disabled={mutateLoginEmail.isPending}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            aria-invalid={!isValid}
           />
         </div>
         <div>
@@ -123,60 +103,35 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
             onChange={e => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            disabled={isPending}
+            disabled={mutateLoginEmail.isPending}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            aria-invalid={!isValid}
           />
-          <div className="mt-4 flex flex-col gap-2">
-            {passwordChecks.map(({ label, test }) => {
-              const valid = test(password);
-              return (
-                <div key={label} className="flex items-center gap-2 text-sm">
-                  {valid ? (
-                    <CheckIcon className="h-4 w-4 text-[var(--color-accent)]" />
-                  ) : (
-                    <XMarkIcon className="h-4 w-4 text-[var(--color-danger)]" />
-                  )}
-                  <span
-                    className={
-                      valid
-                        ? 'text-[var(--color-accent)] line-through'
-                        : 'text-[var(--color-danger)]'
-                    }
-                  >
-                    {label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          {showValidationError && (
-            <p className="mt-4 text-sm text-[var(--color-danger)]">
-              Please enter a valid email and password.
-            </p>
-          )}
         </div>
 
         <button
           type="submit"
-          disabled={isPending || !isValid}
+          disabled={mutateLoginEmail.isPending || !isValid}
           className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-busy={mutateLoginEmail.isPending}
         >
-          {isPending ? 'Registering...' : 'Create Account'}
+          {mutateLoginEmail.isPending ? 'Logging in...' : 'Log in'}
         </button>
 
         <div className="my-2 flex items-center gap-4">
           <div className="h-px flex-grow border-t"></div>
           <span className="text-sm text-[var(--color-accent)]">
-            or sign up with
+            or log in with
           </span>
           <div className="h-px flex-grow border-t"></div>
         </div>
 
         <button
           type="button"
-          onClick={handleGithubSignup}
-          disabled={isPending}
           className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/30 bg-transparent py-4 text-base font-medium text-[var(--color-fg)] transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={handleGithubLoginClick}
+          disabled={isConnecting}
+          aria-busy={isConnecting}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -193,17 +148,22 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
           </svg>
           {isConnecting ? 'Connecting...' : 'GitHub'}
         </button>
+        {githubAuthorizeQuery.isError && (
+          <div className="mt-2 text-center text-sm text-red-500" role="alert">
+            Could not retrieve GitHub login link. Please try again later.
+          </div>
+        )}
 
         <div className="mt-4 text-center">
           <p className="text-sm text-[var(--color-accent)]">
-            Already have an account?{' '}
+            Don't have an account?{' '}
             <button
               type="button"
-              onClick={() => navigate('/login')}
-              disabled={isPending}
+              onClick={() => navigate('/register')}
+              disabled={mutateLoginEmail.isPending}
               className="font-semibold text-[var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Log in
+              Sign up
             </button>
           </p>
         </div>
@@ -212,4 +172,4 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
   );
 };
 
-export default RegisterForm;
+export default LoginForm;

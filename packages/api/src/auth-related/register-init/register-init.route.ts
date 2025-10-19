@@ -22,11 +22,7 @@ const registerInitControllerInstance = RegisterInitController(
 );
 
 router.get('/email/session', registerInitControllerInstance.getEmailSession);
-router.get(
-  '/github/authorize',
-  registerInitControllerInstance.getGithubAuthorizeLink
-);
 router.post('/email', registerInitControllerInstance.email);
-router.post('/oauth', registerInitControllerInstance.oauth);
+router.post('/github', registerInitControllerInstance.github);
 
 export default router;

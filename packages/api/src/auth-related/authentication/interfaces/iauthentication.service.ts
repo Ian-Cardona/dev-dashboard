@@ -1,31 +1,24 @@
 import {
-  AuthenticationEmailRegisterRequest,
-  AuthenticationLoginRequestPublic,
-  AuthenticationOAuthRegisterRequest,
-  AuthenticationRefreshRequestPrivate,
-  AuthenticationRefreshResponsePrivate,
-  AuthenticationSuccessResponsePrivate,
-  RegisterInitOAuthRegisterRequest,
-  UserResponsePublic,
+  CompleteRegisterByEmailRequest,
+  CompleteRegisterByOAuthRequest,
+  LoginPrivate,
+  LoginRequestPublic,
+  OAuthRequest,
+  RefreshPrivate,
+  RefreshRequestPrivate,
+  UserPublic,
 } from '@dev-dashboard/shared';
 
 export interface IAuthenticationService {
-  registerByEmail(
-    data: AuthenticationEmailRegisterRequest
-  ): Promise<AuthenticationSuccessResponsePrivate>;
-  registerByOAuth(
-    data: AuthenticationOAuthRegisterRequest
-  ): Promise<AuthenticationSuccessResponsePrivate>;
-  loginByEmail(
-    data: AuthenticationLoginRequestPublic
-  ): Promise<AuthenticationSuccessResponsePrivate>;
-  loginByOAuth(
-    // HACK: Gotta refactor the schema to make this cleaner
-    data: RegisterInitOAuthRegisterRequest
-  ): Promise<AuthenticationSuccessResponsePrivate>;
+  completeRegisterByEmail(
+    data: CompleteRegisterByEmailRequest
+  ): Promise<LoginPrivate>;
+  completeRegisterByOAuth(
+    data: CompleteRegisterByOAuthRequest
+  ): Promise<LoginPrivate>;
+  loginByEmail(data: LoginRequestPublic): Promise<LoginPrivate>;
+  loginByOAuth(data: OAuthRequest): Promise<LoginPrivate>;
   logout(refreshTokenId: string): Promise<void>;
-  refreshAccessToken(
-    data: AuthenticationRefreshRequestPrivate
-  ): Promise<AuthenticationRefreshResponsePrivate>;
-  verifyAccessToken(token: string): Promise<UserResponsePublic>;
+  refreshAccessToken(data: RefreshRequestPrivate): Promise<RefreshPrivate>;
+  verifyAccessToken(token: string): Promise<UserPublic>;
 }

@@ -9,7 +9,7 @@ import {
   TransactWriteCommandInput,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { User, UserUpdate } from '@dev-dashboard/shared';
+import { User, UpdateUser } from '@dev-dashboard/shared';
 import { ConflictError } from 'src/utils/errors.utils';
 
 const USERS_TABLE = ENV.USERS_TABLE;
@@ -135,7 +135,7 @@ export const UserRepository = (
       return userResult.Item ? (userResult.Item as User) : null;
     },
 
-    async update(id: string, updates: UserUpdate): Promise<User> {
+    async update(id: string, updates: UpdateUser): Promise<User> {
       const updateExpressions: string[] = [];
       const attributeNames: Record<string, string> = {};
       const attributeValues: Record<string, unknown> = {};

@@ -4,11 +4,11 @@ import { generateUUID } from '../utils/uuid.utils';
 import { IUserRepository } from './interfaces/iuser.repository';
 import { IUserService } from './interfaces/iuser.service';
 import {
-  AuthenticationEmailRegisterRequest,
-  AuthenticationOAuthRegisterRequest,
+  CompleteRegisterByEmailRequest,
+  CompleteRegisterByOAuthRequest,
   User,
-  UserResponsePublic,
-  UserUpdate,
+  UserPublic,
+  UpdateUser,
 } from '@dev-dashboard/shared';
 import { isBcryptHash } from 'src/utils/bcrypt.utils';
 
@@ -19,8 +19,8 @@ const MODULE_NAME = 'UserService';
 export const UserService = (userRepository: IUserRepository): IUserService => {
   return {
     async createByEmail(
-      user: AuthenticationEmailRegisterRequest
-    ): Promise<UserResponsePublic> {
+      user: CompleteRegisterByEmailRequest
+    ): Promise<UserPublic> {
       try {
         // const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
         // if (!saltRounds || isNaN(saltRounds)) {
@@ -53,7 +53,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { passwordHash, ...responseUser } = result;
 
-        return responseUser as UserResponsePublic;
+        return responseUser as UserPublic;
       } catch (error) {
         if (
           error instanceof Error &&
@@ -68,8 +68,8 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
     },
 
     async createByOAuth(
-      user: AuthenticationOAuthRegisterRequest
-    ): Promise<UserResponsePublic> {
+      user: CompleteRegisterByOAuthRequest
+    ): Promise<UserPublic> {
       try {
         const now = new Date().toISOString();
 
@@ -87,7 +87,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { passwordHash, ...responseUser } = result;
-        return responseUser as UserResponsePublic;
+        return responseUser as UserPublic;
       } catch (error) {
         if (
           error instanceof Error &&
@@ -101,7 +101,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       }
     },
 
-    async findById(userId: string): Promise<UserResponsePublic> {
+    async findById(userId: string): Promise<UserPublic> {
       try {
         const user = await userRepository.findById(userId);
         if (!user) {
@@ -136,7 +136,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       }
     },
 
-    async findByEmailPublic(email: string): Promise<UserResponsePublic> {
+    async findByEmailPublic(email: string): Promise<UserPublic> {
       try {
         const user = await userRepository.findByEmail(email);
 
@@ -167,7 +167,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
     async findByProvider(
       provider: string,
       providerUserId: string
-    ): Promise<UserResponsePublic> {
+    ): Promise<UserPublic> {
       try {
         const user = await userRepository.findByProvider(
           provider,
@@ -186,10 +186,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       }
     },
 
-    async update(
-      userId: string,
-      updates: UserUpdate
-    ): Promise<UserResponsePublic> {
+    async update(userId: string, updates: UpdateUser): Promise<UserPublic> {
       try {
         const result = await userRepository.update(userId, updates);
 
@@ -228,7 +225,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
     async updateLastLogin(
       userId: string,
       timestamp: string
-    ): Promise<UserResponsePublic> {
+    ): Promise<UserPublic> {
       try {
         const result = await userRepository.updateLastLogin(userId, timestamp);
 
@@ -253,7 +250,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
     async updatePassword(
       userId: string,
       newPasswordHash: string
-    ): Promise<UserResponsePublic> {
+    ): Promise<UserPublic> {
       try {
         const result = await userRepository.updatePassword(
           userId,
@@ -278,7 +275,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       }
     },
 
-    async deactivate(userId: string): Promise<UserResponsePublic> {
+    async deactivate(userId: string): Promise<UserPublic> {
       try {
         const result = await userRepository.deactivate(userId);
 

@@ -1,11 +1,12 @@
 import { IUserController } from './interfaces/iuser.controller';
 import { IUserService } from './interfaces/iuser.service';
 import {
-  passwordUpdateSchema,
-  userUpdateSchema,
+  updateUserSchema,
+  userPasswordUpdateSchema,
   uuidSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
+import { ConflictError } from 'src/utils/errors.utils';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
 export const UserController = (userService: IUserService): IUserController => {
@@ -23,7 +24,7 @@ export const UserController = (userService: IUserService): IUserController => {
     async updateUserAccount(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const updates = userUpdateSchema.parse(req.body);
+        const updates = updateUserSchema.parse(req.body);
         const result = await userService.update(userId, updates);
         res.json(result);
       } catch (error) {
@@ -34,7 +35,11 @@ export const UserController = (userService: IUserService): IUserController => {
     async updateUserPassword(req: Request, res: Response, next: NextFunction) {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
-        const validatedData = passwordUpdateSchema.parse(req.body);
+        const validatedData = userPasswordUpdateSchema.parse(req.body);
+
+        if (typeof validatedData.newPassword !== 'string') {
+          throw new ConflictError('Invalid Password');
+        }
 
         await userService.updatePassword(userId, validatedData.newPassword);
         res.status(204).end();

@@ -16,8 +16,13 @@ const userService = UserService(userRepository);
 
 const registerInitService = RegisterInitService(redisClient, userService);
 const githubService = GithubService(githubRepository);
-const controller = GithubController(githubService, registerInitService);
+const controller = GithubController(
+  githubService,
+  registerInitService,
+  userService
+);
 
-router.get('/oauth/callback', controller.githubAuthCallback);
+router.get('/authorize/callback', controller.getAuthorizationCallbackUrl);
+router.get('/authorize/link', controller.getAuthorizeLink);
 
 export default router;

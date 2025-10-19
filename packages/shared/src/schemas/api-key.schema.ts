@@ -1,14 +1,21 @@
+import {
+  booleanDefaultTrueSchema,
+  descriptionSchema,
+  isoDatetimeSchema,
+  passwordHashSchema,
+  uuidSchema,
+} from '../utils/common';
 import z from 'zod';
 
 export const apiKeySchema = z.object({
-  id: z.uuidv4(),
-  userId: z.uuidv4(),
-  hash: z.string({ message: 'Invalid API key hash' }).trim(),
-  createdAt: z.iso.datetime(),
-  lastUsedAt: z.iso.datetime(),
-  description: z.string().min(1).max(255),
-  expiresAt: z.iso.datetime(),
-  isActive: z.boolean().default(true),
+  id: uuidSchema,
+  userId: uuidSchema,
+  hash: passwordHashSchema,
+  createdAt: isoDatetimeSchema,
+  lastUsedAt: isoDatetimeSchema,
+  description: descriptionSchema,
+  expiresAt: isoDatetimeSchema,
+  isActive: booleanDefaultTrueSchema,
 });
 
 export const apiKeyPublicSchema = z.object({
@@ -17,8 +24,5 @@ export const apiKeyPublicSchema = z.object({
 });
 
 export const createApiKeySchema = z.object({
-  description: z
-    .string()
-    .min(1, { message: 'Description is required' })
-    .max(255),
+  description: descriptionSchema,
 });
