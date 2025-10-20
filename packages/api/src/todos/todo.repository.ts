@@ -1,5 +1,4 @@
-import { ENV } from '../config/env_variables';
-import { ITodoModel } from './interfaces/itodo.model';
+import { ITodoRepository } from './interfaces/itodo.repository';
 import {
   BatchWriteCommand,
   DynamoDBDocumentClient,
@@ -7,12 +6,15 @@ import {
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ProjectNames, TodoBatch, TodoResolution } from '@dev-dashboard/shared';
+import { ENV } from 'src/config/env';
 
-const BATCHES_TABLE = ENV.TODO_BATCHES_TABLE;
-const RESOLUTIONS_TABLE = ENV.TODO_RESOLUTIONS_TABLE;
-const CURRENT_TABLE = ENV.TODO_CURRENT_TABLE;
+const BATCHES_TABLE = ENV.TODOS_TABLE;
+const RESOLUTIONS_TABLE = ENV.TODOS_RESOLUTIONS_TABLE;
+const CURRENT_TABLE = ENV.TODOS_CURRENT_TABLE;
 
-export const TodoModel = (docClient: DynamoDBDocumentClient): ITodoModel => {
+export const TodoRepository = (
+  docClient: DynamoDBDocumentClient
+): ITodoRepository => {
   return {
     async create(batch: TodoBatch): Promise<TodoBatch> {
       await docClient.send(

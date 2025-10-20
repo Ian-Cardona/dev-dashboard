@@ -1,4 +1,3 @@
-import { ENV } from '../config/env_variables';
 import { IUserRepository } from './interfaces/iuser.repository';
 import {
   DeleteCommand,
@@ -10,6 +9,7 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { User, UpdateUser } from '@dev-dashboard/shared';
+import { ENV } from 'src/config/env';
 import { ConflictError } from 'src/utils/errors.utils';
 
 const USERS_TABLE = ENV.USERS_TABLE;

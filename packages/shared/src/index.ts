@@ -4,6 +4,7 @@ export * from './utils/validations';
 
 export * from './schemas/api-key.schema';
 export * from './schemas/auth.schema';
+export * from './schemas/env.schema';
 export * from './schemas/github.schema';
 export * from './schemas/redis.schema';
 export * from './schemas/refresh-token.schema';
@@ -12,6 +13,7 @@ export * from './schemas/user.schema';
 
 export * from './types/api-key.type';
 export * from './types/auth.type';
+export * from './types/env.type';
 export * from './types/github.type';
 export * from './types/redis.type';
 export * from './types/refresh-token.type';

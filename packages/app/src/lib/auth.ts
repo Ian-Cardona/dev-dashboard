@@ -1,8 +1,8 @@
 import { publicClient } from './api';
-import type { AuthenticationResponsePublicSchema } from '@dev-dashboard/shared';
+import type { LoginPublic } from '@dev-dashboard/shared';
 
 export const authApi = {
-  refresh: async (): Promise<AuthenticationResponsePublicSchema> => {
+  refresh: async (): Promise<LoginPublic> => {
     const res = await publicClient.post('/auth/refresh');
     return res.data;
   },

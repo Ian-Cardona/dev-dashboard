@@ -1,6 +1,6 @@
 import { docClient } from '../config/dynamodb';
 import { TodoController } from './todo.controller';
-import { TodoModel } from './todo.model';
+import { TodoRepository } from './todo.repository';
 import { TodoService } from './todo.service';
 import { Router } from 'express';
 import { accessAuthorizationMiddleware } from 'src/middlewares/access-authorization.middleware';
@@ -8,7 +8,7 @@ import { apiKeysMiddleware } from 'src/middlewares/api-keys.middleware';
 
 const router = Router();
 
-const modelInstance = TodoModel(docClient);
+const modelInstance = TodoRepository(docClient);
 const serviceInstance = TodoService(modelInstance);
 const controllerInstance = TodoController(serviceInstance);
 
