@@ -1,4 +1,3 @@
-import { ENV } from '../config/env_variables';
 import { UnauthorizedError } from './errors.utils';
 import {
   AccessTokenPayload,
@@ -6,6 +5,7 @@ import {
 } from '@dev-dashboard/shared';
 import { Request } from 'express';
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken';
+import { ENV } from 'src/config/env';
 
 export const generateAccessJWT = (payload: AccessTokenPayload): string => {
   const signOptions: SignOptions = {

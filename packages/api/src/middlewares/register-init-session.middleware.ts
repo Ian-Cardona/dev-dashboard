@@ -1,5 +1,5 @@
 import { NotFoundError } from '../utils/errors.utils';
-import { RegisterInitSessionData } from '@dev-dashboard/shared';
+import { RegistrationJti } from '@dev-dashboard/shared';
 import type { NextFunction, Request, Response } from 'express';
 import { redisGetJSON } from 'src/utils/redis';
 
@@ -14,7 +14,7 @@ export const registerInitSessionMiddleware = async (
 
     const key = `register-init:${jti}`;
 
-    const registerInitData = await redisGetJSON<RegisterInitSessionData>(key);
+    const registerInitData = await redisGetJSON<RegistrationJti>(key);
     if (!registerInitData) {
       throw new NotFoundError('Data not found or expired');
     }

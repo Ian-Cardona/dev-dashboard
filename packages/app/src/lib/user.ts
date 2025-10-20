@@ -1,8 +1,8 @@
-import type { UserResponsePublic } from '../../../shared/src/types/user.type';
 import { protectedClient } from './api';
+import type { UserPublic } from '@dev-dashboard/shared';
 
 export const userApi = {
-  getProfile: async (): Promise<UserResponsePublic> => {
+  getProfile: async (): Promise<UserPublic> => {
     const res = await protectedClient.get('/user/profile');
     return res.data;
   },

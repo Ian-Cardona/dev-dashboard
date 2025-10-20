@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { ENV } from '../../config/env_variables';
 import {
   BatchWriteCommand,
   DynamoDBDocumentClient,
@@ -12,20 +10,13 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { RefreshToken } from '@dev-dashboard/shared';
+import { ENV } from 'src/config/env';
 
 const REFRESH_TOKENS_TABLE = ENV.REFRESH_TOKENS_TABLE;
 const BATCH_CHUNK_SIZE = 25;
 
-export interface IRefreshTokenModel {
-  create(token: RefreshToken): Promise<RefreshToken>;
-  findById(id: string): Promise<RefreshToken | null>;
-  tombstone(token: RefreshToken): Promise<void>;
-  deleteAllByUserId(userId: string): Promise<void>;
-  deleteExpired(): Promise<number>;
-}
-
-export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
-  const processBatch = async (items: Array<Record<string, any>>) => {
+export const RefreshTokenRepository = (docClient: DynamoDBDocumentClient) => {
+  const processBatch = async (items: Array<Record<string, string>>) => {
     const chunks = [];
     for (let i = 0; i < items.length; i += BATCH_CHUNK_SIZE) {
       chunks.push(items.slice(i, i + BATCH_CHUNK_SIZE));
@@ -136,7 +127,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     },
 
     async deleteAllByUserId(userId: string): Promise<void> {
-      let ExclusiveStartKey: Record<string, any> | undefined;
+      let ExclusiveStartKey: Record<string, string> | undefined;
 
       do {
         const queryResult: QueryCommandOutput = await docClient.send(
@@ -157,7 +148,7 @@ export const RefreshTokenModel = (docClient: DynamoDBDocumentClient) => {
     },
 
     async deleteExpired(): Promise<number> {
-      let ExclusiveStartKey: Record<string, any> | undefined;
+      let ExclusiveStartKey: Record<string, string> | undefined;
       const now = new Date().toISOString();
       let totalDeleted = 0;
 

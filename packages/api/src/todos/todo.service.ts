@@ -1,5 +1,5 @@
 import { generateUUID } from '../utils/uuid.utils';
-import { ITodoModel } from './interfaces/itodo.model';
+import { ITodoRepository } from './interfaces/itodo.repository';
 import { ComparisonResult, ITodoService } from './interfaces/itodo.service';
 import {
   CreateResolution,
@@ -67,7 +67,7 @@ const transformRawToBatchReady = (
   }));
 };
 
-export const TodoService = (TodoModel: ITodoModel): ITodoService => {
+export const TodoService = (TodoModel: ITodoRepository): ITodoService => {
   return {
     async createBatch(
       userId: string,

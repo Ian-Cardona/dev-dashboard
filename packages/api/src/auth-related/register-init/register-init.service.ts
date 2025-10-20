@@ -9,7 +9,7 @@ import {
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
-import { ENV } from 'src/config/env_variables';
+import { ENV } from 'src/config/env';
 import { IUserService } from 'src/user/interfaces/iuser.service';
 import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { generateRegisterInitJWT } from 'src/utils/jwt.utils';
@@ -96,7 +96,7 @@ export const RegisterInitService = (
         try {
           userProvider = await userService.findByProvider(
             data.provider,
-            data.id
+            data.id.toString()
           );
         } catch (err) {
           if (err instanceof NotFoundError) {
@@ -121,7 +121,7 @@ export const RegisterInitService = (
         const registrationJtiData: RegistrationJti = {
           registrationType: 'oauth',
           provider: data.provider,
-          providerUserId: data.id,
+          providerUserId: data.id.toString(),
           providerUserLogin: data.login,
           createdAt: new Date().toISOString(),
         };

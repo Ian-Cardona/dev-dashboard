@@ -65,7 +65,7 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            readOnly={flow === 'email'}
+            disabled={flow === 'email'}
             className="w-full rounded-lg border border-[var(--color-accent)]/40 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)]/70 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:bg-[var(--color-bg)]/50 disabled:text-[var(--color-accent)]"
             placeholder="you@example.com"
             required

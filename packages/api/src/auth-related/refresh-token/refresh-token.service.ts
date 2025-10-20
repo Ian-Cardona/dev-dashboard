@@ -1,27 +1,16 @@
-import { ENV } from '../../config/env_variables';
 import { ConflictError } from '../../utils/errors.utils';
 import { generateRefreshToken, generateUUID } from '../../utils/uuid.utils';
-import { IRefreshTokenModel } from './refresh-token.model';
+import { IRefreshTokenRepository } from './interfaces/irefresh-token.repository';
+import { IRefreshTokenService } from './interfaces/irefresh-token.service';
 import {
   RefreshToken,
   RefreshTokenRecordAndPlain,
 } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
-
-export interface IRefreshTokenService {
-  create(userId: string): Promise<RefreshTokenRecordAndPlain>;
-  findById(id: string): Promise<RefreshToken | null>;
-  findByIdAndMatch(
-    id: string,
-    refreshTokenPlain: string
-  ): Promise<RefreshToken | null>;
-  tombstone(token: RefreshToken): Promise<void>;
-  deleteAllByUserId(userId: string): Promise<void>;
-  deleteExpired(): Promise<number>;
-}
+import { ENV } from 'src/config/env';
 
 export const RefreshTokenService = (
-  refreshTokenModel: IRefreshTokenModel
+  refreshTokenModel: IRefreshTokenRepository
 ): IRefreshTokenService => {
   return {
     async create(userId: string): Promise<RefreshTokenRecordAndPlain> {

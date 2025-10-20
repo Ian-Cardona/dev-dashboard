@@ -1,6 +1,6 @@
 import { docClient } from '../../config/dynamodb';
 import { UserService } from '../../user/user.service';
-import { RefreshTokenModel } from '../refresh-token/refresh-token.model';
+import { RefreshTokenRepository } from '../refresh-token/refresh-token.repository';
 import { RefreshTokenService } from '../refresh-token/refresh-token.service';
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
@@ -12,7 +12,7 @@ import { UserRepository } from 'src/user/user.repository';
 
 const router = Router();
 
-const refreshTokenRepository = RefreshTokenModel(docClient);
+const refreshTokenRepository = RefreshTokenRepository(docClient);
 const userRepository = UserRepository(docClient);
 
 const userServiceInstance = UserService(userRepository);

@@ -1,4 +1,3 @@
-import { ENV } from '../config/env_variables';
 import {
   DynamoDBDocumentClient,
   GetCommand,
@@ -7,6 +6,7 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { ApiKey } from '@dev-dashboard/shared';
+import { ENV } from 'src/config/env';
 
 const API_KEYS_TABLE = ENV.API_KEYS_TABLE;
 

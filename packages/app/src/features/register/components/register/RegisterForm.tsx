@@ -159,6 +159,7 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
         <button
           type="submit"
           disabled={isPending || !isValid}
+          aria-busy={isPending}
           className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? 'Registering...' : 'Create Account'}

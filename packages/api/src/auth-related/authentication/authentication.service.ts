@@ -1,5 +1,5 @@
 import { generateAccessJWT, verifyJWT } from '../../utils/jwt.utils';
-import { IRefreshTokenService } from '../refresh-token/refresh-token.service';
+import { IRefreshTokenService } from '../refresh-token/interfaces/irefresh-token.service';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
   RefreshToken,
@@ -195,7 +195,10 @@ export const AuthenticationService = (
       try {
         let provider;
         try {
-          provider = await userService.findByProvider(data.provider, data.id);
+          provider = await userService.findByProvider(
+            data.provider,
+            data.id.toString()
+          );
         } catch (error) {
           if (error instanceof NotFoundError) {
             throw new UnauthorizedError('No account linked to this provider');

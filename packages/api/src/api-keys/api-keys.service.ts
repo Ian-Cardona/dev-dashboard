@@ -3,7 +3,7 @@ import { IApiKeysService } from './interfaces/api-keys.service';
 import { ApiKey, ApiKeyPublic } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { ENV } from 'src/config/env_variables';
+import { ENV } from 'src/config/env';
 import { UnauthorizedError } from 'src/utils/errors.utils';
 
 const KEY_ID_PREFIX = 'key';

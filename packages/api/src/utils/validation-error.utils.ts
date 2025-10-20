@@ -1,5 +1,5 @@
 import { NextFunction, Response } from 'express';
-import { ENV } from 'src/config/env_variables';
+import { ENV } from 'src/config/env';
 import z from 'zod';
 
 export const handleValidationError = (

@@ -32,7 +32,16 @@ export const useMutateLoginOAuth = () => {
         return;
       }
 
-      //TODO: Add toasts here
+      if (error.code === 'user_not_found') {
+        navigate('/register?error=user_not_found', { replace: true });
+        return;
+      }
+      if (error.code === 'oauth_failed') {
+        navigate('/login?error=oauth_failed', { replace: true });
+        return;
+      }
+
+      // TODO: Add toasts here
     },
   });
 };

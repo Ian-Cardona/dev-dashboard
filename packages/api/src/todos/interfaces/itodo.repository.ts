@@ -1,6 +1,6 @@
 import { ProjectNames, TodoBatch, TodoResolution } from '@dev-dashboard/shared';
 
-export interface ITodoModel {
+export interface ITodoRepository {
   create(batch: TodoBatch): Promise<TodoBatch>;
   findByUserId(userId: string): Promise<TodoBatch[]>;
   findByUserIdAndSyncId(
