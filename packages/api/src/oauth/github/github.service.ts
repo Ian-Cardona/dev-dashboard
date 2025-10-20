@@ -5,7 +5,7 @@ import {
   GithubCallbackRequest,
   GithubAuthorizeUri,
 } from '@dev-dashboard/shared';
-import { ENV } from 'src/config/env_variables';
+import { ENV } from 'src/config/env';
 import { ExternalServiceError } from 'src/utils/errors.utils';
 
 export const GithubService = (
@@ -46,15 +46,18 @@ export const GithubService = (
       try {
         const clientId = ENV.GITHUB_OAUTH_CLIENT_ID;
         const authorizeUri = ENV.GITHUB_OAUTH_AUTHORIZE_URI;
-        const redirectUri = `${ENV.GITHUB_OAUTH_REDIRECT_URI}?flow=${flow}`;
+        const redirectUri = ENV.GITHUB_OAUTH_REDIRECT_URI;
 
         if (!clientId || !authorizeUri) {
           throw new Error('GitHub OAuth is not properly configured.');
         }
 
+        const state = Buffer.from(JSON.stringify({ flow })).toString('base64');
+
         const params = new URLSearchParams({
           client_id: clientId,
           redirect_uri: redirectUri,
+          state: state,
         });
 
         return {

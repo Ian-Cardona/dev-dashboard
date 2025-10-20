@@ -1,6 +1,6 @@
 import { IGithubRepository } from './interfaces/igithub.repository';
 import { GithubCallbackRequest } from '@dev-dashboard/shared';
-import { ENV } from 'src/config/env_variables';
+import { ENV } from 'src/config/env';
 
 export const GithubRepository = (): IGithubRepository => {
   return {

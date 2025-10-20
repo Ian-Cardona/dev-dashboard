@@ -1,4 +1,3 @@
-import { ENV } from '../../config/env_variables';
 import { IAuthenticationController } from './interfaces/iauthentication.controller';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import {
@@ -16,6 +15,7 @@ import {
   refreshRequestPrivateSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
+import { ENV } from 'src/config/env';
 import { redisClient } from 'src/config/redis';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
