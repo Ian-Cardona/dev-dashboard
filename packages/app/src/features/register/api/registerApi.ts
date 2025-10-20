@@ -17,17 +17,17 @@ export const fetchEmailSessionById = async (
   return response.data;
 };
 
-export const registerInitOAuth = async (data: OAuthRequest): Promise<void> => {
-  const response = await publicClient.post('/init/oauth', data);
-  if (response.status !== 201)
-    throw new Error('Failed to initialize OAuth registration.');
-};
-
 export const registerInitEmail = async (
   data: RegisterInitEmailRequest
 ): Promise<void> => {
   const response = await publicClient.post('/init/email', data);
   if (response.status !== 201) throw new Error('Failed to initiate register');
+};
+
+export const registerInitGithub = async (data: OAuthRequest): Promise<void> => {
+  const response = await publicClient.post('/init/github', data);
+  if (response.status !== 201)
+    throw new Error('Failed to initialize OAuth registration.');
 };
 
 export const completeRegistrationEmail = async (

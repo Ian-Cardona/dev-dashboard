@@ -1,4 +1,4 @@
-import { registrationInfoRequestSchema } from '@dev-dashboard/shared';
+import { registerInitEmailRequestSchema } from '@dev-dashboard/shared';
 import { useState } from 'react';
 
 export const useRegisterInitForm = () => {
@@ -10,7 +10,7 @@ export const useRegisterInitForm = () => {
     setPassword('');
   };
 
-  const isValid = registrationInfoRequestSchema.safeParse({
+  const isValid = registerInitEmailRequestSchema.safeParse({
     email,
     password,
   }).success;
