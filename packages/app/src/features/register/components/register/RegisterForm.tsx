@@ -81,15 +81,6 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
 
   return (
     <div className="w-full">
-      <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold text-[var(--color-fg)]">
-          Sign up
-        </h1>
-        <p className="text-base text-[var(--color-accent)]">
-          Create your account to get started
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <div>
           <label
