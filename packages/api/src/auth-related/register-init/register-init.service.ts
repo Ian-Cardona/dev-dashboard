@@ -108,8 +108,6 @@ export const RegisterInitService = (
           }
         }
 
-        console.log('User provider lookup result:', userProvider);
-
         const providerExists = !!userProvider;
 
         if (providerExists) {
