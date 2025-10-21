@@ -17,16 +17,6 @@ export const GithubController = (
   registerInitService: IRegisterInitService,
   userService: IUserService
 ): IGithubController => {
-  const redirectToFrontend = (
-    path: 'login' | 'register',
-    params: Record<string, string>
-  ): string => {
-    const url = new URL(path, ENV.APP_BASE_URL);
-    Object.entries(params).forEach(([key, value]) => {
-      url.searchParams.append(key, value);
-    });
-    return url.toString();
-  };
   return {
     async getAuthorizationCallbackUrl(
       req: Request,
@@ -46,23 +36,34 @@ export const GithubController = (
             const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
             flow = decoded.flow || 'login';
           } catch {
-            return res.redirect(
-              redirectToFrontend('login', { error: 'invalid_state' })
-            );
+            res.clearCookie('gh_o_e');
+            res.cookie('gh_o_e', 'invalid_state', {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/login`);
           }
         }
 
-        const tokenData = await githubService.exchangeCodeForToken(code);
+        let tokenData;
+        try {
+          tokenData = await githubService.exchangeCodeForToken(code);
+        } catch (error) {
+          console.error('Error during token exchange:', error);
+          res.clearCookie('gh_o_e');
+          res.cookie('gh_o_e', 'oauth_failed', {
+            httpOnly: false,
+            sameSite: 'lax',
+            maxAge: 300000,
+          });
+          return res.redirect(`${ENV.APP_BASE_URL}/login`);
+        }
+
         const validatedToken = githubTokenSchema.parse(tokenData);
         const githubUser = await githubService.getUserProfile(
           validatedToken.access_token
         );
-
-        const githubParams = {
-          provider: 'github',
-          id: githubUser.id.toString(),
-          login: githubUser.login,
-        };
 
         if (flow === 'register') {
           try {
@@ -72,29 +73,52 @@ export const GithubController = (
               login: githubUser.login,
             });
 
-            return res.redirect(
-              redirectToFrontend('register', {
-                provider: 'github',
-                id: githubUser.id.toString(),
-                login: githubUser.login,
-                token: token.registrationToken,
-              })
-            );
+            res.clearCookie('gh_o_p');
+            res.clearCookie('gh_o_i');
+            res.clearCookie('gh_o_l');
+            res.clearCookie('gh_o_t');
+
+            res.cookie('gh_o_p', 'github', {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            res.cookie('gh_o_i', githubUser.id.toString(), {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            res.cookie('gh_o_l', githubUser.login, {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            res.cookie('gh_o_t', token.registrationToken, {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+
+            return res.redirect(`${ENV.APP_BASE_URL}/register`);
           } catch (error) {
+            console.error('Error during registration flow:', error);
             if (error instanceof ConflictError) {
-              return res.redirect(
-                redirectToFrontend('register', {
-                  provider: 'github',
-                  id: githubUser.id.toString(),
-                  login: githubUser.login,
-                  error: 'conflict',
-                })
-              );
+              res.clearCookie('gh_o_e');
+              res.cookie('gh_o_e', 'conflict', {
+                httpOnly: false,
+                sameSite: 'lax',
+                maxAge: 300000,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/register`);
             }
 
-            return res.redirect(
-              redirectToFrontend('register', { error: 'oauth_failed' })
-            );
+            res.clearCookie('gh_o_e');
+            res.cookie('gh_o_e', 'oauth_failed', {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/register`);
           }
         }
 
@@ -104,23 +128,49 @@ export const GithubController = (
               'github',
               githubUser.id.toString()
             );
-            return res.redirect(redirectToFrontend('login', githubParams));
+
+            res.clearCookie('gh_o_p');
+            res.clearCookie('gh_o_i');
+            res.clearCookie('gh_o_l');
+
+            res.cookie('gh_o_p', 'github', {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            res.cookie('gh_o_i', githubUser.id.toString(), {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            res.cookie('gh_o_l', githubUser.login, {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/login`);
           } catch (error) {
+            console.error('Error during login flow:', error);
             if (error instanceof NotFoundError) {
-              return res.redirect(
-                redirectToFrontend('register', {
-                  ...githubParams,
-                  error: 'user_not_found',
-                })
-              );
+              res.clearCookie('gh_o_e');
+              res.cookie('gh_o_e', 'user_not_found', {
+                httpOnly: false,
+                sameSite: 'lax',
+                maxAge: 300000,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/register`);
             }
 
-            return res.redirect(
-              redirectToFrontend('login', { error: 'oauth_failed' })
-            );
+            res.clearCookie('gh_o_e');
+            res.cookie('gh_o_e', 'oauth_failed', {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/login`);
           }
         }
-        throw new ConflictError('Invalid flow state');
+        throw new Error('Invalid OAuth flow');
       } catch (error) {
         handleValidationError(
           error,
