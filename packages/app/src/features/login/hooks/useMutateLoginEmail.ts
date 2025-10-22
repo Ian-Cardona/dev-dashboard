@@ -19,8 +19,5 @@ export const useMutateLoginEmail = () => {
       localStorage.setItem('accessToken', data.accessToken);
       navigate('/todos', { replace: true });
     },
-    onError: () => {
-      navigate('/login?error=oauth_failed', { replace: true });
-    },
   });
 };
