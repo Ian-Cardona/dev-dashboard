@@ -1,74 +1,75 @@
 import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { useMutateLoginEmail } from '../hooks/useMutateLoginEmail';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface LoginFormProps {
   isLoginPending?: boolean;
+  onError: (error: string | null) => void;
 }
 
-const LoginForm = ({ isLoginPending = false }: LoginFormProps) => {
+const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
   const navigate = useNavigate();
-  const { email, password, setEmail, setPassword, isValid, resetForm } =
-    useLoginForm();
+  const { email, password, setEmail, setPassword, isValid } = useLoginForm();
   const mutateLoginEmail = useMutateLoginEmail();
   const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('login');
   const [isConnecting, setIsConnecting] = useState(false);
 
+  useEffect(() => {
+    const error = mutateLoginEmail.error as any;
+    const message = error?.response?.data?.message || error?.message || null;
+    onError(message);
+  }, [mutateLoginEmail.error, onError]);
+
+  useEffect(() => {
+    if (githubAuthorizeQuery.isError && !isConnecting) {
+      onError('Could not retrieve GitHub login link. Please try again later.');
+    }
+  }, [githubAuthorizeQuery.isError, isConnecting, onError]);
+
   const handleGithubLoginClick = async () => {
     setIsConnecting(true);
+    onError(null);
     try {
       const response = await githubAuthorizeQuery.refetch();
       const url = response?.data?.authorize_uri;
-
       if (!url) {
-        console.error('GitHub authorize URL not found');
+        onError('GitHub authorize URL not found. Please try again.');
         setIsConnecting(false);
         return;
       }
-
       window.location.href = url;
     } catch (error) {
-      console.error('Failed to initiate GitHub login:', error);
+      onError('Failed to initiate GitHub login. Please try again.');
       setIsConnecting(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isValid) {
-      mutateLoginEmail.mutate(
-        { email, password },
-        {
-          onSuccess: () => {
-            resetForm();
-            navigate('/');
-          },
-        }
-      );
-    }
+    if (!isValid) return;
+    onError(null);
+    mutateLoginEmail.mutate({ email, password });
   };
 
-  if (isLoginPending) {
-    return (
-      <div className="w-full py-10 text-center text-[var(--color-accent)]">
-        Logging in with OAuth...
-      </div>
-    );
-  }
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (mutateLoginEmail.error) {
+      onError(null);
+    }
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (mutateLoginEmail.error) {
+      onError(null);
+    }
+    setPassword(e.target.value);
+  };
+  const isLoading = isLoginPending || mutateLoginEmail.isPending;
 
   return (
     <div className="w-full">
-      <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold text-[var(--color-fg)]">
-          Log in
-        </h1>
-        <p className="text-base text-[var(--color-accent)]">
-          Welcome back to your workspace
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
         <div>
           <label
@@ -81,14 +82,15 @@ const LoginForm = ({ isLoginPending = false }: LoginFormProps) => {
             id="email"
             type="email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={handleEmailChange}
             placeholder="you@example.com"
             required
-            disabled={mutateLoginEmail.isPending}
+            disabled={isLoading}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             aria-invalid={!isValid}
           />
         </div>
+
         <div>
           <label
             htmlFor="password"
@@ -100,10 +102,10 @@ const LoginForm = ({ isLoginPending = false }: LoginFormProps) => {
             id="password"
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
             placeholder="••••••••"
             required
-            disabled={mutateLoginEmail.isPending}
+            disabled={isLoading}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             aria-invalid={!isValid}
           />
@@ -111,11 +113,11 @@ const LoginForm = ({ isLoginPending = false }: LoginFormProps) => {
 
         <button
           type="submit"
-          disabled={mutateLoginEmail.isPending || !isValid}
+          disabled={isLoading || !isValid}
           className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-busy={mutateLoginEmail.isPending}
+          aria-busy={isLoading}
         >
-          {mutateLoginEmail.isPending ? 'Logging in...' : 'Log in'}
+          {isLoading ? 'Logging in...' : 'Log in'}
         </button>
 
         <div className="my-2 flex items-center gap-4">
@@ -128,9 +130,9 @@ const LoginForm = ({ isLoginPending = false }: LoginFormProps) => {
 
         <button
           type="button"
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/30 bg-transparent py-4 text-base font-medium text-[var(--color-fg)] transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 disabled:cursor-not-allowed disabled:opacity-50"
           onClick={handleGithubLoginClick}
-          disabled={isConnecting}
+          disabled={isConnecting || isLoading}
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/30 bg-transparent py-4 text-base font-medium text-[var(--color-fg)] transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 disabled:cursor-not-allowed disabled:opacity-50"
           aria-busy={isConnecting}
         >
           <svg
@@ -148,19 +150,13 @@ const LoginForm = ({ isLoginPending = false }: LoginFormProps) => {
           </svg>
           {isConnecting ? 'Connecting...' : 'GitHub'}
         </button>
-        {githubAuthorizeQuery.isError && (
-          <div className="mt-2 text-center text-sm text-red-500" role="alert">
-            Could not retrieve GitHub login link. Please try again later.
-          </div>
-        )}
-
         <div className="mt-4 text-center">
           <p className="text-sm text-[var(--color-accent)]">
             Don't have an account?{' '}
             <button
               type="button"
               onClick={() => navigate('/register')}
-              disabled={mutateLoginEmail.isPending}
+              disabled={isLoading}
               className="font-semibold text-[var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
               Sign up

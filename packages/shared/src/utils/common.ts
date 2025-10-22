@@ -4,8 +4,7 @@ export const uuidSchema = z.uuidv4({ message: 'Invalid UUID' });
 export const emailSchema = z.email({ message: 'Invalid email' });
 export const passwordHashSchema = z
   .string({ message: 'Invalid password hash' })
-  .min(64, 'Invalid hash length')
-  .max(128, 'Invalid hash length');
+  .length(60, 'Invalid bcrypt hash length');
 export const isoDatetimeSchema = z.iso.datetime({
   message: 'Invalid ISO datetime',
 });

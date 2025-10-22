@@ -6,6 +6,8 @@ const useQueryFetchGithubOAuthLink = (flow: 'register' | 'login') => {
     queryKey: ['githubOAuthLink', flow],
     queryFn: () => fetchGithubOAuthLink(flow),
     staleTime: Infinity,
+    enabled: false,
+    retry: false,
   });
 };
 

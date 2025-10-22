@@ -14,9 +14,5 @@ export const useMutateRegisterInitGithub = () => {
       toast.showSuccess('GitHub account linked successfully!');
       navigate('/register/onboarding?flow=oauth', { replace: true });
     },
-    onError: (error: any) => {
-      console.error('OAuth register error:', error);
-      toast.showError('GitHub OAuth failed. Please try again later.');
-    },
   });
 };

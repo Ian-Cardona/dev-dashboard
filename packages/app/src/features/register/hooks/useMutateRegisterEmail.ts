@@ -20,9 +20,5 @@ export const useMutateRegisterEmail = () => {
       localStorage.setItem('accessToken', data.accessToken);
       navigate('/todos');
     },
-    onError: error => {
-      console.error('Register failed:', error);
-      // TODO: Show error message to user
-    },
   });
 };

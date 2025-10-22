@@ -14,7 +14,21 @@ export const errorHandlerMiddleware = (
   next: NextFunction
 ) => {
   if (error instanceof Error) {
-    logger.error(error.message, { stack: error.stack });
+    logger.error(error.message, {
+      stack: error.stack,
+      method: req.method,
+      path: req.originalUrl,
+      ip: req.ip,
+      statusCode: res.statusCode,
+    });
+  } else {
+    logger.error('Unknown error type caught in errorHandlerMiddleware', {
+      error,
+      method: req.method,
+      path: req.originalUrl,
+      ip: req.ip,
+      statusCode: res.statusCode,
+    });
   }
 
   if (res.headersSent) {
@@ -56,10 +70,5 @@ export const errorHandlerMiddleware = (
     return sendError(res, 'Conflict', error.message, 409);
   }
 
-  return sendError(
-    res,
-    'Internal Server Error',
-    'An unexpected error occurred',
-    500
-  );
+  return sendError(res, 'Internal Server Error', 'Something went wrong', 500);
 };
