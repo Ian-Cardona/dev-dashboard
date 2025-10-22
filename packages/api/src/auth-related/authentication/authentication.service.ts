@@ -140,10 +140,14 @@ export const AuthenticationService = (
 
     async loginByEmail(data: LoginRequestPublic): Promise<LoginPrivate> {
       try {
-        const user = await userService.findByEmailPrivate(data.email);
-
-        if (!user) {
-          throw new UnauthorizedError('Invalid email or password');
+        let user;
+        try {
+          user = await userService.findByEmailPrivate(data.email);
+        } catch (error) {
+          if (error instanceof NotFoundError) {
+            throw new UnauthorizedError('Invalid email or password');
+          }
+          throw error;
         }
 
         const passwordMatches = await bcryptCompare(
@@ -164,6 +168,7 @@ export const AuthenticationService = (
           isActive: user.isActive,
           type: 'access',
         };
+
         const newAccessToken = generateAccessJWT(accessTokenPayload);
 
         const newRefreshToken = await refreshTokenService.create(user.id);
@@ -181,9 +186,12 @@ export const AuthenticationService = (
           refreshTokenId: newRefreshToken.record.id,
           refreshTokenPlain: newRefreshToken.plain,
           user: responseUser,
-        };
+        } as LoginPrivate;
       } catch (error) {
-        if (error instanceof UnauthorizedError) {
+        if (
+          error instanceof UnauthorizedError ||
+          error instanceof NotFoundError
+        ) {
           throw error;
         }
 
