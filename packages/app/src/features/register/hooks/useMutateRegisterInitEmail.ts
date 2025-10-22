@@ -15,13 +15,7 @@ export const useMutateRegisterInitEmail = () => {
 
       if (sessionId) {
         navigate(`/register/onboarding?flow=email&session=${sessionId}`);
-      } else {
-        console.error('Registration session cookie not found after success.');
-        navigate('/register/error');
       }
-    },
-    onError: error => {
-      console.error('Register failed:', error);
     },
   });
 };

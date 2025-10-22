@@ -2,74 +2,58 @@ import useQueryFetchGithubOAuthLink from '../../../../oauth/hooks/useQueryFetchG
 import { useMutateRegisterInitEmail } from '../../hooks/useMutateRegisterInitEmail';
 import { useRegisterInitForm } from '../../hooks/useRegisterForm';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface RegisterFormProps {
   isRegisterPending?: boolean;
+  onError?: (error: string | null) => void;
 }
 
-const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
+const PASSWORD_CHECKS = [
+  { label: 'At least 8 characters', test: (pw: string) => pw.length >= 8 },
+  { label: 'One uppercase letter', test: (pw: string) => /[A-Z]/.test(pw) },
+  { label: 'One lowercase letter', test: (pw: string) => /[a-z]/.test(pw) },
+  { label: 'One number', test: (pw: string) => /[0-9]/.test(pw) },
+  {
+    label: 'One special character',
+    test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
+  },
+];
+
+const RegisterForm = ({
+  isRegisterPending = false,
+  onError,
+}: RegisterFormProps) => {
   const navigate = useNavigate();
-  const { email, password, setEmail, setPassword, isValid, resetForm } =
+  const { email, password, setEmail, setPassword, isValid } =
     useRegisterInitForm();
   const registerInitMutation = useMutateRegisterInitEmail();
   const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('register');
-  const [showValidationError, setShowValidationError] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    if (isValid) {
-      registerInitMutation.mutate(
-        { email, password },
-        {
-          onSuccess: () => {
-            resetForm();
-            setShowValidationError(false);
-          },
-        }
-      );
-    } else {
-      setShowValidationError(true);
-    }
-  };
+  useEffect(() => {
+    const error = registerInitMutation.error as any;
+    const message = error?.response?.data?.message || error?.message || null;
+    onError?.(message);
+  }, [registerInitMutation.error, onError]);
 
-  const passwordChecks = [
-    {
-      label: 'At least 8 characters',
-      test: (pw: string) => pw.length >= 8,
-    },
-    {
-      label: 'One uppercase letter',
-      test: (pw: string) => /[A-Z]/.test(pw),
-    },
-    {
-      label: 'One lowercase letter',
-      test: (pw: string) => /[a-z]/.test(pw),
-    },
-    {
-      label: 'One number',
-      test: (pw: string) => /[0-9]/.test(pw),
-    },
-    {
-      label: 'One special character',
-      test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
-    },
-  ];
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValid) return;
+    registerInitMutation.mutate({ email, password });
+  };
 
   const handleGithubSignup = async () => {
     setIsConnecting(true);
     try {
       const response = await githubAuthorizeQuery.refetch();
       const url = response?.data?.authorize_uri;
-
       if (!url) {
         console.error('GitHub authorize URL not found');
         setIsConnecting(false);
         return;
       }
-
       window.location.href = url;
     } catch (error) {
       console.error('Failed to initiate GitHub register:', error);
@@ -77,11 +61,11 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
     }
   };
 
-  const isPending = isRegisterPending || registerInitMutation.isPending;
+  const isLoading = isRegisterPending || registerInitMutation.isPending;
 
   return (
     <div className="w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
         <div>
           <label
             htmlFor="email"
@@ -96,10 +80,12 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
             onChange={e => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
-            disabled={isPending}
+            disabled={isLoading}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            aria-invalid={!isValid}
           />
         </div>
+
         <div>
           <label
             htmlFor="password"
@@ -114,22 +100,24 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
             onChange={e => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            disabled={isPending}
+            disabled={isLoading}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            aria-invalid={!isValid}
           />
+
           <div className="mt-4 flex flex-col gap-2">
-            {passwordChecks.map(({ label, test }) => {
-              const valid = test(password);
+            {PASSWORD_CHECKS.map(({ label, test }) => {
+              const isCheckValid = test(password);
               return (
                 <div key={label} className="flex items-center gap-2 text-sm">
-                  {valid ? (
+                  {isCheckValid ? (
                     <CheckIcon className="h-4 w-4 text-[var(--color-accent)]" />
                   ) : (
                     <XMarkIcon className="h-4 w-4 text-[var(--color-danger)]" />
                   )}
                   <span
                     className={
-                      valid
+                      isCheckValid
                         ? 'text-[var(--color-accent)] line-through'
                         : 'text-[var(--color-danger)]'
                     }
@@ -140,20 +128,15 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
               );
             })}
           </div>
-          {showValidationError && (
-            <p className="mt-4 text-sm text-[var(--color-danger)]">
-              Please enter a valid email and password.
-            </p>
-          )}
         </div>
 
         <button
           type="submit"
-          disabled={isPending || !isValid}
-          aria-busy={isPending}
+          disabled={isLoading || !isValid}
           className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-busy={isLoading}
         >
-          {isPending ? 'Registering...' : 'Create Account'}
+          {isLoading ? 'Registering...' : 'Create Account'}
         </button>
 
         <div className="my-2 flex items-center gap-4">
@@ -167,8 +150,9 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
         <button
           type="button"
           onClick={handleGithubSignup}
-          disabled={isPending}
+          disabled={isConnecting}
           className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/30 bg-transparent py-4 text-base font-medium text-[var(--color-fg)] transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-busy={isConnecting}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -192,7 +176,7 @@ const RegisterForm = ({ isRegisterPending = false }: RegisterFormProps) => {
             <button
               type="button"
               onClick={() => navigate('/login')}
-              disabled={isPending}
+              disabled={isLoading}
               className="font-semibold text-[var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
               Log in
