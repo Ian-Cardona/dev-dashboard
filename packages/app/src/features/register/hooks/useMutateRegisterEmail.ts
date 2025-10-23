@@ -20,5 +20,15 @@ export const useMutateRegisterEmail = () => {
       localStorage.setItem('accessToken', data.accessToken);
       navigate('/todos');
     },
+    onError: (error: any) => {
+      if (error?.response?.status === 401) {
+        navigate('/register', {
+          state: {
+            error: 'Invalid session. Please start registration again.',
+          },
+          replace: true,
+        });
+      }
+    },
   });
 };

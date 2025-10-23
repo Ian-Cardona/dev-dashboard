@@ -6,34 +6,58 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
+    ignores: [
+      'packages/vscode-extension/out/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/node_modules/**',
+    ],
+  },
+
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+
+  {
+    files: ['**/*.{ts,mts,cts}'],
     languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.es2020,
-        ...globals.node,
-      },
       parser: tseslint.parser,
       parserOptions: {
         project: true,
         tsconfigRootDir: import.meta.dirname,
       },
+      globals: { ...globals.browser, ...globals.es2020, ...globals.node },
       ecmaVersion: 2020,
       sourceType: 'module',
     },
+    rules: {
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error',
+    },
   },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.es2020, ...globals.node },
+      ecmaVersion: 2020,
+      sourceType: 'module',
+    },
+    rules: {
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+
   {
     plugins: {
       prettier: eslintPluginPrettier,
     },
     rules: {
       'prettier/prettier': 'error',
-      'prefer-const': 'error',
-      'no-var': 'error',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
     },
   },
   eslintConfigPrettier

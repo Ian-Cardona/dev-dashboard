@@ -1,4 +1,4 @@
-// eslint-disable-next-line prettier/prettier
+ 
 import 'dotenv/config';
 
 import apiKeysRouter from './api-keys/api-keys.route';
