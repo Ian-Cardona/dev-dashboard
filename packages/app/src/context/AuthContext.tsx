@@ -1,7 +1,7 @@
-import type { UserResponsePublic } from '../../../shared/src/types/user.type';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { authApi } from '../lib/auth';
 import { userApi } from '../lib/user';
+import type { UserPublic } from '@dev-dashboard/shared';
 import { isAxiosError } from 'axios';
 import {
   type Dispatch,
@@ -13,7 +13,7 @@ import {
 } from 'react';
 
 type State = {
-  authUser: UserResponsePublic | null;
+  authUser: UserPublic | null;
   status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
 };
 
@@ -30,7 +30,7 @@ export const AUTH_REDUCER_ACTION_TYPE = {
 type Action =
   | {
       type: typeof AUTH_REDUCER_ACTION_TYPE.SET_AUTH;
-      payload: UserResponsePublic;
+      payload: UserPublic;
     }
   | {
       type: typeof AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH;
