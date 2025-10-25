@@ -57,6 +57,7 @@ export const envSchema = z.object({
   GITHUB_OAUTH_AUTHORIZE_URI: z
     .url()
     .default('https://github.com/login/oauth/authorize'),
+  GITHUB_SCOPE: z.string().default('read:user repo workflow read:org'),
 
   REDIS_URL: z.string().default('redis://localhost:6379/0'),
 

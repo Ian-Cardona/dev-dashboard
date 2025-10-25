@@ -47,6 +47,7 @@ export const GithubService = (
         const clientId = ENV.GITHUB_OAUTH_CLIENT_ID;
         const authorizeUri = ENV.GITHUB_OAUTH_AUTHORIZE_URI;
         const redirectUri = ENV.GITHUB_OAUTH_REDIRECT_URI;
+        const scope = ENV.GITHUB_SCOPE;
 
         if (!clientId || !authorizeUri) {
           throw new Error('GitHub OAuth is not properly configured.');
@@ -57,7 +58,9 @@ export const GithubService = (
         const params = new URLSearchParams({
           client_id: clientId,
           redirect_uri: redirectUri,
-          state: state,
+          state,
+          scope,
+          allow_signup: 'true',
         });
 
         return {
