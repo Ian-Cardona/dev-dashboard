@@ -1,8 +1,8 @@
 import { GithubRepository, GithubWorkflow } from '@dev-dashboard/shared';
 
 export interface IGithubIntegrationRepository {
-  listUserRepos(username: string): Promise<GithubRepository[]>;
-  getRepo(owner: string, repo: string): Promise<GithubRepository>;
+  listUserRepositories(username: string): Promise<GithubRepository[]>;
+  getRepository(owner: string, repository: string): Promise<GithubRepository>;
   getLatestWorkflowRun(
     owner: string,
     repo: string,
