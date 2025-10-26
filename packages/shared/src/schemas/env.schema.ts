@@ -42,6 +42,7 @@ export const envSchema = z.object({
   REFRESH_TOKENS_TABLE: z.string().min(1).default('REFRESH_TOKENS'),
   API_KEYS_TABLE: z.string().min(1).default('API_KEYS'),
 
+  GITHUB_BASE_URL: z.string().default('https://api.github.com'),
   GITHUB_OAUTH_CLIENT_ID: z
     .string()
     .min(1, 'GITHUB_OAUTH_CLIENT_ID is required'),

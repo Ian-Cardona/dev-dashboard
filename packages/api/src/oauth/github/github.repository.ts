@@ -27,16 +27,16 @@ export const GithubRepository = (): IGithubRepository => {
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          `GitHub OAuth failed (status ${response.status}): ${
-            data.error_description || data.error || response.statusText
+          `GitHub API failed (status ${response.status}): ${
+            errorData.message || errorData.error || response.statusText
           }`
         );
       }
 
+      const data = await response.json();
       return data;
     },
 
