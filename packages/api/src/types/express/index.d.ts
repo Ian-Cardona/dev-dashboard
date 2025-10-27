@@ -1,17 +1,19 @@
 import {
   AuthenticationEmailRegisterRequest,
   AuthenticationOAuthRegisterRequest,
+  CookieUser,
+  GithubToken,
 } from '@dev-dashboard/shared';
-import * as express from 'express';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: { userId: string; email?: string };
+      user?: CookieUser;
       registerInit?: { jti: string };
       onboardingData:
         | AuthenticationEmailRegisterRequest
         | AuthenticationOAuthRegisterRequest;
+      githubUser?: GithubToken;
     }
   }
 }
