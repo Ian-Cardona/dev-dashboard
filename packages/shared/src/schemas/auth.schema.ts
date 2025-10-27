@@ -100,3 +100,8 @@ export const refreshPrivateSchema = z.object({
 export const authorizationJwtSchema = z.object({
   accessToken: jwtSchema,
 });
+
+export const cookieUserSchema = z.object({
+  userId: uuidSchema,
+  email: emailSchema,
+});

@@ -1,7 +1,6 @@
 export interface IGithubIntegrationService {
-  listUserRepositories(accessToken: string): Promise<unknown[]>;
+  listUserRepositories(username: string): Promise<unknown[]>;
   getLatestWorkflowRun(
-    accessToken: string,
     owner: string,
     repo: string,
     branch?: string
