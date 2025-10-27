@@ -2,94 +2,84 @@ import { IGithubIntegrationRepository } from './interfaces/igithub.repository';
 import { GithubRepository, GithubWorkflow } from '@dev-dashboard/shared';
 import { ENV } from 'src/config/env';
 
+interface GithubErrorResponse {
+  message?: string;
+  error?: string;
+}
+
+interface GithubWorkflowRunsResponse {
+  workflow_runs?: GithubWorkflow[];
+}
+
 export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
-  const userAgent = ENV.APP_NAME || 'dev-dashboard';
+  const userAgent = ENV.APP_NAME;
+  const baseUrl = ENV.GITHUB_BASE_URL;
+
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': userAgent,
+  } as const;
+
+  const buildUrl = (path: string, params?: Record<string, string>): string => {
+    const url = `${baseUrl}${path}`;
+    if (!params) return url;
+
+    const searchParams = new URLSearchParams(params);
+    return `${url}?${searchParams.toString()}`;
+  };
+
+  const githubFetch = async <T>(url: string): Promise<T> => {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch((): GithubErrorResponse => ({}));
+
+      throw new Error(
+        `GitHub API failed (status ${response.status}): ${
+          errorData.message || errorData.error || response.statusText
+        }`
+      );
+    }
+
+    return response.json();
+  };
 
   return {
     async listUserRepositories(username: string): Promise<GithubRepository[]> {
-      const baseUrl = ENV.GITHUB_BASE_URL;
-      const params = new URLSearchParams({ per_page: '100', sort: 'updated' });
-      const url = `${baseUrl}/users/${username}/repos?${params.toString()}`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'User-Agent': userAgent,
-        },
+      const url = buildUrl(`/users/${username}/repos`, {
+        per_page: '100',
+        sort: 'updated',
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `GitHub API failed (status ${response.status}): ${
-            errorData.message || errorData.error || response.statusText
-          }`
-        );
-      }
-
-      const data = await response.json();
-      return data;
+      return githubFetch<GithubRepository[]>(url);
     },
 
     async getRepository(
       owner: string,
       repo: string
     ): Promise<GithubRepository> {
-      const baseUrl = ENV.GITHUB_BASE_URL;
-      const url = `${baseUrl}/repos/${owner}/${repo}`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'User-Agent': userAgent,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `GitHub API failed (status ${response.status}): ${
-            errorData.message || errorData.error || response.statusText
-          }`
-        );
-      }
-
-      const data = await response.json();
-      return data;
+      const url = buildUrl(`/repos/${owner}/${repo}`);
+      return githubFetch<GithubRepository>(url);
     },
 
     async getLatestWorkflowRun(
       owner: string,
       repo: string,
       branch?: string
-    ): Promise<GithubWorkflow> {
-      const baseUrl = ENV.GITHUB_BASE_URL;
-      const params = new URLSearchParams({ per_page: '1' });
+    ): Promise<GithubWorkflow | null> {
+      const params: Record<string, string> = { per_page: '1' };
       if (branch) {
-        params.append('branch', branch);
-      }
-      const url = `${baseUrl}/repos/${owner}/${repo}/actions/runs?${params.toString()}`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'User-Agent': userAgent,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `GitHub API failed (status ${response.status}): ${
-            errorData.message || errorData.error || response.statusText
-          }`
-        );
+        params.branch = branch;
       }
 
-      const data = await response.json();
+      const url = buildUrl(`/repos/${owner}/${repo}/actions/runs`, params);
+      const data = await githubFetch<GithubWorkflowRunsResponse>(url);
+
       return data.workflow_runs?.[0] ?? null;
     },
   };
