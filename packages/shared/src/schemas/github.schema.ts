@@ -12,10 +12,9 @@ export const githubCallbackRequestSchema = z.object({
 });
 
 export const githubTokenSchema = z.object({
-  access_token: z.string().min(1),
+  access_token: z.string().min(1).max(512),
   token_type: z.string().min(1),
   scope: z.string().optional(),
-  expires_at: isoDatetimeSchema.optional(),
 });
 
 export const githubUserSchema = z.object({
