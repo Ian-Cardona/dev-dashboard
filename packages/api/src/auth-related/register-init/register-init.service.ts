@@ -100,10 +100,8 @@ export const RegisterInitService = (
           );
         } catch (err) {
           if (err instanceof NotFoundError) {
-            console.log('No user found with this provider, proceeding.');
             userProvider = null;
           } else {
-            console.error('Unexpected error in findByProvider:', err);
             throw err;
           }
         }
@@ -121,6 +119,7 @@ export const RegisterInitService = (
           provider: data.provider,
           providerUserId: data.id.toString(),
           providerUserLogin: data.login,
+          providerAccessToken: data.access_token,
           createdAt: new Date().toISOString(),
         };
 

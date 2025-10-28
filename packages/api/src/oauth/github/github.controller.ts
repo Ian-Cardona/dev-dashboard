@@ -71,12 +71,13 @@ export const GithubController = (
               provider: 'github',
               id: githubUser.id,
               login: githubUser.login,
+              access_token: validatedToken.access_token,
             });
 
             res.clearCookie('gh_o_p');
             res.clearCookie('gh_o_i');
             res.clearCookie('gh_o_l');
-            res.clearCookie('gh_o_t');
+            res.clearCookie('gh_o_at');
 
             res.cookie('gh_o_p', 'github', {
               httpOnly: false,
@@ -93,7 +94,7 @@ export const GithubController = (
               sameSite: 'lax',
               maxAge: 300000,
             });
-            res.cookie('gh_o_t', token.registrationToken, {
+            res.cookie('gh_o_at', token.registrationToken, {
               httpOnly: false,
               sameSite: 'lax',
               maxAge: 300000,

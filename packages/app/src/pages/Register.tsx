@@ -11,7 +11,7 @@ const OAUTH_SUCCESS_COOKIE_KEYS = {
   provider: 'gh_o_p',
   id: 'gh_o_i',
   login: 'gh_o_l',
-  token: 'gh_o_t',
+  access_token: 'gh_o_at',
 };
 
 const RegisterPage = () => {
@@ -47,14 +47,21 @@ const RegisterPage = () => {
     const provider = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.provider);
     const id = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.id);
     const login = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.login);
-    const token = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.token);
+    const accessToken = getAndClearCookieValue(
+      OAUTH_SUCCESS_COOKIE_KEYS.access_token
+    );
 
     if (oauthErrorFromCookie) {
       return;
     }
 
-    if (provider && id && login && token && !hasInitiated.current) {
-      mutation.mutate({ provider: provider as 'github', id, login });
+    if (provider && id && login && accessToken && !hasInitiated.current) {
+      mutation.mutate({
+        provider: provider as 'github',
+        id,
+        login,
+        access_token: accessToken,
+      });
       hasInitiated.current = true;
     }
   }, [mutation, oauthErrorFromCookie]);
