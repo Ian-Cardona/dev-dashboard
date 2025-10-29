@@ -8,6 +8,7 @@ import { NextFunction, Request, Response } from 'express';
 import { IRegisterInitService } from 'src/auth-related/register-init/interfaces/iregister-init.service';
 import { ENV } from 'src/config/env';
 import { IUserService } from 'src/user/interfaces/iuser.service';
+import { encrypt } from 'src/utils/crypto.utils';
 import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 import z from 'zod';
@@ -77,7 +78,7 @@ export const GithubController = (
             res.clearCookie('gh_o_p');
             res.clearCookie('gh_o_i');
             res.clearCookie('gh_o_l');
-            res.clearCookie('gh_o_at');
+            res.clearCookie('gh_o_rt');
 
             res.cookie('gh_o_p', 'github', {
               httpOnly: false,
@@ -94,7 +95,7 @@ export const GithubController = (
               sameSite: 'lax',
               maxAge: 300000,
             });
-            res.cookie('gh_o_at', token.registrationToken, {
+            res.cookie('gh_o_rt', token.registrationToken, {
               httpOnly: false,
               sameSite: 'lax',
               maxAge: 300000,
@@ -130,9 +131,14 @@ export const GithubController = (
               githubUser.id.toString()
             );
 
+            const encryptedToken = encrypt(validatedToken.access_token);
+            console.table(validatedToken);
+            console.log(encryptedToken);
+
             res.clearCookie('gh_o_p');
             res.clearCookie('gh_o_i');
             res.clearCookie('gh_o_l');
+            res.clearCookie('gh_o_enc');
 
             res.cookie('gh_o_p', 'github', {
               httpOnly: false,
@@ -145,6 +151,11 @@ export const GithubController = (
               maxAge: 300000,
             });
             res.cookie('gh_o_l', githubUser.login, {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+            res.cookie('gh_o_enc', encryptedToken, {
               httpOnly: false,
               sameSite: 'lax',
               maxAge: 300000,

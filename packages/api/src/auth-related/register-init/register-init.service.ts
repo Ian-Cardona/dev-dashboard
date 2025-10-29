@@ -11,6 +11,7 @@ import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
 import { ENV } from 'src/config/env';
 import { IUserService } from 'src/user/interfaces/iuser.service';
+import { encrypt } from 'src/utils/crypto.utils';
 import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { generateRegisterInitJWT } from 'src/utils/jwt.utils';
 import { generateUUID } from 'src/utils/uuid.utils';
@@ -112,6 +113,8 @@ export const RegisterInitService = (
           throw new ConflictError('User with this provider already exists');
         }
 
+        const encryptedAccessToken = encrypt(data.access_token);
+
         const registrationJti = generateUUID();
 
         const registrationJtiData: RegistrationJti = {
@@ -119,7 +122,7 @@ export const RegisterInitService = (
           provider: data.provider,
           providerUserId: data.id.toString(),
           providerUserLogin: data.login,
-          providerAccessToken: data.access_token,
+          providerAccessTokenEncrypted: encryptedAccessToken,
           createdAt: new Date().toISOString(),
         };
 

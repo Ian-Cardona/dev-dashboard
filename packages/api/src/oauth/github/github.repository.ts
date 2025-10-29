@@ -37,7 +37,6 @@ export const GithubRepository = (): IGithubRepository => {
       }
 
       const data = await response.json();
-      console.table(data);
       return data;
     },
 
