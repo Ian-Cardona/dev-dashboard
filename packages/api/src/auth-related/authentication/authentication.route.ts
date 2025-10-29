@@ -34,7 +34,7 @@ router.post(
   '/register/oauth',
   registerInitAuthorizationMiddleware,
   registerInitSessionMiddleware,
-  authenticationControllerInstance.completeRegisterUserByEmail
+  authenticationControllerInstance.completeRegisterUserByOAuth
 );
 router.post('/login/email', authenticationControllerInstance.loginUserByEmail);
 router.post('/login/oauth', authenticationControllerInstance.loginUserByOAuth);

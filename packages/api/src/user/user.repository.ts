@@ -8,7 +8,7 @@ import {
   TransactWriteCommandInput,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { User, UpdateUser } from '@dev-dashboard/shared';
+import { User, UpdateUser, GithubProvider } from '@dev-dashboard/shared';
 import { ENV } from 'src/config/env';
 import { ConflictError } from 'src/utils/errors.utils';
 
@@ -21,7 +21,11 @@ const MODULE_NAME = 'UserRepository';
 export const UserRepository = (
   docClient: DynamoDBDocumentClient
 ): IUserRepository => {
-  const _createUserRecord = async (user: User): Promise<User> => {
+  const _createUserRecord = async (
+    user: User,
+    providerAccessTokenEncrypted: string = '',
+    providerUpdatedAt: string = new Date().toISOString()
+  ): Promise<User> => {
     const transactItems: NonNullable<
       TransactWriteCommandInput['TransactItems']
     > = [
@@ -40,7 +44,11 @@ export const UserRepository = (
         },
       },
     ];
-    if (user.providers && user.providers.length > 0) {
+    if (
+      user.providers &&
+      user.providers.length > 0 &&
+      providerAccessTokenEncrypted
+    ) {
       transactItems.push({
         Put: {
           TableName: PROVIDERS_TABLE,
@@ -48,6 +56,8 @@ export const UserRepository = (
             provider: user.providers[0].provider,
             providerUserId: user.providers[0].providerUserId,
             userId: user.id,
+            accessTokenEncrypted: providerAccessTokenEncrypted,
+            updatedAt: providerUpdatedAt,
           },
           ConditionExpression:
             'attribute_not_exists(provider) AND attribute_not_exists(providerUserId)',
@@ -75,15 +85,14 @@ export const UserRepository = (
       return user as User;
     },
 
-    async createByOAuth(user: User): Promise<User> {
+    async createByOAuth(user: User, accessToken: string): Promise<User> {
       if (!user.providers || !user.email || user.providers.length === 0) {
         throw new ConflictError(
           `[${MODULE_NAME}] ${user.id} failed to via OAuth`
         );
       }
 
-      await _createUserRecord(user);
-
+      await _createUserRecord(user, accessToken);
       return user as User;
     },
 
@@ -133,6 +142,32 @@ export const UserRepository = (
       );
 
       return userResult.Item ? (userResult.Item as User) : null;
+    },
+
+    async updateProvider(updates: GithubProvider): Promise<void> {
+      const {
+        provider,
+        providerUserId,
+        providerUpdatedAt,
+        providerAccessTokenEncrypted,
+      } = updates;
+      await docClient.send(
+        new UpdateCommand({
+          TableName: PROVIDERS_TABLE,
+          Key: { provider, providerUserId },
+          UpdateExpression:
+            'SET #accessToken = :accessToken, #updatedAt = :updatedAt',
+          ExpressionAttributeNames: {
+            '#accessToken': 'accessTokenEncrypted',
+            '#updatedAt': 'updatedAt',
+          },
+          ExpressionAttributeValues: {
+            ':accessToken': providerAccessTokenEncrypted,
+            ':updatedAt': providerUpdatedAt,
+          },
+          ConditionExpression: 'attribute_exists(providerUserId)',
+        })
+      );
     },
 
     async update(id: string, updates: UpdateUser): Promise<User> {

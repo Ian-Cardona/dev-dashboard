@@ -9,6 +9,7 @@ import {
   User,
   UserPublic,
   UpdateUser,
+  GithubProvider,
 } from '@dev-dashboard/shared';
 import { isBcryptHash } from 'src/utils/bcrypt.utils';
 
@@ -73,17 +74,20 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       try {
         const now = new Date().toISOString();
 
-        const result = await userRepository.createByOAuth({
-          id: generateUUID(),
-          createdAt: now,
-          updatedAt: now,
-          isActive: true,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: 'user',
-          providers: user.providers,
-        });
+        const result = await userRepository.createByOAuth(
+          {
+            id: generateUUID(),
+            createdAt: now,
+            updatedAt: now,
+            isActive: true,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: 'user',
+            providers: user.providers,
+          },
+          user.accessTokenEncrypted
+        );
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { passwordHash, ...responseUser } = result;
@@ -183,6 +187,20 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           throw error;
         }
         throw new Error(`[${MODULE_NAME}] Failed to check provider existence`);
+      }
+    },
+
+    async updateProvider(updates: GithubProvider): Promise<void> {
+      try {
+        await userRepository.updateProvider(updates);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('ConditionalCheckFailedException')
+        ) {
+          throw new NotFoundError('Provider not found');
+        }
+        throw new Error('[UserService] Failed to update provider');
       }
     },
 
