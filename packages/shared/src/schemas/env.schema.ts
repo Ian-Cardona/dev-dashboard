@@ -7,6 +7,7 @@ export const envSchema = z.object({
   APP_NAME: z.string().default('DevDashboard'),
   PORT: z.coerce.number().int().positive().default(3000),
   APP_BASE_URL: z.url().default('http://localhost:5173'),
+  ENCRYPTION_KEY: z.string().default('thisisa32characterencryptionkey1'),
 
   AWS_REGION: z.string().min(1, 'AWS_REGION is required'),
   AWS_ACCESS_KEY_ID: z.string().min(1, 'AWS_ACCESS_KEY_ID is required'),
@@ -24,12 +25,13 @@ export const envSchema = z.object({
 
   BCRYPT_SALT_ROUNDS_PW: z.coerce.number().int().min(8).max(15).default(12),
   BCRYPT_SALT_ROUNDS_RT: z.coerce.number().int().min(8).max(15).default(10),
+  BCRYPT_SALT_ROUNDS_GH_AC: z.coerce.number().int().min(8).max(15).default(10),
   BCRYPT_SALT_ROUNDS_API_KEY: z.coerce
     .number()
     .int()
     .min(8)
     .max(15)
-    .default(12),
+    .default(11),
 
   TODOS_TABLE: z.string().min(1).default('TODOS'),
   TODOS_RESOLUTIONS_TABLE: z.string().min(1).default('TODOS_RESOLUTION'),
@@ -58,7 +60,9 @@ export const envSchema = z.object({
   GITHUB_OAUTH_AUTHORIZE_URI: z
     .url()
     .default('https://github.com/login/oauth/authorize'),
-  GITHUB_SCOPE: z.string().default('read:user repo workflow read:org'),
+  GITHUB_SCOPE: z
+    .string()
+    .default('read:user read:repo read:workflow read:org'),
 
   REDIS_URL: z.string().default('redis://localhost:6379/0'),
 

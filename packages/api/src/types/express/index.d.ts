@@ -1,6 +1,6 @@
 import {
-  AuthenticationEmailRegisterRequest,
-  AuthenticationOAuthRegisterRequest,
+  CompleteRegisterByEmailRequest,
+  CompleteRegisterByOAuthRequest,
   CookieUser,
   GithubToken,
 } from '@dev-dashboard/shared';
@@ -11,8 +11,8 @@ declare global {
       user?: CookieUser;
       registerInit?: { jti: string };
       onboardingData:
-        | AuthenticationEmailRegisterRequest
-        | AuthenticationOAuthRegisterRequest;
+        | CompleteRegisterByEmailRequest
+        | CompleteRegisterByOAuthRequest;
       githubUser?: GithubToken;
     }
   }

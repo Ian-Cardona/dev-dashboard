@@ -19,5 +19,8 @@ export const useMutateLoginOAuth = () => {
       localStorage.setItem('accessToken', data.accessToken);
       navigate('/todos', { replace: true });
     },
+    // onError: data => {
+    //   document.cookie = `error=${data}`;
+    // }
   });
 };

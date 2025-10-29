@@ -1,6 +1,7 @@
 import {
   CompleteRegisterByEmailRequest,
   CompleteRegisterByOAuthRequest,
+  GithubProvider,
   User,
   UserPublic,
 } from '@dev-dashboard/shared';
@@ -12,6 +13,7 @@ export interface IUserService {
   findByEmailPrivate(email: string): Promise<User>;
   findByEmailPublic(email: string): Promise<UserPublic>;
   findByProvider(provider: string, providerUserId: string): Promise<UserPublic>;
+  updateProvider(updates: GithubProvider): Promise<void>;
   emailExists(email: string): Promise<boolean>;
   update(
     userId: string,

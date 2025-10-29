@@ -26,6 +26,7 @@ export const registerInitEmail = async (
 
 export const registerInitGithub = async (data: OAuthRequest): Promise<void> => {
   const response = await publicClient.post('/init/github', data);
+  console.log(response);
   if (response.status !== 201)
     throw new Error('Failed to initialize OAuth registration.');
 };

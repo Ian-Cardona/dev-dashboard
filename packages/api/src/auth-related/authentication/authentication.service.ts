@@ -13,9 +13,11 @@ import {
   OAuthRequest,
   RefreshRequestPrivate,
   RefreshPrivate,
+  GithubProvider,
 } from '@dev-dashboard/shared';
 import { IUserService } from 'src/user/interfaces/iuser.service';
 import { bcryptCompare } from 'src/utils/bcrypt.utils';
+// import { encrypt } from 'src/utils/crypto.utils';
 import {
   ConflictError,
   NotFoundError,
@@ -223,6 +225,17 @@ export const AuthenticationService = (
         if (!user || !user.isActive) {
           throw new UnauthorizedError('User account is inactive or not found');
         }
+
+        // const encryptedAccessToken = encrypt(data.access_token);
+
+        const providerUpdates: GithubProvider = {
+          provider: data.provider,
+          providerUserId: data.id,
+          providerAccessTokenEncrypted: data.access_token,
+          providerUpdatedAt: new Date().toISOString(),
+        };
+
+        await userService.updateProvider(providerUpdates);
 
         const accessTokenPayload: AccessTokenPayload = {
           userId: user.id,

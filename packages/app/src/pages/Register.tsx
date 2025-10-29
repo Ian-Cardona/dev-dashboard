@@ -4,15 +4,9 @@ import RegisterInfoPanel from '../features/register/components/register/Register
 import { useMutateRegisterInitGithub } from '../features/register/hooks/useMutateRegisterInitGithub';
 import { useOAuthErrorFromCookie } from '../oauth/hooks/useOauthErrorFromCookie.ts';
 import { getAndClearCookieValue } from '../utils/document/getAndClearCookieValue.ts';
+import { OAUTH_SUCCESS_COOKIE_KEYS } from '../utils/document/oauthCookies.ts';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
-
-const OAUTH_SUCCESS_COOKIE_KEYS = {
-  provider: 'gh_o_p',
-  id: 'gh_o_i',
-  login: 'gh_o_l',
-  token: 'gh_o_t',
-};
 
 const RegisterPage = () => {
   const location = useLocation();
@@ -47,14 +41,21 @@ const RegisterPage = () => {
     const provider = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.provider);
     const id = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.id);
     const login = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.login);
-    const token = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.token);
+    const registrationToken = getAndClearCookieValue(
+      OAUTH_SUCCESS_COOKIE_KEYS.registration_token
+    );
 
     if (oauthErrorFromCookie) {
       return;
     }
 
-    if (provider && id && login && token && !hasInitiated.current) {
-      mutation.mutate({ provider: provider as 'github', id, login });
+    if (provider && id && login && registrationToken && !hasInitiated.current) {
+      mutation.mutate({
+        provider: provider as 'github',
+        id,
+        login,
+        access_token: registrationToken,
+      });
       hasInitiated.current = true;
     }
   }, [mutation, oauthErrorFromCookie]);
