@@ -1,6 +1,7 @@
 import {
   githubAuthorizeUriSchema,
   githubCallbackRequestSchema,
+  githubProviderSchema,
   githubRepositorySchema,
   githubTokenSchema,
   githubUserSchema,
@@ -15,3 +16,6 @@ export type GithubUser = z.infer<typeof githubUserSchema>;
 
 export type GithubRepository = z.infer<typeof githubRepositorySchema>;
 export type GithubWorkflow = z.infer<typeof githubWorkflowSchema>;
+
+// TODO: Make this Oauth Provider
+export type GithubProvider = z.infer<typeof githubProviderSchema>;

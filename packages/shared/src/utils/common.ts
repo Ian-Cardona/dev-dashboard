@@ -23,6 +23,4 @@ export const urlSchema = z.url({ message: 'Invalid URL' });
 export const linkedProviderSchema = z.object({
   provider: oauthProviderEnum,
   providerUserId: z.string(),
-  accessToken: z.string().optional(),
-  refreshToken: z.string().optional(),
 });
