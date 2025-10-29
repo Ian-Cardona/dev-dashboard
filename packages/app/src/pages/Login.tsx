@@ -2,13 +2,8 @@ import LoginForm from '../features/login/components/LoginForm';
 import { useMutateLoginOAuth } from '../features/login/hooks/useMutateLoginOAuth';
 import { useOAuthErrorFromCookie } from '../oauth/hooks/useOauthErrorFromCookie.ts';
 import { getAndClearCookieValue } from '../utils/document/getAndClearCookieValue';
+import { OAUTH_SUCCESS_COOKIE_KEYS } from '../utils/document/oauthCookies.ts';
 import { useEffect, useRef, useState } from 'react';
-
-const OAUTH_SUCCESS_COOKIE_KEYS = {
-  provider: 'gh_o_p',
-  id: 'gh_o_i',
-  login: 'gh_o_l',
-};
 
 const LoginPage = () => {
   const mutation = useMutateLoginOAuth();
@@ -29,13 +24,19 @@ const LoginPage = () => {
     const provider = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.provider);
     const id = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.id);
     const login = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.login);
+    const enc = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.enc);
 
     if (oauthErrorFromCookie) {
       return;
     }
 
-    if (provider && id && login && !hasInitiated.current) {
-      mutation.mutate({ provider: provider as 'github', id, login });
+    if (provider && id && login && !hasInitiated.current && enc) {
+      mutation.mutate({
+        provider: provider as 'github',
+        id,
+        login,
+        access_token: enc,
+      });
       hasInitiated.current = true;
     }
   }, [mutation, oauthErrorFromCookie]);

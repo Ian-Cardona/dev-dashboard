@@ -45,7 +45,7 @@ export const registrationJtiSchema = z.discriminatedUnion('registrationType', [
     provider: oauthProviderEnum,
     providerUserId: z.string().min(1).max(100),
     providerUserLogin: z.string().min(1).max(100),
-    providerAccessToken: z.string().min(1).max(512),
+    providerAccessTokenEncrypted: z.string().min(1).max(512),
     createdAt: z.string().min(1).max(100),
   }),
 ]);
@@ -69,6 +69,7 @@ export const completeRegisterByOAuthRequestSchema =
     providers: z
       .array(linkedProviderSchema)
       .min(1, 'At least one provider is required'),
+    accessTokenEncrypted: z.string().min(1).max(522),
   });
 
 export const loginRequestPublicSchema = z.object({
