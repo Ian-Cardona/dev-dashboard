@@ -59,7 +59,6 @@ export const registerInitSessionMiddleware = async (
         ],
         accessTokenEncrypted: registerInitData.providerAccessTokenEncrypted,
       };
-      console.table(req.onboardingData);
     } else {
       throw new NotFoundError('Unknown registration type in registerInit data');
     }

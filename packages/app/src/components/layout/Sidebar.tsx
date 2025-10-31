@@ -59,7 +59,7 @@ const Sidebar = () => {
           </li>
           <li>
             <NavLink
-              to="/dashboard"
+              to="/integrations"
               className={({ isActive }) =>
                 `group flex items-center gap-3 rounded-4xl border px-4 py-3 transition-all duration-150 ${
                   isActive
@@ -69,7 +69,7 @@ const Sidebar = () => {
               }
             >
               <DocumentTextIcon className="h-5 w-5 transition-transform duration-150 group-hover:scale-105" />
-              <span className="font-medium">Dashboard</span>
+              <span className="font-medium">Integrations</span>
             </NavLink>
           </li>
         </ul>

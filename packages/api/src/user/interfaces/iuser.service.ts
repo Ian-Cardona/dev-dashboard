@@ -13,6 +13,10 @@ export interface IUserService {
   findByEmailPrivate(email: string): Promise<User>;
   findByEmailPublic(email: string): Promise<UserPublic>;
   findByProvider(provider: string, providerUserId: string): Promise<UserPublic>;
+  findProviderByUserId(
+    userId: string,
+    provider: string
+  ): Promise<GithubProvider | null>;
   updateProvider(updates: GithubProvider): Promise<void>;
   emailExists(email: string): Promise<boolean>;
   update(

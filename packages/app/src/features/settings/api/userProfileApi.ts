@@ -1,19 +1,15 @@
 import { protectedClient } from '../../../lib/api';
-import type { UserResponsePublic, UserUpdate } from '@dev-dashboard/shared';
+import type { UserPasswordUpdate, UserPublic } from '@dev-dashboard/shared';
 
-const fetchUserProfile = async (): Promise<UserResponsePublic> => {
-  const response =
-    await protectedClient.get<UserResponsePublic>('/user/profile');
+const fetchUserProfile = async (): Promise<UserPublic> => {
+  const response = await protectedClient.get<UserPublic>('/user/profile');
   return response.data;
 };
 
 const updateUserProfile = async (
-  data: UserUpdate
-): Promise<UserResponsePublic> => {
-  const response = await protectedClient.put<UserResponsePublic>(
-    '/user/profile',
-    data
-  );
+  data: UserPasswordUpdate
+): Promise<UserPublic> => {
+  const response = await protectedClient.put<UserPublic>('/user/profile', data);
   return response.data;
 };
 
