@@ -9,6 +9,10 @@ export interface IUserRepository {
     provider: string,
     providerUserId: string
   ): Promise<User | null>;
+  findProviderByUserId(
+    userId: string,
+    provider: string
+  ): Promise<GithubProvider | null>;
   updateProvider(updates: GithubProvider): Promise<void>;
   update(id: string, updates: UpdateUser): Promise<User>;
   delete(id: string): Promise<void>;

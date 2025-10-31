@@ -2,6 +2,7 @@
 import 'dotenv/config';
 
 import apiKeysRouter from './api-keys/api-keys.route';
+import integrationsRouter from './integrations/github/github.route';
 import authenticationRouter from './auth-related/authentication/authentication.route';
 import registerInitRouter from './auth-related/register-init/register-init.route';
 import { accessAuthorizationMiddleware } from './middlewares/access-authorization.middleware';
@@ -49,6 +50,7 @@ v1Router.use('/user', accessAuthorizationMiddleware, userRouter);
 v1Router.use('/api-keys', apiKeysRouter);
 v1Router.use('/github', githubRouter);
 v1Router.use('/init', registerInitRouter);
+v1Router.use('/integrations', integrationsRouter);
 
 app.use('/v1', v1Router);
 

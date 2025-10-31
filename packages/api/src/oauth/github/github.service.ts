@@ -60,7 +60,6 @@ export const GithubService = (
           redirect_uri: redirectUri,
           state,
           scope,
-          allow_signup: 'true',
         });
 
         return {

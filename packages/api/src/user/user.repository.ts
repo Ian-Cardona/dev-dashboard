@@ -85,14 +85,17 @@ export const UserRepository = (
       return user as User;
     },
 
-    async createByOAuth(user: User, accessToken: string): Promise<User> {
+    async createByOAuth(
+      user: User,
+      providerAccessToken: string
+    ): Promise<User> {
       if (!user.providers || !user.email || user.providers.length === 0) {
         throw new ConflictError(
           `[${MODULE_NAME}] ${user.id} failed to via OAuth`
         );
       }
 
-      await _createUserRecord(user, accessToken);
+      await _createUserRecord(user, providerAccessToken);
       return user as User;
     },
 
@@ -142,6 +145,35 @@ export const UserRepository = (
       );
 
       return userResult.Item ? (userResult.Item as User) : null;
+    },
+
+    async findProviderByUserId(
+      userId: string,
+      provider: string
+    ): Promise<GithubProvider | null> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: PROVIDERS_TABLE,
+          IndexName: 'UserIdIndex',
+          KeyConditionExpression: 'userId = :userId and provider = :provider',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+            ':provider': provider,
+          },
+        })
+      );
+
+      if (!result.Items || result.Items.length === 0) {
+        return null;
+      }
+
+      const item = result.Items[0];
+      return {
+        provider: item.provider,
+        providerUserId: item.providerUserId,
+        providerAccessTokenEncrypted: item.accessTokenEncrypted,
+        providerUpdatedAt: item.updatedAt,
+      };
     },
 
     async updateProvider(updates: GithubProvider): Promise<void> {
