@@ -1,9 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { docClient } from 'src/config/dynamodb';
+import { ENV } from 'src/config/env';
 import { UserRepository } from 'src/user/user.repository';
+// import { UserService } from 'src/user/user.service';
+import { decrypt } from 'src/utils/crypto.utils';
 import { UnauthorizedError } from 'src/utils/errors.utils';
 
 const userRepository = UserRepository(docClient);
+// const userService = UserService(userRepository);
 
 export const githubSessionMiddleware = async (
   req: Request,
@@ -17,8 +21,8 @@ export const githubSessionMiddleware = async (
 
     const user = await userRepository.findById(req.user.userId);
 
-    if (!user || !user.providers) {
-      throw new UnauthorizedError('GitHub integration not found');
+    if (!user || !user) {
+      throw new UnauthorizedError('User not found');
     }
 
     const githubProvider = user.providers.find(p => p.provider === 'github');
@@ -27,20 +31,26 @@ export const githubSessionMiddleware = async (
       throw new UnauthorizedError('GitHub integration not found');
     }
 
-    const provider = await userRepository.findByProvider(
-      githubProvider.provider,
-      githubProvider.providerUserId
+    const userProvider = await userRepository.findProviderByUserId(
+      user.id,
+      githubProvider.provider
     );
+    console.table(userProvider);
 
-    if (!provider || !provider.isActive) {
+    if (!userProvider || !userProvider.providerAccessTokenEncrypted) {
       throw new UnauthorizedError('GitHub integration not found');
     }
 
-    // const decryptedToken = decryptValue(provider.accessTokenEncrypted);
+    const decryptedToken = decrypt(userProvider?.providerAccessTokenEncrypted);
 
-    // req.githubUser = {
-    //   accessToken: decryptedToken,
-    // };
+    console.log('Encrypted token', userProvider.providerAccessTokenEncrypted);
+    console.log('Decrypted token', decryptedToken);
+
+    req.githubUser = {
+      access_token: decryptedToken,
+      token_type: 'bearer',
+      scope: ENV.GITHUB_SCOPE,
+    };
 
     next();
   } catch (error) {

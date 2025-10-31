@@ -91,6 +91,7 @@ export const RegisterInitService = (
     },
 
     async github(data: OAuthRequest): Promise<RegistrationInitToken> {
+      console.table(data);
       try {
         let userProvider: UserPublic | null = null;
 
@@ -113,7 +114,11 @@ export const RegisterInitService = (
           throw new ConflictError('User with this provider already exists');
         }
 
+        console.table(data);
+
         const encryptedAccessToken = encrypt(data.access_token);
+
+        console.table(encryptedAccessToken);
 
         const registrationJti = generateUUID();
 
@@ -125,6 +130,8 @@ export const RegisterInitService = (
           providerAccessTokenEncrypted: encryptedAccessToken,
           createdAt: new Date().toISOString(),
         };
+
+        console.table(registrationJtiData);
 
         await redisClient.set(
           `${REDIS_AUTH_PREFIX}${registrationJti}`,
