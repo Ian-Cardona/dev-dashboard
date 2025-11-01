@@ -1,9 +1,9 @@
 import { IRegisterInitController } from './interfaces/iregister-init.controller';
 import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
+  oauthRequestSchema,
   RegisterInitEmailRequest,
   registerInitEmailRequestSchema,
-  oauthRequestSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';

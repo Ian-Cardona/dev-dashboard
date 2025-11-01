@@ -1,7 +1,7 @@
 import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
-  RegisterInitEmailRequest,
   OAuthRequest,
+  RegisterInitEmailRequest,
   RegistrationInitToken,
   RegistrationJti,
   RegistrationSession,
@@ -19,6 +19,7 @@ import { generateUUID } from 'src/utils/uuid.utils';
 const REGISTER_INIT_TTL = 3600;
 const REDIS_AUTH_PREFIX = 'register-init:';
 const REDIS_EMAIL_PREFIX = 'onboarding:email:';
+const REDIS_OAUTH_PREFIX = 'onboarding:oauth:';
 
 const MODULE_NAME = 'RegisterInitService';
 
@@ -35,6 +36,20 @@ export const RegisterInitService = (
 
         const data = JSON.parse(result);
         return data.email || null;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (err) {
+        throw new Error('Failed to retrieve email session');
+      }
+    },
+
+    async getOauthSession(oauthSessionId: string): Promise<string | null> {
+      try {
+        const key = `${REDIS_OAUTH_PREFIX}${oauthSessionId}`;
+        const result = await redisClient.get(key);
+        if (!result) return null;
+
+        const data = JSON.parse(result);
+        return data || null;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         throw new Error('Failed to retrieve email session');
@@ -91,7 +106,6 @@ export const RegisterInitService = (
     },
 
     async github(data: OAuthRequest): Promise<RegistrationInitToken> {
-      console.table(data);
       try {
         let userProvider: UserPublic | null = null;
 
@@ -114,11 +128,7 @@ export const RegisterInitService = (
           throw new ConflictError('User with this provider already exists');
         }
 
-        console.table(data);
-
         const encryptedAccessToken = encrypt(data.access_token);
-
-        console.table(encryptedAccessToken);
 
         const registrationJti = generateUUID();
 
@@ -130,8 +140,6 @@ export const RegisterInitService = (
           providerAccessTokenEncrypted: encryptedAccessToken,
           createdAt: new Date().toISOString(),
         };
-
-        console.table(registrationJtiData);
 
         await redisClient.set(
           `${REDIS_AUTH_PREFIX}${registrationJti}`,
