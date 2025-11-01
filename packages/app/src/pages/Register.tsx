@@ -38,9 +38,6 @@ const RegisterPage = () => {
   }, [oauthErrorFromCookie]);
 
   useEffect(() => {
-    const provider = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.provider);
-    const id = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.id);
-    const login = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.login);
     const registrationToken = getAndClearCookieValue(
       OAUTH_SUCCESS_COOKIE_KEYS.registration_token
     );
@@ -54,7 +51,7 @@ const RegisterPage = () => {
         provider: provider as 'github',
         id,
         login,
-        access_token: registrationToken,
+        registrationToken: registrationToken,
       });
       hasInitiated.current = true;
     }
