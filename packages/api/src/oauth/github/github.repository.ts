@@ -60,6 +60,8 @@ export const GithubRepository = (): IGithubRepository => {
       }
 
       const data = await response.json();
+      console.log('Fetched GitHub user profile:');
+      console.table(data);
       return data;
     },
   };
