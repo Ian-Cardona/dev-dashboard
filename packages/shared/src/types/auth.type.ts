@@ -12,8 +12,8 @@ import {
   registrationInfoRequestSchema,
   registrationJtiSchema,
   registrationSessionSchema,
-  oauthRequestSchema,
   cookieUserSchema,
+  oauthRequestSchema,
 } from '../schemas/auth.schema';
 import { JwtPayload } from 'jsonwebtoken';
 import z from 'zod';

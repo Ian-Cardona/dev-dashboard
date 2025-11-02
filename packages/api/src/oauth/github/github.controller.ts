@@ -75,27 +75,15 @@ export const GithubController = (
               access_token: validatedToken.access_token,
             });
 
-            res.clearCookie('gh_o_p');
-            res.clearCookie('gh_o_i');
-            res.clearCookie('gh_o_l');
-            res.clearCookie('gh_o_rt');
+            res.clearCookie('reginid');
+            res.cookie('reginid', token.registrationId, {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
 
-            res.cookie('gh_o_p', 'github', {
-              httpOnly: false,
-              sameSite: 'lax',
-              maxAge: 300000,
-            });
-            res.cookie('gh_o_i', githubUser.id.toString(), {
-              httpOnly: false,
-              sameSite: 'lax',
-              maxAge: 300000,
-            });
-            res.cookie('gh_o_l', githubUser.login, {
-              httpOnly: false,
-              sameSite: 'lax',
-              maxAge: 300000,
-            });
-            res.cookie('gh_o_rt', token.registrationToken, {
+            res.clearCookie('regintkn');
+            res.cookie('regintkn', token.registrationToken, {
               httpOnly: false,
               sameSite: 'lax',
               maxAge: 300000,
@@ -103,7 +91,6 @@ export const GithubController = (
 
             return res.redirect(`${ENV.APP_BASE_URL}/register`);
           } catch (error) {
-            console.error('Error during registration flow:', error);
             if (error instanceof ConflictError) {
               res.clearCookie('gh_o_e');
               res.cookie('gh_o_e', 'conflict', {
@@ -132,8 +119,6 @@ export const GithubController = (
             );
 
             const encryptedToken = encrypt(validatedToken.access_token);
-            console.table(validatedToken);
-            console.log(encryptedToken);
 
             res.clearCookie('gh_o_p');
             res.clearCookie('gh_o_i');
@@ -162,7 +147,6 @@ export const GithubController = (
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
           } catch (error) {
-            console.error('Error during login flow:', error);
             if (error instanceof NotFoundError) {
               res.clearCookie('gh_o_e');
               res.cookie('gh_o_e', 'user_not_found', {

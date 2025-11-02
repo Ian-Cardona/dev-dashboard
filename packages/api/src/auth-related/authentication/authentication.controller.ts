@@ -16,7 +16,7 @@ import {
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { ENV } from 'src/config/env';
-import { redisClient } from 'src/config/redis';
+import { redisDel } from 'src/utils/redis';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
@@ -55,7 +55,7 @@ export const AuthenticationController = (
           user: result.user,
         };
 
-        await redisClient.del(`register-init:${req.registerInit?.jti}`);
+        await redisDel(`register-init:${req.registerInit?.jti}`);
 
         res.status(201).json(response);
       } catch (error) {
@@ -93,7 +93,7 @@ export const AuthenticationController = (
           user: result.user,
         };
 
-        await redisClient.del(`register-init:${req.registerInit?.jti}`);
+        await redisDel(`register-init:${req.registerInit?.jti}`);
 
         res.status(201).json(response);
       } catch (error) {

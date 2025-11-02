@@ -1,8 +1,8 @@
-import { docClient } from '../config/dynamodb';
-import { UserRepository } from '../user/user.repository';
-import { UserService } from '../user/user.service';
-import { UnauthorizedError } from '../utils/errors.utils';
-import { extractBearerToken, verifyJWT } from '../utils/jwt.utils';
+import { docClient } from '../../config/dynamodb';
+import { UserRepository } from '../../user/user.repository';
+import { UserService } from '../../user/user.service';
+import { UnauthorizedError } from '../../utils/errors.utils';
+import { extractBearerToken, verifyJWT } from '../../utils/jwt.utils';
 import { AccessTokenPayload } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 

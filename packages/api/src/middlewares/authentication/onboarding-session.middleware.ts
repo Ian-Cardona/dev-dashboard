@@ -1,9 +1,9 @@
-import { NotFoundError } from '../utils/errors.utils';
+import { NotFoundError } from '../../utils/errors.utils';
 import { RegistrationJti } from '@dev-dashboard/shared';
 import type { NextFunction, Request, Response } from 'express';
 import { redisGetJSON } from 'src/utils/redis';
 
-export const registerInitSessionMiddleware = async (
+export const onboardingSessionMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction

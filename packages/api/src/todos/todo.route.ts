@@ -3,8 +3,8 @@ import { TodoController } from './todo.controller';
 import { TodoRepository } from './todo.repository';
 import { TodoService } from './todo.service';
 import { Router } from 'express';
-import { accessAuthorizationMiddleware } from 'src/middlewares/access-authorization.middleware';
 import { apiKeysMiddleware } from 'src/middlewares/api-keys.middleware';
+import { accessAuthorizationMiddleware } from 'src/middlewares/authorization/access-authorization.middleware';
 
 const router = Router();
 

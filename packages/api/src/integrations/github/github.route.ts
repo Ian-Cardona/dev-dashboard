@@ -2,7 +2,7 @@ import { GithubIntegrationController } from './github.controller';
 import { GithubIntegrationRepository } from './github.repository';
 import { GithubIntegrationService } from './github.service';
 import { Router } from 'express';
-import { accessAuthorizationMiddleware } from 'src/middlewares/access-authorization.middleware';
+import { accessAuthorizationMiddleware } from 'src/middlewares/authorization/access-authorization.middleware';
 import { githubSessionMiddleware } from 'src/middlewares/github-session.middleware';
 
 const router = Router();

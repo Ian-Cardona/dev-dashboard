@@ -1,24 +1,27 @@
 import ErrorModal from '../components/ui/ErrorModal.tsx';
 import RegisterForm from '../features/register/components/register/RegisterForm';
 import RegisterInfoPanel from '../features/register/components/register/RegisterInfoPanel';
-import { useMutateRegisterInitGithub } from '../features/register/hooks/useMutateRegisterInitGithub';
+import useQueryFetchOAuthSession from '../features/register/hooks/useQueryFetchOAuthSession';
 import { useOAuthErrorFromCookie } from '../oauth/hooks/useOauthErrorFromCookie.ts';
 import { getAndClearCookieValue } from '../utils/document/getAndClearCookieValue.ts';
-import { OAUTH_SUCCESS_COOKIE_KEYS } from '../utils/document/oauthCookies.ts';
-import { useEffect, useRef, useState } from 'react';
+import { REG_INIT_COOKIE_KEYS } from '../utils/document/oauthCookies.ts';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
 const RegisterPage = () => {
   const location = useLocation();
   const modalErrorMessage = location.state?.error;
 
-  const mutation = useMutateRegisterInitGithub();
   const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
   const [displayError, setDisplayError] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
 
-  const hasInitiated = useRef(false);
+  const [sessionId] = useState(() =>
+    getAndClearCookieValue(`${REG_INIT_COOKIE_KEYS.registration_id}`)
+  );
+
+  useQueryFetchOAuthSession(sessionId);
 
   useEffect(() => {
     if (modalErrorMessage) {
@@ -36,29 +39,6 @@ const RegisterPage = () => {
       setDisplayError(oauthErrorFromCookie);
     }
   }, [oauthErrorFromCookie]);
-
-  useEffect(() => {
-    const provider = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.provider);
-    const id = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.id);
-    const login = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.login);
-    const registrationToken = getAndClearCookieValue(
-      OAUTH_SUCCESS_COOKIE_KEYS.registration_token
-    );
-
-    if (oauthErrorFromCookie) {
-      return;
-    }
-
-    if (provider && id && login && registrationToken && !hasInitiated.current) {
-      mutation.mutate({
-        provider: provider as 'github',
-        id,
-        login,
-        access_token: registrationToken,
-      });
-      hasInitiated.current = true;
-    }
-  }, [mutation, oauthErrorFromCookie]);
 
   return (
     <>
@@ -84,10 +64,7 @@ const RegisterPage = () => {
                 </div>
               )}
             </div>
-            <RegisterForm
-              isRegisterPending={mutation.isPending}
-              onError={setDisplayError}
-            />
+            <RegisterForm isRegisterPending={false} onError={setDisplayError} />
           </div>
         </div>
       </div>
