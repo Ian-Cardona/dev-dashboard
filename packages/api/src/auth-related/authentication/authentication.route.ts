@@ -6,8 +6,8 @@ import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
 import { IAuthenticationService } from './interfaces/iauthentication.service';
 import { Router } from 'express';
-import { registerInitSessionMiddleware } from 'src/middlewares/register-init-session.middleware';
-import { registerInitAuthorizationMiddleware } from 'src/middlewares/register-init.middleware';
+import { onboardingSessionMiddleware } from 'src/middlewares/authentication/onboarding-session.middleware';
+import { onboardingValidateTokenMiddleware } from 'src/middlewares/authentication/onboarding-validate-token.middleware';
 import { UserRepository } from 'src/user/user.repository';
 
 const router = Router();
@@ -26,14 +26,14 @@ const authenticationControllerInstance = AuthenticationController(
 
 router.post(
   '/register/email',
-  registerInitAuthorizationMiddleware,
-  registerInitSessionMiddleware,
+  onboardingValidateTokenMiddleware,
+  onboardingSessionMiddleware,
   authenticationControllerInstance.completeRegisterUserByEmail
 );
 router.post(
   '/register/oauth',
-  registerInitAuthorizationMiddleware,
-  registerInitSessionMiddleware,
+  onboardingValidateTokenMiddleware,
+  onboardingSessionMiddleware,
   authenticationControllerInstance.completeRegisterUserByOAuth
 );
 router.post('/login/email', authenticationControllerInstance.loginUserByEmail);

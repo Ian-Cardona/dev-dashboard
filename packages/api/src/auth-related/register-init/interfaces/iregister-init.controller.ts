@@ -6,6 +6,11 @@ export interface IRegisterInitController {
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
+  getOAuthSession: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>;
   email: (
     req: Request,
     res: Response,

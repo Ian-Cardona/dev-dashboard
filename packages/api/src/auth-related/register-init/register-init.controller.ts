@@ -4,10 +4,10 @@ import {
   oauthRequestSchema,
   RegisterInitEmailRequest,
   registerInitEmailRequestSchema,
+  uuidSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
-import z from 'zod';
 
 const REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60;
 
@@ -22,13 +22,14 @@ export const RegisterInitController = (
     ): Promise<void> {
       try {
         const sessionId = req.query.session;
-        const validSessionId = z.uuidv4().parse(sessionId);
+        const validSessionId = uuidSchema.parse(sessionId);
         if (!validSessionId) {
           res.status(404).json({ message: 'Email session not found' });
           return;
         }
 
-        const email = await registerInitService.getEmailSession(validSessionId);
+        const email: string | null =
+          await registerInitService.getEmailSession(validSessionId);
 
         if (!email) {
           res.status(404).json({ message: 'Email session expired or invalid' });
@@ -46,6 +47,39 @@ export const RegisterInitController = (
       }
     },
 
+    async getOAuthSession(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ): Promise<void> {
+      try {
+        const sessionId = req.query.session;
+        const validSessionId = uuidSchema.parse(sessionId);
+        console.log('Valid session ID:', validSessionId);
+        if (!validSessionId) {
+          res.status(404).json({ message: 'OAuth session not found' });
+          return;
+        }
+
+        const oauth: number | null =
+          await registerInitService.getOAuthSession(validSessionId);
+
+        if (!oauth) {
+          res.status(404).json({ message: 'OAuth session expired or invalid' });
+          return;
+        }
+
+        res.status(200).json({ oauth });
+      } catch (error) {
+        handleValidationError(
+          error,
+          res,
+          next,
+          'Failed to retrieve OAuth session'
+        );
+      }
+    },
+
     async email(
       req: Request,
       res: Response,
@@ -56,7 +90,7 @@ export const RegisterInitController = (
           registerInitEmailRequestSchema.parse(req.body);
         const result = await registerInitService.email(validatedData);
 
-        res.cookie('rit1', result.registrationToken, {
+        res.cookie('regintkn', result.registrationToken, {
           httpOnly: true,
           secure: true,
           sameSite: 'strict',
@@ -71,6 +105,8 @@ export const RegisterInitController = (
           path: '/',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
+
+        console.table(result);
 
         res.status(201).json();
       } catch (error) {
@@ -87,7 +123,15 @@ export const RegisterInitController = (
         const validatedData = oauthRequestSchema.parse(req.body);
         const result = await registerInitService.github(validatedData);
 
-        res.cookie('rit1', result.registrationToken, {
+        res.cookie('regintkn', result.registrationToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'strict',
+          path: '/',
+          maxAge: REFRESH_TOKEN_EXPIRY,
+        });
+
+        res.cookie('reginid', result.registrationId, {
           httpOnly: true,
           secure: true,
           sameSite: 'strict',

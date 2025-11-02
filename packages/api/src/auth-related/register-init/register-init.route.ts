@@ -22,6 +22,7 @@ const registerInitControllerInstance = RegisterInitController(
 );
 
 router.get('/email/session', registerInitControllerInstance.getEmailSession);
+router.get('/oauth/session', registerInitControllerInstance.getOAuthSession);
 router.post('/email', registerInitControllerInstance.email);
 router.post('/github', registerInitControllerInstance.github);
 

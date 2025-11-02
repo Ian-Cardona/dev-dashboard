@@ -2,7 +2,6 @@ import { IRegisterInitService } from './interfaces/iregister-init.service';
 import {
   OAuthRequest,
   RegisterInitEmailRequest,
-  RegistrationInitToken,
   RegistrationJti,
   RegistrationSession,
   UserPublic,
@@ -14,6 +13,7 @@ import { IUserService } from 'src/user/interfaces/iuser.service';
 import { encrypt } from 'src/utils/crypto.utils';
 import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { generateRegisterInitJWT } from 'src/utils/jwt.utils';
+import { redisGetJSON, redisSetJSON } from 'src/utils/redis';
 import { generateUUID } from 'src/utils/uuid.utils';
 
 const REGISTER_INIT_TTL = 3600;
@@ -31,27 +31,30 @@ export const RegisterInitService = (
     async getEmailSession(sessionId: string): Promise<string | null> {
       try {
         const key = `${REDIS_EMAIL_PREFIX}${sessionId}`;
-        const result = await redisClient.get(key);
+        const result = await redisGetJSON<{ email: string; createdAt: number }>(
+          key
+        );
+
         if (!result) return null;
 
-        const data = JSON.parse(result);
-        return data.email || null;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (err) {
+        const email = result.email || null;
+        console.log('Retrieved email session:', email);
+        return email;
+      } catch (error) {
+        console.log(error);
         throw new Error('Failed to retrieve email session');
       }
     },
 
-    async getOauthSession(oauthSessionId: string): Promise<string | null> {
+    async getOAuthSession(sessionId: string): Promise<number | null> {
       try {
-        const key = `${REDIS_OAUTH_PREFIX}${oauthSessionId}`;
-        const result = await redisClient.get(key);
+        const key = `${REDIS_OAUTH_PREFIX}${sessionId}`;
+        const result = await redisGetJSON<{ createdAt: number }>(key);
         if (!result) return null;
 
-        const data = JSON.parse(result);
-        return data || null;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (err) {
+        return result.createdAt ? result.createdAt : null;
+      } catch (error) {
+        console.log(error);
         throw new Error('Failed to retrieve email session');
       }
     },
@@ -82,16 +85,16 @@ export const RegisterInitService = (
         createdAt: new Date().toISOString(),
       };
 
-      await redisClient.set(
+      await redisSetJSON(
         `${REDIS_AUTH_PREFIX}${registrationJti}`,
-        JSON.stringify(registrationJtiData),
-        { EX: REGISTER_INIT_TTL }
+        registrationJtiData,
+        REGISTER_INIT_TTL
       );
 
-      await redisClient.set(
+      await redisSetJSON(
         `${REDIS_EMAIL_PREFIX}${registrationId}`,
-        JSON.stringify({ email: data.email, createdAt: Date.now() }),
-        { EX: REGISTER_INIT_TTL }
+        { email: data.email, createdAt: Date.now() },
+        REGISTER_INIT_TTL
       );
 
       const registrationToken = generateRegisterInitJWT({
@@ -105,7 +108,7 @@ export const RegisterInitService = (
       } as RegistrationSession;
     },
 
-    async github(data: OAuthRequest): Promise<RegistrationInitToken> {
+    async github(data: OAuthRequest): Promise<RegistrationSession> {
       try {
         let userProvider: UserPublic | null = null;
 
@@ -131,6 +134,7 @@ export const RegisterInitService = (
         const encryptedAccessToken = encrypt(data.access_token);
 
         const registrationJti = generateUUID();
+        const registrationId = generateUUID();
 
         const registrationJtiData: RegistrationJti = {
           registrationType: 'oauth',
@@ -141,12 +145,16 @@ export const RegisterInitService = (
           createdAt: new Date().toISOString(),
         };
 
-        await redisClient.set(
+        await redisSetJSON(
           `${REDIS_AUTH_PREFIX}${registrationJti}`,
-          JSON.stringify(registrationJtiData),
-          {
-            EX: REGISTER_INIT_TTL,
-          }
+          registrationJtiData,
+          REGISTER_INIT_TTL
+        );
+
+        await redisSetJSON(
+          `${REDIS_OAUTH_PREFIX}${registrationId}`,
+          { createdAt: Date.now() },
+          REGISTER_INIT_TTL
         );
 
         const registrationToken = generateRegisterInitJWT({
@@ -154,7 +162,7 @@ export const RegisterInitService = (
           type: 'register-init',
         });
 
-        return { registrationToken } as RegistrationInitToken;
+        return { registrationToken, registrationId } as RegistrationSession;
       } catch (error) {
         console.log('Error in OAuth registration:', error);
         throw new Error(`[${MODULE_NAME}] Failed to initialize OAuth register`);

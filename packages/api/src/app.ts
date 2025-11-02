@@ -5,7 +5,7 @@ import apiKeysRouter from './api-keys/api-keys.route';
 import integrationsRouter from './integrations/github/github.route';
 import authenticationRouter from './auth-related/authentication/authentication.route';
 import registerInitRouter from './auth-related/register-init/register-init.route';
-import { accessAuthorizationMiddleware } from './middlewares/access-authorization.middleware';
+import { accessAuthorizationMiddleware } from './middlewares/authorization/access-authorization.middleware';
 import { errorHandlerMiddleware } from './middlewares/error_handler.middleware';
 import { loggerMiddleware } from './middlewares/logger.middleware';
 import githubRouter from './oauth/github/github.route';

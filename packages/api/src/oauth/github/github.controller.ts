@@ -75,8 +75,15 @@ export const GithubController = (
               access_token: validatedToken.access_token,
             });
 
-            res.clearCookie('gh_o_rt');
-            res.cookie('gh_o_rt', token.registrationToken, {
+            res.clearCookie('reginid');
+            res.cookie('reginid', token.registrationId, {
+              httpOnly: false,
+              sameSite: 'lax',
+              maxAge: 300000,
+            });
+
+            res.clearCookie('regintkn');
+            res.cookie('regintkn', token.registrationToken, {
               httpOnly: false,
               sameSite: 'lax',
               maxAge: 300000,
