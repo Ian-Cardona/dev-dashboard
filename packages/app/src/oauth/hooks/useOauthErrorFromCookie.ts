@@ -1,8 +1,6 @@
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
+import { OAUTH_ERROR_COOKIE_KEYS } from '../../utils/document/oauthCookies';
 import { useState, useEffect } from 'react';
-
-//TODO: Add this to env
-const OAUTH_ERROR_COOKIE_KEY = 'gh_o_e';
 
 const OAUTH_ERROR_MESSAGES: { [key: string]: string } = {
   invalid_state:
@@ -19,12 +17,12 @@ export const useOAuthErrorFromCookie = (): string | null => {
   const [oauthError, setOauthError] = useState<string | null>(null);
 
   useEffect(() => {
-    const errorCode = getAndClearCookieValue(OAUTH_ERROR_COOKIE_KEY);
+    const errorCode = getAndClearCookieValue(OAUTH_ERROR_COOKIE_KEYS.error);
 
     if (errorCode) {
-      const friendlyMessage =
+      const message =
         OAUTH_ERROR_MESSAGES[errorCode] || OAUTH_ERROR_MESSAGES.default;
-      setOauthError(friendlyMessage);
+      setOauthError(message);
     }
   }, []);
 
