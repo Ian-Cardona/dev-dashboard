@@ -18,7 +18,7 @@ router.get(
   controller.listUserRepositories
 );
 router.get(
-  '/github/user/workflow/latest',
+  '/github/user/workflow/latest/:owner/:repo',
   accessAuthorizationMiddleware,
   githubSessionMiddleware,
   controller.getLatestWorkflowRun
