@@ -78,30 +78,37 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
 
     async getRepository(
       owner: string,
-      repo: string
+      repo: string,
+      accessToken?: string
     ): Promise<GithubRepository> {
       console.log(`getRepository called with owner: ${owner}, repo: ${repo}`);
       const url = buildUrl(`/repos/${owner}/${repo}`);
-      return githubFetch<GithubRepository>(url);
+      return githubFetch<GithubRepository>(url, accessToken);
     },
 
     async getLatestWorkflowRun(
+      accessToken: string,
       owner: string,
-      repo: string,
-      branch?: string
+      repo: string
     ): Promise<GithubWorkflow | null> {
       console.log(
-        `getLatestWorkflowRun called with owner: ${owner}, repo: ${repo}, branch: ${branch}`
+        `getLatestWorkflowRun called with owner: ${owner}, repo: ${repo}`
       );
-      const params: Record<string, string> = { per_page: '1S' };
-      if (branch) {
-        params.branch = branch;
-      }
+
+      const params: Record<string, string> = { per_page: '1', page: '1' };
 
       const url = buildUrl(`/repos/${owner}/${repo}/actions/runs`, params);
-      return githubFetch<GithubWorkflowRunsResponse>(url).then(data => {
-        return data.workflow_runs?.[0] ?? null;
-      });
+
+      const data = await githubFetch<GithubWorkflowRunsResponse>(
+        url,
+        accessToken
+      );
+      console.table(data);
+      if (!data.workflow_runs || data.workflow_runs.length === 0) {
+        return null;
+      }
+
+      return data.workflow_runs[0];
     },
   };
 };

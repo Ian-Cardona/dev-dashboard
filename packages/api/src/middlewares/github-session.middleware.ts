@@ -43,9 +43,6 @@ export const githubSessionMiddleware = async (
 
     const decryptedToken = decrypt(userProvider?.providerAccessTokenEncrypted);
 
-    console.log('Encrypted token', userProvider.providerAccessTokenEncrypted);
-    console.log('Decrypted token', decryptedToken);
-
     req.githubUser = {
       access_token: decryptedToken,
       token_type: 'bearer',

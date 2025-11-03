@@ -62,6 +62,25 @@ export const githubWorkflowSchema = z.object({
   headSha: z.string().length(40),
 });
 
+export const githubNotificationSchema = z.object({
+  id: z.string().min(1).max(100),
+  unread: z.boolean(),
+  reason: z.string().min(1).max(100),
+  repository: z.object({
+    id: z.number().int().positive(),
+    name: z.string().min(1).max(200),
+    fullName: z.string().min(1).max(300),
+    htmlUrl: urlSchema,
+  }),
+  subject: z.object({
+    title: z.string().min(1).max(300),
+    type: z.string().min(1).max(100),
+    url: urlSchema,
+    latestCommentUrl: urlSchema.optional(),
+  }),
+  updatedAt: isoDatetimeSchema,
+});
+
 export const githubProviderSchema = z.object({
   provider: oauthProviderEnum,
   providerUserId: z.string().min(1).max(100),
