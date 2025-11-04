@@ -15,13 +15,19 @@ router.get(
   '/github/user/repositories',
   accessAuthorizationMiddleware,
   githubSessionMiddleware,
-  controller.listUserRepositories
+  controller.getUserRepositories
 );
 router.get(
   '/github/user/workflow/latest/:owner/:repo',
   accessAuthorizationMiddleware,
   githubSessionMiddleware,
   controller.getLatestWorkflowRun
+);
+router.get(
+  '/github/user/notifications',
+  accessAuthorizationMiddleware,
+  githubSessionMiddleware,
+  controller.getUserNotifications
 );
 
 export default router;

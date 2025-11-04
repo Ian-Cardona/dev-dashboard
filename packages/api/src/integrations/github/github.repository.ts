@@ -1,15 +1,14 @@
 import { IGithubIntegrationRepository } from './interfaces/igithub.repository';
-import { GithubRepository, GithubWorkflow } from '@dev-dashboard/shared';
+import {
+  GithubErrorResponse,
+  GithubNotification,
+  GithubRepository,
+  GithubWorkflow,
+  GithubWorkflowRunsResponse,
+  GithubWorkflowResponse,
+  GithubNotificationResponse,
+} from '@dev-dashboard/shared';
 import { ENV } from 'src/config/env';
-
-interface GithubErrorResponse {
-  message?: string;
-  error?: string;
-}
-
-interface GithubWorkflowRunsResponse {
-  workflow_runs?: GithubWorkflow[];
-}
 
 export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
   const userAgent = ENV.APP_NAME;
@@ -23,13 +22,7 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
     return `${url}?${searchParams.toString()}`;
   };
 
-  const githubFetch = async <T>(url: string, token?: string): Promise<T> => {
-    console.log(`Fetching URL: ${url}`);
-    if (token) {
-      console.log('Authorization token provided');
-    } else {
-      console.log('No authorization token provided');
-    }
+  const githubFetch = async <T>(url: string, token: string): Promise<T> => {
     const headers = {
       Accept: 'application/vnd.github+json',
       'User-Agent': userAgent,
@@ -45,10 +38,6 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
       const errorData = await response
         .json()
         .catch((): GithubErrorResponse => ({}));
-      console.error(
-        `GitHub API failed (status ${response.status}):`,
-        errorData
-      );
 
       throw new Error(
         `GitHub API failed (status ${response.status}): ${
@@ -61,54 +50,50 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
   };
 
   return {
-    async listUserRepositories(
-      accessToken?: string
+    async getUserRepositories(
+      accessToken: string
     ): Promise<GithubRepository[]> {
-      console.log(
-        `listUserRepositories called with accessToken: ${accessToken ? 'provided' : 'not provided'}`
-      );
       const url = buildUrl('/user/repos', {
         per_page: '100',
         sort: 'updated',
       });
-      console.log(`Constructed URL for listUserRepositories: ${url}`);
-
       return githubFetch<GithubRepository[]>(url, accessToken);
     },
 
-    async getRepository(
-      owner: string,
-      repo: string,
-      accessToken?: string
-    ): Promise<GithubRepository> {
-      console.log(`getRepository called with owner: ${owner}, repo: ${repo}`);
-      const url = buildUrl(`/repos/${owner}/${repo}`);
-      return githubFetch<GithubRepository>(url, accessToken);
-    },
-
     async getLatestWorkflowRun(
-      accessToken: string,
-      owner: string,
-      repo: string
-    ): Promise<GithubWorkflow | null> {
-      console.log(
-        `getLatestWorkflowRun called with owner: ${owner}, repo: ${repo}`
-      );
-
+      data: GithubWorkflow
+    ): Promise<GithubWorkflowResponse | null> {
       const params: Record<string, string> = { per_page: '1', page: '1' };
 
-      const url = buildUrl(`/repos/${owner}/${repo}/actions/runs`, params);
-
-      const data = await githubFetch<GithubWorkflowRunsResponse>(
-        url,
-        accessToken
+      const url = buildUrl(
+        `/repos/${data.owner}/${data.repo}/actions/runs`,
+        params
       );
-      console.table(data);
-      if (!data.workflow_runs || data.workflow_runs.length === 0) {
+
+      const response = await githubFetch<GithubWorkflowRunsResponse>(
+        url,
+        data.access_token
+      );
+
+      if (!response.workflow_runs || response.workflow_runs.length === 0) {
         return null;
       }
 
-      return data.workflow_runs[0];
+      return response.workflow_runs[0];
+    },
+
+    async getUserNotifications(
+      data: GithubNotification
+    ): Promise<GithubNotificationResponse[]> {
+      const params: Record<string, string> = {
+        all: data.all.toString(),
+        participating: data.participating.toString(),
+        per_page: data.per_page.toString(),
+      };
+
+      const url = buildUrl('/notifications', params);
+
+      return githubFetch<GithubNotificationResponse[]>(url, data.access_token);
     },
   };
 };
