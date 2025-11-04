@@ -42,6 +42,12 @@ export const githubRepositorySchema = z.object({
 });
 
 export const githubWorkflowSchema = z.object({
+  access_token: z.string().min(1).max(512),
+  owner: z.string().min(1).max(255),
+  repo: z.string().min(1).max(512),
+});
+
+export const githubWorkflowResponseSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1).max(200),
   status: z.enum(['queued', 'in_progress', 'completed']),
@@ -62,7 +68,18 @@ export const githubWorkflowSchema = z.object({
   headSha: z.string().length(40),
 });
 
+export const githubWorkflowRunsResponseSchema = z.object({
+  workflow_runs: z.array(githubWorkflowResponseSchema).optional(),
+});
+
 export const githubNotificationSchema = z.object({
+  access_token: z.string().min(1).max(512),
+  all: z.boolean().default(false),
+  participating: z.boolean().default(false),
+  per_page: z.number().min(1).max(100).default(100),
+});
+
+export const githubNotificationResponseSchema = z.object({
   id: z.string().min(1).max(100),
   unread: z.boolean(),
   reason: z.string().min(1).max(100),
@@ -86,4 +103,9 @@ export const githubProviderSchema = z.object({
   providerUserId: z.string().min(1).max(100),
   providerAccessTokenEncrypted: z.string().min(1).max(512),
   providerUpdatedAt: isoDatetimeSchema,
+});
+
+export const githubErrorResponseSchema = z.object({
+  message: z.string().min(1).optional(),
+  error: z.string().min(1).optional(),
 });
