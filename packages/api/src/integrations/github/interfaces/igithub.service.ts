@@ -1,8 +1,17 @@
+import {
+  GithubNotification,
+  GithubNotificationResponse,
+  GithubRepository,
+  GithubWorkflow,
+  GithubWorkflowResponse,
+} from '@dev-dashboard/shared';
+
 export interface IGithubIntegrationService {
-  listUserRepositories(username: string): Promise<unknown[]>;
+  getUserRepositories(accessToken: string): Promise<GithubRepository[]>;
   getLatestWorkflowRun(
-    accessToken: string,
-    owner: string,
-    repo: string
-  ): Promise<unknown | null>;
+    data: GithubWorkflow
+  ): Promise<GithubWorkflowResponse | null>;
+  getUserNotifications(
+    data: GithubNotification
+  ): Promise<GithubNotificationResponse[]>;
 }

@@ -1,8 +1,9 @@
 import { fetchGithubUserRepositories } from '../api/integrationsApi';
+import type { GithubRepository } from '@dev-dashboard/shared';
 import { useQuery } from '@tanstack/react-query';
 
-const useQueryFetchUserRepositories = () => {
-  return useQuery({
+const useQueryFetchGithubRepositories = () => {
+  return useQuery<GithubRepository[]>({
     queryKey: ['github', 'repositories'],
     queryFn: fetchGithubUserRepositories,
     enabled: true,
@@ -11,4 +12,4 @@ const useQueryFetchUserRepositories = () => {
   });
 };
 
-export default useQueryFetchUserRepositories;
+export default useQueryFetchGithubRepositories;

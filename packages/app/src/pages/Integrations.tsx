@@ -1,4 +1,4 @@
-import LatestWorkflowRun from '../features/integrations/components/LatestWorkflowRun';
+import GithubNotifications from '../features/integrations/components/GithubNotifications';
 import { Link, useLocation } from 'react-router';
 
 const IntegrationsPage = () => {
@@ -17,7 +17,7 @@ const IntegrationsPage = () => {
   const renderContent = () => {
     switch (currentTab) {
       case 'github':
-        return <LatestWorkflowRun />;
+        return <GithubNotifications />;
       default:
         return <div>Select an integration tab.</div>;
     }
