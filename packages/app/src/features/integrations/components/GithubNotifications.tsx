@@ -11,69 +11,65 @@ const GithubNotifications = () => {
 
   return (
     <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-      <div className="mb-8 flex items-center justify-between px-8">
-        <h2 className="text-3xl font-semibold">GitHub Notifications</h2>
+      <div className="mb-6 flex items-center justify-between px-6">
+        <h2 className="text-2xl font-semibold text-[var(--color-fg)]">
+          Notifications
+        </h2>
       </div>
-      <div className="flex-1 overflow-hidden rounded-b-4xl px-8">
-        <div className="flex h-full flex-col items-start justify-center overflow-y-auto">
+      <div className="flex-1 overflow-y-auto rounded-b-4xl px-6 pb-6">
+        <div className="flex flex-col items-center justify-center">
           {notificationsLoading && (
-            <div className="flex h-full w-full items-center justify-center">
-              <p>Loading notifications...</p>
-            </div>
+            <p className="text-[var(--color-muted)]">
+              Loading notifications...
+            </p>
           )}
           {notificationsError && (
-            <div className="flex h-full w-full items-center justify-center">
-              <p className="text-red-600">Error loading notifications</p>
-            </div>
+            <p className="text-[var(--color-muted)]">
+              Error loading notifications
+            </p>
           )}
           {!notificationsLoading &&
             !notificationsError &&
             notifications &&
             notifications.length === 0 && (
-              <div className="flex h-full w-full items-center justify-center">
-                <p>No notifications found</p>
-              </div>
+              <p className="text-[var(--color-muted)]">
+                No notifications found
+              </p>
             )}
           {!notificationsLoading &&
             !notificationsError &&
             notifications &&
             notifications.length > 0 && (
-              <div className="w-full space-y-4">
+              <div className="w-full space-y-3 rounded-2xl border border-[var(--color-muted)] bg-[var(--color-surface)] p-4">
                 {notifications.map(
                   (notification: GithubNotificationResponse) => (
                     <div
                       key={notification.id}
-                      className="w-full rounded-2xl border bg-white p-6 shadow-sm"
+                      className="cursor-pointer rounded-lg border border-transparent p-4 hover:border-[var(--color-muted)]"
                     >
-                      <p className="mb-2 text-sm text-gray-500">
+                      <p className="mb-1 text-sm text-[var(--color-muted)]">
                         Repository:{' '}
-                        <span className="font-medium">
-                          {notification.repository.fullName}
+                        <span className="font-medium text-[var(--color-fg)]">
+                          {notification.repository.full_name}
                         </span>
                       </p>
-                      <h3 className="mb-2 text-2xl font-semibold">
+                      <h3 className="mb-1 text-lg font-semibold text-[var(--color-fg)]">
                         {notification.subject.title}
                       </h3>
-                      <div className="mb-4">
-                        <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-800">
+                      <div className="mb-2">
+                        <span className="bg-opacity-10 inline-block rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-xs font-semibold text-[var(--color-muted)]">
                           {notification.subject.type}
                         </span>
                       </div>
-                      <p className="mb-4 text-gray-700">
-                        <span className="font-medium">Reason:</span>{' '}
+                      <p className="mb-2 text-sm text-[var(--color-muted)]">
+                        <span className="font-medium text-[var(--color-fg)]">
+                          Reason:
+                        </span>{' '}
                         {notification.reason}
                       </p>
-                      <p className="mb-6 text-sm text-gray-500">
+                      <p className="text-xs text-[var(--color-muted)]">
                         Updated: {timeSince(notification.updatedAt)}
                       </p>
-                      {notification.subject.url && (
-                        <button
-                          type="button"
-                          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                        >
-                          View Details
-                        </button>
-                      )}
                     </div>
                   )
                 )}
