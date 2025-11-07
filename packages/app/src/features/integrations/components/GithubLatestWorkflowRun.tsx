@@ -54,11 +54,11 @@ const GithubLatestWorkflowRun = () => {
     workflows && workflows.length > 0 ? workflows[0] : null;
 
   return (
-    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-      <div className="mb-8 flex items-center justify-between px-8">
-        <h2 className="text-3xl font-semibold">Latest Workflow Run</h2>
+    <div className="flex min-w-full flex-col rounded-2xl border bg-[var(--color-surface)] lg:flex-1">
+      <div className="p-6 pb-4">
+        <h2 className="text-2xl font-semibold">Latest Workflow Run</h2>
       </div>
-      <div className="mb-6 px-8">
+      <div className="px-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         {repositoriesLoading && <p>Loading repositories...</p>}
         {repositoriesError && (
           <p className="text-red-600">Error loading repositories</p>
@@ -67,7 +67,7 @@ const GithubLatestWorkflowRun = () => {
           <select
             value={selectedRepo ?? ''}
             onChange={handleRepoChange}
-            className="rounded-md border p-2"
+            className="mb-4 rounded-md border p-2"
           >
             <option value="" disabled>
               Select a repository
@@ -82,82 +82,65 @@ const GithubLatestWorkflowRun = () => {
         {repositories && repositories.length === 0 && (
           <p>No repositories found</p>
         )}
-      </div>
-      <div className="flex-1 overflow-hidden rounded-b-4xl px-8">
-        <div className="flex h-full flex-col items-start justify-center overflow-y-auto">
-          {!selectedRepo && !repositoriesLoading && (
-            <p>Please select a repository to see the latest workflow run.</p>
-          )}
-          {selectedRepo && workflowsLoading && (
-            <div className="flex h-full w-full items-center justify-center">
-              <p>Loading latest workflow run...</p>
-            </div>
-          )}
-          {selectedRepo && workflowsError && (
-            <div className="flex h-full w-full items-center justify-center">
-              <p className="text-red-600">Error loading workflow run</p>
-            </div>
-          )}
-          {selectedRepo &&
-            !workflowsLoading &&
-            !workflowsError &&
-            !latestWorkflow && (
-              <div className="flex h-full w-full items-center justify-center">
-                <p>No workflow runs found</p>
-              </div>
-            )}
-          {selectedRepo && latestWorkflow && (
-            <div className="w-full max-w-2xl rounded-2xl border bg-white p-6 shadow-sm">
-              <p className="mb-2 text-sm text-gray-500">
-                Repository: <span className="font-medium">{selectedRepo}</span>
-              </p>
-              <h3 className="mb-2 text-2xl font-semibold">
-                {latestWorkflow.name}
-              </h3>
-              <div className="mb-4">
-                <span
-                  className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${
-                    statusColors[latestWorkflow.status.toLowerCase()] ||
-                    'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {latestWorkflow.status.charAt(0).toUpperCase() +
-                    latestWorkflow.status.slice(1)}
-                </span>
-              </div>
-              <p className="mb-1 text-gray-700">
-                <span className="font-medium">Commit:</span>{' '}
-                {latestWorkflow.htmlUrl ? (
-                  <a
-                    href={latestWorkflow.htmlUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    {latestWorkflow.headSha.slice(0, 7)}
-                  </a>
-                ) : (
-                  latestWorkflow.headSha.slice(0, 7)
-                )}
-              </p>
-              <p className="mb-4 text-gray-700">
-                <span className="font-medium">Branch:</span>{' '}
-                {latestWorkflow.headBranch || 'N/A'}
-              </p>
-              <p className="mb-6 text-sm text-gray-500">
-                Last run: {timeSince(latestWorkflow.updatedAt)}
-              </p>
-              <button
-                type="button"
-                className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+
+        {!selectedRepo && !repositoriesLoading && (
+          <p>Please select a repository to see the latest workflow run.</p>
+        )}
+        {selectedRepo && workflowsLoading && (
+          <p>Loading latest workflow run...</p>
+        )}
+        {selectedRepo && workflowsError && (
+          <p className="text-red-600">Error loading workflow run</p>
+        )}
+        {selectedRepo &&
+          !workflowsLoading &&
+          !workflowsError &&
+          !latestWorkflow && <p>No workflow runs found</p>}
+        {selectedRepo && latestWorkflow && (
+          <div className="mb-4 overflow-auto rounded-2xl border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
+            <p className="mb-1 text-sm text-[var(--color-muted)]">
+              Repository: <span className="font-medium">{selectedRepo}</span>
+            </p>
+            <h3 className="mb-2 text-lg font-semibold">
+              {latestWorkflow.name}
+            </h3>
+            <div className="mb-3">
+              <span
+                className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${
+                  statusColors[latestWorkflow.status.toLowerCase()] ||
+                  'bg-gray-100 text-gray-800'
+                }`}
               >
-                View Logs
-              </button>
+                {latestWorkflow.status.charAt(0).toUpperCase() +
+                  latestWorkflow.status.slice(1)}
+              </span>
             </div>
-          )}
-        </div>
+            <p className="mb-1 text-sm text-[var(--color-muted)]">
+              <span className="font-medium">Commit:</span>{' '}
+              {latestWorkflow.html_url ? (
+                <a
+                  href={latestWorkflow.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--color-primary)] hover:underline"
+                >
+                  {latestWorkflow.head_sha.slice(0, 7)}
+                </a>
+              ) : (
+                latestWorkflow.head_sha.slice(0, 7)
+              )}
+            </p>
+            <p className="mb-1 text-sm text-[var(--color-muted)]">
+              <span className="font-medium">Branch:</span>{' '}
+              {latestWorkflow.head_branch || 'N/A'}
+            </p>
+            <p className="text-xs text-[var(--color-muted)]">
+              Last run: {timeSince(latestWorkflow.updated_at)}
+            </p>
+          </div>
+        )}
       </div>
-    </section>
+    </div>
   );
 };
 

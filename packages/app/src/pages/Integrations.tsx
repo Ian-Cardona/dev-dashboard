@@ -1,4 +1,4 @@
-import GithubNotifications from '../features/integrations/components/GithubNotifications';
+import GithubIntegrations from '../features/integrations/components/GithubIntegrations';
 import { Link, useLocation } from 'react-router';
 
 const IntegrationsPage = () => {
@@ -17,7 +17,7 @@ const IntegrationsPage = () => {
   const renderContent = () => {
     switch (currentTab) {
       case 'github':
-        return <GithubNotifications />;
+        return <GithubIntegrations />;
       default:
         return <div>Select an integration tab.</div>;
     }

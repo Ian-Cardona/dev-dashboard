@@ -30,13 +30,13 @@ export const githubUserSchema = z.object({
 export const githubRepositorySchema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1).max(200),
-  fullName: z.string().min(1).max(300),
+  full_name: z.string().min(1).max(300),
   owner: z.string().min(1).max(100),
   private: z.boolean(),
-  htmlUrl: urlSchema,
+  html_url: urlSchema,
   description: z.string().max(500).optional(),
-  defaultBranch: z.string().min(1).max(100),
-  openIssuesCount: z.number().int().nonnegative(),
+  default_branch: z.string().min(1).max(100),
+  open_issues_count: z.number().int().nonnegative(),
   fork: z.boolean(),
   archived: z.boolean(),
 });
@@ -61,11 +61,11 @@ export const githubWorkflowResponseSchema = z.object({
       'action_required',
     ])
     .nullable(),
-  htmlUrl: urlSchema,
-  createdAt: isoDatetimeSchema,
-  updatedAt: isoDatetimeSchema,
-  headBranch: z.string().min(1).max(100),
-  headSha: z.string().length(40),
+  html_url: urlSchema,
+  created_at: isoDatetimeSchema,
+  updated_at: isoDatetimeSchema,
+  head_branch: z.string().min(1).max(100),
+  head_sha: z.string().length(40),
 });
 
 export const githubWorkflowRunsResponseSchema = z.object({
@@ -86,8 +86,8 @@ export const githubNotificationResponseSchema = z.object({
   repository: z.object({
     id: z.number().int().positive(),
     name: z.string().min(1).max(200),
-    fullName: z.string().min(1).max(300),
-    htmlUrl: urlSchema,
+    full_name: z.string().min(1).max(300),
+    html_url: urlSchema,
   }),
   subject: z.object({
     title: z.string().min(1).max(300),
