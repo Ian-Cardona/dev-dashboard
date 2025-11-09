@@ -1,3 +1,4 @@
+import { useMutateLogout } from '../../hooks/useMutateLogout';
 import { useMutateUpdateUserProfile } from '../../hooks/useMutateUpdateUserProfile';
 import { useQueryFetchUserProfile } from '../../hooks/useQueryFetchUserProfile';
 import {
@@ -12,6 +13,7 @@ const SettingsAccount = () => {
   const { data: userProfile } = useQueryFetchUserProfile();
   const updateProfile = useMutateUpdateUserProfile();
   const queryClient = useQueryClient();
+  const logoutMutation = useMutateLogout();
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [firstName, setFirstName] = useState(userProfile?.firstName ?? '');
@@ -48,6 +50,17 @@ const SettingsAccount = () => {
       setIsDeleting(false);
       setShowConfirm(false);
     }, 2000);
+  };
+
+  const handleLogout = async () => {
+    setIsPending(true);
+    try {
+      await logoutMutation.mutateAsync(); // Use the mutation object
+    } catch (err) {
+      console.error('Logout failed', err);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   const hasChanges =
@@ -132,6 +145,26 @@ const SettingsAccount = () => {
                   <div className="text-base font-medium text-[var(--color-fg)]">
                     {userProfile?.email}
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-4xl border bg-[var(--color-surface)] p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="mb-2 text-sm font-semibold text-[var(--color-fg)]">
+                    Logout
+                  </div>
+                  <div className="mb-4 text-sm text-[var(--color-accent)]">
+                    Sign out from this device.
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    disabled={isPending}
+                    className="inline-flex items-center justify-center rounded-4xl border px-6 py-2 text-sm font-medium transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white disabled:opacity-50"
+                  >
+                    {isPending ? 'Signing out...' : 'Logout'}
+                  </button>
                 </div>
               </div>
             </div>

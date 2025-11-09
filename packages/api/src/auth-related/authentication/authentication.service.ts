@@ -270,6 +270,7 @@ export const AuthenticationService = (
       try {
         const token = await refreshTokenService.findById(refreshTokenId);
         if (token) {
+          console.table(token);
           await refreshTokenService.tombstone(token);
         }
       } catch (error) {
