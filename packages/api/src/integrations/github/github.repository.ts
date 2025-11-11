@@ -93,7 +93,31 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
 
       const url = buildUrl('/notifications', params);
 
-      return githubFetch<GithubNotificationResponse[]>(url, data.access_token);
+      const notifications = await githubFetch<GithubNotificationResponse[]>(
+        url,
+        data.access_token
+      );
+
+      return notifications.map(
+        (n): GithubNotificationResponse => ({
+          id: n.id,
+          unread: n.unread,
+          reason: n.reason,
+          updated_at: n.updated_at,
+          repository: {
+            id: n.repository.id,
+            name: n.repository.name,
+            full_name: n.repository.full_name,
+            html_url: n.repository.html_url,
+          },
+          subject: {
+            title: n.subject.title,
+            type: n.subject.type,
+            url: n.subject.url,
+            latest_comment_url: n.subject.latest_comment_url,
+          },
+        })
+      );
     },
   };
 };
