@@ -93,9 +93,9 @@ export const githubNotificationResponseSchema = z.object({
     title: z.string().min(1).max(300),
     type: z.string().min(1).max(100),
     url: urlSchema,
-    latestCommentUrl: urlSchema.optional(),
+    latest_comment_url: urlSchema.optional(),
   }),
-  updatedAt: isoDatetimeSchema,
+  updated_at: isoDatetimeSchema,
 });
 
 export const githubProviderSchema = z.object({

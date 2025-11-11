@@ -99,7 +99,7 @@ const GithubLatestWorkflowRun = () => {
         {selectedRepo && latestWorkflow && (
           <div className="mb-4 overflow-auto rounded-2xl border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
             <p className="mb-1 text-sm text-[var(--color-muted)]">
-              Repository: <span className="font-medium">{selectedRepo}</span>
+              <span className="font-medium">{selectedRepo}</span>
             </p>
             <h3 className="mb-2 text-lg font-semibold">
               {latestWorkflow.name}
