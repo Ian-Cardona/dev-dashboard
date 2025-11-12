@@ -49,6 +49,17 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
     return response.json();
   };
 
+  const formatSubjectType = (type: string): string => {
+    return type.replace(/([A-Z])/g, ' $1').trim();
+  };
+
+  const formatReason = (reason: string): string => {
+    return reason
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return {
     async getUserRepositories(
       accessToken: string
@@ -102,7 +113,7 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
         (n): GithubNotificationResponse => ({
           id: n.id,
           unread: n.unread,
-          reason: n.reason,
+          reason: formatReason(n.reason),
           updated_at: n.updated_at,
           repository: {
             id: n.repository.id,
@@ -112,7 +123,7 @@ export const GithubIntegrationRepository = (): IGithubIntegrationRepository => {
           },
           subject: {
             title: n.subject.title,
-            type: n.subject.type,
+            type: formatSubjectType(n.subject.type),
             url: n.subject.url,
             latest_comment_url: n.subject.latest_comment_url,
           },

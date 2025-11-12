@@ -8,10 +8,6 @@ interface GithubNotificationsProps {
   onClose: () => void;
 }
 
-/**
- * Converts a GitHub API URL (from a notification) into a clickable HTML URL.
- * It correctly handles the difference between Issues and Pull Requests.
- */
 const getSubjectHtmlUrl = (
   notification: GithubNotificationResponse
 ): string => {
@@ -20,13 +16,10 @@ const getSubjectHtmlUrl = (
     'github.com'
   );
 
-  // API URL for PRs is often .../issues/123, so we need to
-  // use the subject.type to convert it to .../pull/123
   if (notification.subject.type === 'PullRequest') {
     url = url.replace('/issues/', '/pull/');
   }
 
-  // Also handle the format from your example (e.g., .../pulls/123)
   url = url.replace('/pulls/', '/pull/');
 
   return url;
@@ -72,7 +65,6 @@ const GithubNotifications = ({
             notifications &&
             notifications.length > 0 &&
             notifications.map((notification: GithubNotificationResponse) => {
-              // --- 1. Get the correct web URL ---
               const subjectHtmlUrl = getSubjectHtmlUrl(notification);
 
               return (
@@ -81,7 +73,6 @@ const GithubNotifications = ({
                   className="rounded-2xl border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
                 >
                   <p className="mb-1 truncate text-sm text-[var(--color-muted)]">
-                    {/* --- "Repository:" label removed --- */}
                     <a
                       href={notification.repository.html_url}
                       target="_blank"
@@ -93,7 +84,7 @@ const GithubNotifications = ({
                   </p>
 
                   <a
-                    href={subjectHtmlUrl} // <-- 1. Fixed URL applied here
+                    href={subjectHtmlUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -102,7 +93,6 @@ const GithubNotifications = ({
                     </h3>
                   </a>
 
-                  {/* --- 2. Chip restyled but kept in original position --- */}
                   <div className="mb-2">
                     <span className="inline-block rounded-full bg-[var(--color-primary)]/20 px-2.5 py-0.5 text-xs font-semibold text-[var(--color-primary)]">
                       {notification.subject.type}
