@@ -1,5 +1,5 @@
 import { useMutateLogout } from '../../hooks/useMutateLogout';
-import { useMutateUpdateUserProfile } from '../../hooks/useMutateUpdateUserProfile';
+// import { useMutateUpdateUserProfile } from '../../hooks/useMutateUpdateUserProfile';
 import { useQueryFetchUserProfile } from '../../hooks/useQueryFetchUserProfile';
 import {
   CheckIcon,
@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 const SettingsAccount = () => {
   const { data: userProfile } = useQueryFetchUserProfile();
-  const updateProfile = useMutateUpdateUserProfile();
+  // const updateProfile = useMutateUpdateUserProfile();
   const queryClient = useQueryClient();
   const logoutMutation = useMutateLogout();
 
@@ -29,7 +29,7 @@ const SettingsAccount = () => {
   const handleSave = async () => {
     setIsPending(true);
     try {
-      await updateProfile.mutateAsync({ firstName, lastName });
+      // await updateProfile.mutateAsync({ firstName, lastName });
       queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
       setIsEditMode(false);
     } finally {

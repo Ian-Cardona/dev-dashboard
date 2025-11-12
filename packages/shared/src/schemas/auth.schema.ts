@@ -106,5 +106,5 @@ export const authorizationJwtSchema = z.object({
 
 export const cookieUserSchema = z.object({
   userId: uuidSchema,
-  email: emailSchema,
+  email: emailSchema.optional(),
 });
