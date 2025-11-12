@@ -1,7 +1,6 @@
 import ResolutionsTableHeader from './ResolutionsTableHeader';
 import ResolutionsTableRow from './ResolutionsTableRow';
 import type { TodoResolution } from '@dev-dashboard/shared';
-import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface ResolutionsTableProps {
   isEditMode?: boolean;
