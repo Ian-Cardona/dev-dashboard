@@ -4,7 +4,6 @@ packages/*/out
 packages/*/*/__tests__
 
 TODO
-README.md
 
 dist/
 build/
