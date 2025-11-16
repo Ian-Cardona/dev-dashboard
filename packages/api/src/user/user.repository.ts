@@ -111,6 +111,7 @@ export const UserRepository = (
     },
 
     async findByEmail(email: string): Promise<User | null> {
+      console.log('Attempting to find user by email:', email);
       const result = await docClient.send(
         new QueryCommand({
           TableName: USERS_TABLE,
@@ -119,6 +120,8 @@ export const UserRepository = (
           ExpressionAttributeValues: { ':email': email },
         })
       );
+
+      console.log('Fetched user:', result);
 
       return (result.Items?.[0] as User) ?? null;
     },

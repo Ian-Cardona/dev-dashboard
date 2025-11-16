@@ -7,3 +7,11 @@ dist
 .gitignore
 .DS_Store
 *.log
+
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+**/.env
+**/.env.*
