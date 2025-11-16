@@ -145,7 +145,9 @@ export const AuthenticationService = (
         let user;
         try {
           user = await userService.findByEmailPrivate(data.email);
+          console.log('Service found user:', user);
         } catch (error) {
+          console.log('Error finding user by email:', error);
           if (error instanceof NotFoundError) {
             throw new UnauthorizedError('Invalid email or password');
           }
