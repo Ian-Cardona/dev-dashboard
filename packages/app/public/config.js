@@ -15,4 +15,22 @@ window.__APP_CONFIG__ = {
     registration_token: 'regintkn',
     registration_id: 'reginid',
   },
+  API_GITHUB_ENDPOINTS: {
+    authorize_link: 'github/authorize/link',
+  },
+  REGISTER_INIT_ENDPOINTS: {
+    email_session: '/init/email/session',
+    oauth_session: '/init/oauth/session',
+    email: '/init/email',
+    github: '/init/github',
+  },
+  AUTHENTICATION_ENDPOINTS: {
+    register_email: '/auth/register/email',
+    register_oauth: '/auth/register/oauth',
+    login_email: '/auth/login/email',
+    login_oauth: '/auth/login/oauth',
+    refresh: '/auth/refresh',
+    logout: '/auth/logout',
+    verify: '/auth/verify',
+  },
 };
