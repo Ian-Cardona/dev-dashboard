@@ -1,13 +1,13 @@
 import LoginForm from '../features/login/components/LoginForm';
 import { useMutateLoginOAuth } from '../features/login/hooks/useMutateLoginOAuth';
 import { useOAuthErrorFromCookie } from '../oauth/hooks/useOauthErrorFromCookie.ts';
+import { getOAuthSuccessCookieKeys } from '../utils/configs/getConfig.ts';
 import { getAndClearCookieValue } from '../utils/document/getAndClearCookieValue';
-import { OAUTH_SUCCESS_COOKIE_KEYS } from '../utils/document/oauthCookies.ts';
 import { useEffect, useRef, useState } from 'react';
 
 const LoginPage = () => {
   const mutation = useMutateLoginOAuth();
-
+  const oauthSuccessCookieKeys = getOAuthSuccessCookieKeys();
   const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
   const [displayError, setDisplayError] = useState<string | null>(null);
@@ -21,10 +21,10 @@ const LoginPage = () => {
   }, [oauthErrorFromCookie]);
 
   useEffect(() => {
-    const provider = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.provider);
-    const id = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.id);
-    const login = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.login);
-    const enc = getAndClearCookieValue(OAUTH_SUCCESS_COOKIE_KEYS.enc);
+    const provider = getAndClearCookieValue(oauthSuccessCookieKeys.provider);
+    const id = getAndClearCookieValue(oauthSuccessCookieKeys.id);
+    const login = getAndClearCookieValue(oauthSuccessCookieKeys.login);
+    const enc = getAndClearCookieValue(oauthSuccessCookieKeys.enc);
 
     if (oauthErrorFromCookie) {
       return;

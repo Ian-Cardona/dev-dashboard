@@ -1,5 +1,5 @@
+import { getOAuthErrorCookieKeys } from '../../utils/configs/getConfig';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
-import { OAUTH_ERROR_COOKIE_KEYS } from '../../utils/document/oauthCookies';
 import { useState, useEffect } from 'react';
 
 const OAUTH_ERROR_MESSAGES: { [key: string]: string } = {
@@ -14,10 +14,11 @@ const OAUTH_ERROR_MESSAGES: { [key: string]: string } = {
 };
 
 export const useOAuthErrorFromCookie = (): string | null => {
+  const oauthErrorCookieKeys = getOAuthErrorCookieKeys();
   const [oauthError, setOauthError] = useState<string | null>(null);
 
   useEffect(() => {
-    const errorCode = getAndClearCookieValue(OAUTH_ERROR_COOKIE_KEYS.error);
+    const errorCode = getAndClearCookieValue(oauthErrorCookieKeys.error);
 
     if (errorCode) {
       const message =

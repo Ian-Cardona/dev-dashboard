@@ -1,9 +1,14 @@
 import { publicClient } from '../../lib/api';
+import { getConfig } from '../../utils/configs/getConfig';
 import type { GithubAuthorizeUri } from '@dev-dashboard/shared';
+
+const getGithubEndpoints = () => getConfig().API_GITHUB_ENDPOINTS;
 
 export const fetchGithubOAuthLink = async (
   flow: 'register' | 'login'
 ): Promise<GithubAuthorizeUri> => {
-  const response = await publicClient.get(`github/authorize/link?flow=${flow}`);
+  const response = await publicClient.get(
+    `${getGithubEndpoints().authorize_link}?flow=${flow}`
+  );
   return response.data;
 };
