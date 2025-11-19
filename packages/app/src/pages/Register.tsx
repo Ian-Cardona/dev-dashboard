@@ -3,8 +3,8 @@ import RegisterForm from '../features/register/components/register/RegisterForm'
 import RegisterInfoPanel from '../features/register/components/register/RegisterInfoPanel';
 import useQueryFetchOAuthSession from '../features/register/hooks/useQueryFetchOAuthSession';
 import { useOAuthErrorFromCookie } from '../oauth/hooks/useOauthErrorFromCookie.ts';
+import { getRegInitCookieKeys } from '../utils/configs/getConfig.ts';
 import { getAndClearCookieValue } from '../utils/document/getAndClearCookieValue.ts';
-import { REG_INIT_COOKIE_KEYS } from '../utils/document/oauthCookies.ts';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
@@ -12,13 +12,14 @@ const RegisterPage = () => {
   const location = useLocation();
   const modalErrorMessage = location.state?.error;
 
+  const oauthRegInitCookieKeys = getRegInitCookieKeys();
   const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
   const [displayError, setDisplayError] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
 
   const [sessionId] = useState(() =>
-    getAndClearCookieValue(`${REG_INIT_COOKIE_KEYS.registration_id}`)
+    getAndClearCookieValue(`${oauthRegInitCookieKeys.registration_id}`)
   );
 
   useQueryFetchOAuthSession(sessionId);

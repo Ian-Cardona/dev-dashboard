@@ -1,4 +1,3 @@
- 
 import 'dotenv/config';
 
 import apiKeysRouter from './api-keys/api-keys.route';
@@ -12,11 +11,22 @@ import githubRouter from './oauth/github/github.route';
 import todoRouter from './todos/todo.route';
 import userRouter from './user/user.route';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { ENV } from './config/env';
 
 const app = express();
+
+console.log('CORS allowing origin:', ENV.APP_BASE_URL);
+
+app.use(cors({
+  origin: ENV.APP_BASE_URL || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-App'],
+}));
 
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 app.use(
