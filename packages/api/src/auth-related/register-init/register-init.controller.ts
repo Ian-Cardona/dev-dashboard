@@ -125,16 +125,16 @@ export const RegisterInitController = (
 
         res.cookie('regintkn', result.registrationToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
+          secure: false,
+          sameSite: 'lax',
           path: '/',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
         res.cookie('reginid', result.registrationId, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'strict',
+          secure: false,
+          sameSite: 'lax',
           path: '/',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
