@@ -38,7 +38,7 @@ export const AuthenticationController = (
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -46,7 +46,7 @@ export const AuthenticationController = (
         res.cookie('rt2', result.refreshTokenId, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
@@ -76,7 +76,7 @@ export const AuthenticationController = (
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -84,7 +84,7 @@ export const AuthenticationController = (
         res.cookie('rt2', result.refreshTokenId, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
@@ -114,7 +114,7 @@ export const AuthenticationController = (
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -122,7 +122,7 @@ export const AuthenticationController = (
         res.cookie('rt2', result.refreshTokenId, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
@@ -149,7 +149,7 @@ export const AuthenticationController = (
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -157,7 +157,7 @@ export const AuthenticationController = (
         res.cookie('rt2', result.refreshTokenId, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
@@ -191,7 +191,7 @@ export const AuthenticationController = (
         res.cookie('rt1', result.refreshTokenPlain, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -199,7 +199,7 @@ export const AuthenticationController = (
         res.cookie('rt2', result.refreshTokenId, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 

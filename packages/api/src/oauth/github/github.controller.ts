@@ -39,8 +39,9 @@ export const GithubController = (
           } catch {
             res.clearCookie('gh_o_e');
             res.cookie('gh_o_e', 'invalid_state', {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
@@ -54,8 +55,9 @@ export const GithubController = (
           console.error('Error during token exchange:', error);
           res.clearCookie('gh_o_e');
           res.cookie('gh_o_e', 'oauth_failed', {
-            httpOnly: false,
-            sameSite: 'lax',
+            secure: true,
+            httpOnly: true,
+            sameSite: 'none',
             maxAge: 300000,
           });
           return res.redirect(`${ENV.APP_BASE_URL}/login`);
@@ -77,15 +79,17 @@ export const GithubController = (
 
             res.clearCookie('reginid');
             res.cookie('reginid', token.registrationId, {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
 
             res.clearCookie('regintkn');
             res.cookie('regintkn', token.registrationToken, {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
 
@@ -94,8 +98,9 @@ export const GithubController = (
             if (error instanceof ConflictError) {
               res.clearCookie('gh_o_e');
               res.cookie('gh_o_e', 'conflict', {
-                httpOnly: false,
-                sameSite: 'lax',
+                secure: true,
+                httpOnly: true,
+                sameSite: 'none',
                 maxAge: 300000,
               });
               return res.redirect(`${ENV.APP_BASE_URL}/register`);
@@ -103,8 +108,9 @@ export const GithubController = (
 
             res.clearCookie('gh_o_e');
             res.cookie('gh_o_e', 'oauth_failed', {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/register`);
@@ -126,23 +132,27 @@ export const GithubController = (
             res.clearCookie('gh_o_enc');
 
             res.cookie('gh_o_p', 'github', {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
             res.cookie('gh_o_i', githubUser.id.toString(), {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
             res.cookie('gh_o_l', githubUser.login, {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
             res.cookie('gh_o_enc', encryptedToken, {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
@@ -150,8 +160,8 @@ export const GithubController = (
             if (error instanceof NotFoundError) {
               res.clearCookie('gh_o_e');
               res.cookie('gh_o_e', 'user_not_found', {
-                httpOnly: false,
-                sameSite: 'lax',
+                httpOnly: true,
+                sameSite: 'none',
                 maxAge: 300000,
               });
               return res.redirect(`${ENV.APP_BASE_URL}/register`);
@@ -159,8 +169,9 @@ export const GithubController = (
 
             res.clearCookie('gh_o_e');
             res.cookie('gh_o_e', 'oauth_failed', {
-              httpOnly: false,
-              sameSite: 'lax',
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
               maxAge: 300000,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
