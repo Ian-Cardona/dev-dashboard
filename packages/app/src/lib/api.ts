@@ -9,7 +9,7 @@ export const publicClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    'X-Client-App': getClientAppName(),
+    // 'X-Client-App': getClientAppName(),
   },
   withCredentials: true,
 });
@@ -19,7 +19,7 @@ export const protectedClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
-    'X-Client-App': getClientAppName(),
+    // 'X-Client-App': getClientAppName(),
   },
   withCredentials: true,
 });

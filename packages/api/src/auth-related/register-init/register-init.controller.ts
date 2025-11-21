@@ -93,7 +93,7 @@ export const RegisterInitController = (
         res.cookie('regintkn', result.registrationToken, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: '/',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -101,7 +101,7 @@ export const RegisterInitController = (
         res.cookie('esi1', result.registrationId, {
           httpOnly: false,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: '/',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -126,7 +126,7 @@ export const RegisterInitController = (
         res.cookie('regintkn', result.registrationToken, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: '/',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
@@ -134,7 +134,7 @@ export const RegisterInitController = (
         res.cookie('reginid', result.registrationId, {
           httpOnly: true,
           secure: true,
-          sameSite: 'strict',
+          sameSite: 'none',
           path: '/',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
