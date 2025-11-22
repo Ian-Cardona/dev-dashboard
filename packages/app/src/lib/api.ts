@@ -1,8 +1,8 @@
 import { getApiUrl, getClientAppName } from '../utils/configs/getConfig';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
-const baseURL = getApiUrl();
-// const baseURL = import.meta.env.VITE_API_URL || '/api';
+// const baseURL = getApiUrl();
+const baseURL = import.meta.env.VITE_API_URL || '/api';
 
 export const publicClient = axios.create({
   baseURL,
