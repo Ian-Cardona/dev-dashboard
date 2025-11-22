@@ -27,11 +27,8 @@ export const GithubController = (
       try {
         const { code, state } = githubCallbackRequestSchema.parse(req.query);
 
-        if (typeof code !== 'string') {
-          throw new ConflictError('Invalid code');
-        }
-
         let flow: 'login' | 'register' = 'login';
+
         if (state) {
           try {
             const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
@@ -40,7 +37,7 @@ export const GithubController = (
             res.clearCookie('gh_o_e');
             res.cookie('gh_o_e', 'invalid_state', {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
@@ -56,7 +53,7 @@ export const GithubController = (
           res.clearCookie('gh_o_e');
           res.cookie('gh_o_e', 'oauth_failed', {
             secure: true,
-            httpOnly: true,
+            httpOnly: false,
             sameSite: 'none',
             maxAge: 300000,
           });
@@ -80,7 +77,7 @@ export const GithubController = (
             res.clearCookie('reginid');
             res.cookie('reginid', token.registrationId, {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
@@ -88,7 +85,7 @@ export const GithubController = (
             res.clearCookie('regintkn');
             res.cookie('regintkn', token.registrationToken, {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
@@ -99,7 +96,7 @@ export const GithubController = (
               res.clearCookie('gh_o_e');
               res.cookie('gh_o_e', 'conflict', {
                 secure: true,
-                httpOnly: true,
+                httpOnly: false,
                 sameSite: 'none',
                 maxAge: 300000,
               });
@@ -109,7 +106,7 @@ export const GithubController = (
             res.clearCookie('gh_o_e');
             res.cookie('gh_o_e', 'oauth_failed', {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
@@ -133,34 +130,36 @@ export const GithubController = (
 
             res.cookie('gh_o_p', 'github', {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
             res.cookie('gh_o_i', githubUser.id.toString(), {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
             res.cookie('gh_o_l', githubUser.login, {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
             res.cookie('gh_o_enc', encryptedToken, {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
           } catch (error) {
             if (error instanceof NotFoundError) {
+              console.log('Error during login flow:', error);
               res.clearCookie('gh_o_e');
               res.cookie('gh_o_e', 'user_not_found', {
-                httpOnly: true,
+                secure: true,
+                httpOnly: false,
                 sameSite: 'none',
                 maxAge: 300000,
               });
@@ -170,7 +169,7 @@ export const GithubController = (
             res.clearCookie('gh_o_e');
             res.cookie('gh_o_e', 'oauth_failed', {
               secure: true,
-              httpOnly: true,
+              httpOnly: false,
               sameSite: 'none',
               maxAge: 300000,
             });
@@ -179,6 +178,7 @@ export const GithubController = (
         }
         throw new Error('Invalid OAuth flow');
       } catch (error) {
+        console.error('Error in GitHub OAuth callback:', error);
         handleValidationError(
           error,
           res,

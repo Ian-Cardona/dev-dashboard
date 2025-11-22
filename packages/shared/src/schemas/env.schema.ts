@@ -60,5 +60,5 @@ export const envSchema = z.object({
 
   REDIS_URL: z.url().default('redis://localhost:6379/0'),
 
-  CLIENT_APP_NAME: z.string().default('DevDashboardUI'),
+  CLIENT_APP_NAME: z.string().default('DevDashboardApp'),
 });

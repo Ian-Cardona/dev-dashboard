@@ -19,13 +19,11 @@ import { ENV } from './config/env';
 
 const app = express();
 
-console.log('CORS allowing origin:', ENV.APP_BASE_URL);
-
 app.use(cors({
-  origin: ENV.APP_BASE_URL || 'http://localhost:5173',
+  origin: ENV.APP_BASE_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-App'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
