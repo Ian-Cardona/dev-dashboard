@@ -4,21 +4,29 @@ import useQueryPendingResolutions from '../hooks/useQueryPendingResolutions';
 import ResolutionsTable from './resolutions/ResolutionsTable';
 import { type CreateResolution } from '@dev-dashboard/shared';
 import {
+  CheckCircleIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronUpDownIcon,
   ChevronUpIcon,
+  ExclamationTriangleIcon,
   InformationCircleIcon,
   PencilSquareIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { useQueryClient } from '@tanstack/react-query';
-import { type JSX, useMemo, useState } from 'react';
+import { type JSX, type ReactNode, useMemo, useState } from 'react';
 
 type TypeFilter = '' | 'bug' | 'feature' | 'chore' | string;
 type SortField = 'type' | 'content' | 'createdAt' | null;
 type SortDirection = 'asc' | 'desc';
 type SelectedReasons = Record<string, string>;
+
+interface EmptyStateProps {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}
 
 const PendingResolutions = () => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -166,23 +174,55 @@ const PendingResolutions = () => {
     return resolutions.some(resolution => !!selectedReasons[resolution.id]);
   }, [resolutions, selectedReasons]);
 
-  const handleDiscardConfirm = () => {
+  const handleDiscardConfirm = (): void => {
     setSelectedReasons({});
     setShowConfirmDiscard(false);
     setIsEditMode(false);
   };
 
-  const handleDiscardCancel = () => {
+  const handleDiscardCancel = (): void => {
     setShowConfirmDiscard(false);
   };
 
-  const handleEditButtonClick = () => {
+  const handleEditButtonClick = (): void => {
     if (isEditMode && Object.keys(selectedReasons).length > 0) {
       setShowConfirmDiscard(true);
     } else {
       setIsEditMode(!isEditMode);
     }
   };
+
+  const emptyState: EmptyStateProps | null = useMemo(() => {
+    if (isError) {
+      return {
+        icon: (
+          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-[var(--color-danger)]" />
+        ),
+        title: 'Failed to load resolutions',
+        description:
+          'There was an error loading pending resolutions. Please try again later.',
+      };
+    }
+    if (isLoading) {
+      return {
+        icon: null,
+        title: 'Loading resolutions...',
+        description: 'Please wait while we fetch your pending resolutions.',
+      };
+    }
+    if (!resolutions || resolutions.length === 0) {
+      return {
+        icon: (
+          <CheckCircleIcon className="mx-auto h-12 w-12 text-[var(--color-accent)]" />
+        ),
+        title: 'No pending resolutions',
+        description: 'Send TODOs from the VSCode extension to see here.',
+      };
+    }
+    return null;
+  }, [isError, isLoading, resolutions]);
+
+  const hasData = !emptyState;
 
   return (
     <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
@@ -198,43 +238,64 @@ const PendingResolutions = () => {
             {isTooltipVisible && (
               <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-2xl border bg-[var(--color-surface)] p-4 shadow-lg">
                 <p className="text-left text-sm font-normal">
-                  Pending resolutions are TODOs that need your input. Use Edit
-                  mode to assign reasons or resolve them.
+                  Pending resolutions are TODOs that need your input. Use{' '}
+                  <span className="font-semibold text-orange-500">
+                    Edit mode
+                  </span>{' '}
+                  to assign reasons or resolve them.
                 </p>
               </div>
             )}
           </div>
         </h2>
-        <button
-          onClick={handleEditButtonClick}
-          className={`flex items-center gap-2 rounded-4xl border px-6 py-1 text-base font-medium shadow-md transition-all ${isEditMode ? 'group-hover:opacity-100 hover:border-[var(--color-primary)] hover:bg-red-600' : 'group-hover:opacity-100 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]'} hover:text-white`}
-        >
-          {isEditMode ? (
-            <XMarkIcon className="h-5 w-5" />
-          ) : (
-            <PencilSquareIcon className="h-5 w-5" />
-          )}
-          {isEditMode ? 'Discard' : 'Edit'}
-        </button>
+        {hasData && (
+          <button
+            onClick={handleEditButtonClick}
+            className={`flex items-center gap-2 rounded-4xl border px-6 py-1 text-base font-medium shadow-md transition-all ${
+              isEditMode
+                ? 'hover:border-red-600 hover:bg-red-600'
+                : 'hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]'
+            } hover:text-white`}
+          >
+            {isEditMode ? (
+              <XMarkIcon className="h-5 w-5" />
+            ) : (
+              <PencilSquareIcon className="h-5 w-5" />
+            )}
+            {isEditMode ? 'Discard' : 'Edit'}
+          </button>
+        )}
       </div>
-      <div className="flex-1 overflow-hidden rounded-b-4xl">
-        <div className="h-full overflow-y-auto">
-          <ResolutionsTable
-            isEditMode={isEditMode}
-            resolutions={filteredAndSortedResolutions}
-            isLoading={isLoading}
-            isError={isError}
-            getSortIcon={getSortIcon}
-            handleSort={handleSort}
-            setTypeFilter={setTypeFilter}
-            typeFilter={typeFilter}
-            uniqueTypes={uniqueTypes}
-            selectedReasons={selectedReasons}
-            onReasonChange={handleReasonChange}
-          />
-        </div>
+
+      <div className="flex-1 overflow-hidden rounded-b-2xl">
+        {emptyState ? (
+          <div className="flex h-full items-center justify-center">
+            <div className="text-center text-[var(--color-accent)]">
+              {emptyState.icon}
+              <div className="mt-4 text-lg font-medium">{emptyState.title}</div>
+              <div className="mt-2 text-sm">{emptyState.description}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="h-full overflow-y-auto">
+            <ResolutionsTable
+              isEditMode={isEditMode}
+              resolutions={filteredAndSortedResolutions}
+              isLoading={isLoading}
+              isError={isError}
+              getSortIcon={getSortIcon}
+              handleSort={handleSort}
+              setTypeFilter={setTypeFilter}
+              typeFilter={typeFilter}
+              uniqueTypes={uniqueTypes}
+              selectedReasons={selectedReasons}
+              onReasonChange={handleReasonChange}
+            />
+          </div>
+        )}
       </div>
-      {isEditMode && resolutions && resolutions.length > 0 && (
+
+      {isEditMode && hasData && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
           <button
             onClick={handleSubmitClick}
@@ -242,7 +303,7 @@ const PendingResolutions = () => {
             className={`flex items-center gap-2 rounded-4xl border bg-[var(--color-surface)] px-6 py-1 text-base font-medium shadow-md transition-all ${
               !hasValidSelection
                 ? 'cursor-not-allowed opacity-50'
-                : 'cursor-pointer group-hover:opacity-100 hover:border-green-600 hover:bg-green-600 hover:text-white'
+                : 'hover:border-green-600 hover:bg-green-600 hover:text-white'
             }`}
           >
             <CheckIcon className="h-6 w-6" />

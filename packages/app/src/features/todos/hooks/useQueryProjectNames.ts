@@ -1,10 +1,13 @@
-import { getProjectNames } from '../api/todosApi';
+import { fetchProjectNames } from '../api/todosApi';
 import { useQuery } from '@tanstack/react-query';
 
 const useQueryProjectNames = () => {
   return useQuery({
     queryKey: ['todos', 'project', 'names'],
-    queryFn: () => getProjectNames(),
+    queryFn: () => fetchProjectNames(),
+    staleTime: 3 * 60 * 1000,
+    retry: 1,
+    retryDelay: 10000,
   });
 };
 
