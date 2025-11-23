@@ -1,6 +1,7 @@
 import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { useMutateLoginEmail } from '../hooks/useMutateLoginEmail';
+import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -12,15 +13,30 @@ interface LoginFormProps {
 const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
   const navigate = useNavigate();
   const { email, password, setEmail, setPassword, isValid } = useLoginForm();
-  const mutateLoginEmail = useMutateLoginEmail();
+  const loginEmailMutation = useMutateLoginEmail();
   const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('login');
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    const error = mutateLoginEmail.error as any;
-    const message = error?.response?.data?.message || error?.message || null;
+    if (!loginEmailMutation.error) {
+      return;
+    }
+
+    let message = 'Login failed. Please try again.';
+
+    const error = loginEmailMutation.error as AxiosError<{
+      message?: string;
+      error?: string;
+    }>;
+
+    message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      message;
+
     onError(message);
-  }, [mutateLoginEmail.error, onError]);
+  }, [loginEmailMutation.error, onError]);
 
   useEffect(() => {
     if (githubAuthorizeQuery.isError && !isConnecting) {
@@ -28,45 +44,57 @@ const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
     }
   }, [githubAuthorizeQuery.isError, isConnecting, onError]);
 
-  const handleGithubLoginClick = async () => {
+  const handleGithubLoginClick = async (): Promise<void> => {
     setIsConnecting(true);
     onError(null);
+
     try {
       const response = await githubAuthorizeQuery.refetch();
       const url = response?.data?.authorize_uri;
-      if (!url) {
+
+      if (!url || typeof url !== 'string') {
         onError('GitHub authorize URL not found. Please try again.');
         setIsConnecting(false);
         return;
       }
+
       window.location.href = url;
     } catch (error) {
+      console.error('GitHub login error:', error);
       onError('Failed to initiate GitHub login. Please try again.');
       setIsConnecting(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (!isValid) return;
+
     onError(null);
-    mutateLoginEmail.mutate({ email, password });
+    loginEmailMutation.mutate({ email, password });
   };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (mutateLoginEmail.error) {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    if (loginEmailMutation.error) {
       onError(null);
     }
     setEmail(e.target.value);
   };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (mutateLoginEmail.error) {
+  const handlePasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    if (loginEmailMutation.error) {
       onError(null);
     }
     setPassword(e.target.value);
   };
-  const isLoading = isLoginPending || mutateLoginEmail.isPending;
+
+  const handleNavigateToRegister = (): void => {
+    navigate('/register');
+  };
+
+  const isLoading = isLoginPending || loginEmailMutation.isPending;
 
   return (
     <div className="w-full">
@@ -83,7 +111,7 @@ const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
             type="email"
             value={email}
             onChange={handleEmailChange}
-            placeholder="you@example.com"
+            placeholder="you@devdashboard.com"
             required
             disabled={isLoading}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -150,12 +178,13 @@ const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
           </svg>
           {isConnecting ? 'Connecting...' : 'GitHub'}
         </button>
+
         <div className="mt-4 text-center">
           <p className="text-sm text-[var(--color-accent)]">
             Don't have an account?{' '}
             <button
               type="button"
-              onClick={() => navigate('/register')}
+              onClick={handleNavigateToRegister}
               disabled={isLoading}
               className="font-semibold text-[var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >

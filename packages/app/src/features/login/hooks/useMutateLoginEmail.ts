@@ -11,12 +11,15 @@ export const useMutateLoginEmail = () => {
 
   return useMutation({
     mutationFn: (data: LoginRequestPublic) => loginByEmail(data),
+    retry: false,
     onSuccess: data => {
+      localStorage.setItem('accessToken', data.accessToken);
+
       dispatch({
         type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,
         payload: data.user,
       });
-      localStorage.setItem('accessToken', data.accessToken);
+
       navigate('/todos', { replace: true });
     },
   });
