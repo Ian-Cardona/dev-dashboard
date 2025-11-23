@@ -7,6 +7,7 @@ const useQueryFetchEmailSession = (sessionId: string | null) => {
     queryFn: () => fetchEmailSessionById(sessionId!),
     enabled: !!sessionId,
     staleTime: Infinity,
+    retry: false,
   });
 };
 

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 
 const LoginPage = () => {
   const mutation = useMutateLoginOAuth();
+
   const oauthSuccessCookieKeys = getOAuthSuccessCookieKeys();
   const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
@@ -32,6 +33,7 @@ const LoginPage = () => {
 
     if (provider && id && login && !hasInitiated.current && enc) {
       mutation.mutate({
+        // HACK: A feature for multiple OAuth provider will be used here
         provider: provider as 'github',
         id,
         login,
@@ -51,9 +53,7 @@ const LoginPage = () => {
             <div className="bg-opacity-80 absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[var(--color-surface)] backdrop-blur-sm">
               <div className="text-center">
                 <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-[var(--color-accent)]/20 border-t-[var(--color-primary)]"></div>
-                <p className="text-[var(--color-accent)]">
-                  Completing login...
-                </p>
+                <p className="text-[var(--color-accent)]">Loading...</p>
               </div>
             </div>
           )}
@@ -63,7 +63,7 @@ const LoginPage = () => {
               Log in
             </h1>
             <p className="text-base text-[var(--color-accent)]">
-              Welcome back to your workspace
+              Welcome to DevDashboard
             </p>
             {displayError && !isLoading && (
               <div className="mt-4 rounded-md border border-red-500 p-3 text-sm">

@@ -2,11 +2,11 @@ import useQueryFetchGithubOAuthLink from '../../../../oauth/hooks/useQueryFetchG
 import { useMutateRegisterInitEmail } from '../../hooks/useMutateRegisterInitEmail';
 import { useRegisterInitForm } from '../../hooks/useRegisterForm';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface RegisterFormProps {
-  isRegisterPending?: boolean;
   onError?: (error: string | null) => void;
 }
 
@@ -21,10 +21,7 @@ const PASSWORD_CHECKS = [
   },
 ];
 
-const RegisterForm = ({
-  isRegisterPending = false,
-  onError,
-}: RegisterFormProps) => {
+const RegisterForm = ({ onError }: RegisterFormProps) => {
   const navigate = useNavigate();
   const { email, password, setEmail, setPassword, isValid } =
     useRegisterInitForm();
@@ -33,8 +30,24 @@ const RegisterForm = ({
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-    const error = registerInitMutation.error as any;
-    const message = error?.response?.data?.message || error?.message || null;
+    if (!registerInitMutation.error) {
+      onError?.(null);
+      return;
+    }
+
+    let message = 'Registration failed';
+
+    const error = registerInitMutation.error as AxiosError<{
+      message?: string;
+      error?: string;
+    }>;
+
+    message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      message;
+
     onError?.(message);
   }, [registerInitMutation.error, onError]);
 
@@ -48,20 +61,20 @@ const RegisterForm = ({
     setIsConnecting(true);
     try {
       const response = await githubAuthorizeQuery.refetch();
-      const url = response?.data?.authorize_uri;
-      if (!url) {
-        console.error('GitHub authorize URL not found');
-        setIsConnecting(false);
-        return;
+      if (response.data != null) {
+        const url = response.data.authorize_uri;
+        if (!url) {
+          setIsConnecting(false);
+          return;
+        }
+
+        window.location.href = url;
       }
-      window.location.href = url;
     } catch (error) {
       console.error('Failed to initiate GitHub register:', error);
       setIsConnecting(false);
     }
   };
-
-  const isLoading = isRegisterPending || registerInitMutation.isPending;
 
   return (
     <div className="w-full">
@@ -78,9 +91,9 @@ const RegisterForm = ({
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder="you@devdashboard.com"
             required
-            disabled={isLoading}
+            disabled={registerInitMutation.isPending}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             aria-invalid={!isValid}
           />
@@ -100,7 +113,7 @@ const RegisterForm = ({
             onChange={e => setPassword(e.target.value)}
             placeholder="••••••••"
             required
-            disabled={isLoading}
+            disabled={registerInitMutation.isPending}
             className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             aria-invalid={!isValid}
           />
@@ -132,11 +145,11 @@ const RegisterForm = ({
 
         <button
           type="submit"
-          disabled={isLoading || !isValid}
+          disabled={registerInitMutation.isPending || !isValid}
           className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-busy={isLoading}
+          aria-busy={registerInitMutation.isPending}
         >
-          {isLoading ? 'Registering...' : 'Create Account'}
+          {registerInitMutation.isPending ? 'Registering...' : 'Create Account'}
         </button>
 
         <div className="my-2 flex items-center gap-4">
@@ -176,7 +189,7 @@ const RegisterForm = ({
             <button
               type="button"
               onClick={() => navigate('/login')}
-              disabled={isLoading}
+              disabled={registerInitMutation.isPending}
               className="font-semibold text-[var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
               Log in

@@ -1,5 +1,5 @@
 import { useToast } from '../../../hooks/useToast';
-import { postResolutions } from '../api/todosApi';
+import { createResolutions } from '../api/todosApi';
 import type { CreateResolution, TodoResolution } from '@dev-dashboard/shared';
 import { useMutation } from '@tanstack/react-query';
 
@@ -7,6 +7,7 @@ interface UseMutateResolveTodosOptions {
   onSuccess?: (data: TodoResolution[], variables: CreateResolution[]) => void;
   onError?: (error: Error, variables: CreateResolution[]) => void;
 }
+
 const useMutateResolveTodos = (options: UseMutateResolveTodosOptions = {}) => {
   const { showSuccess, showError } = useToast();
 
@@ -15,7 +16,7 @@ const useMutateResolveTodos = (options: UseMutateResolveTodosOptions = {}) => {
       if (data.length === 0) {
         throw new Error('No resolutions selected');
       }
-      return postResolutions(data);
+      return createResolutions(data);
     },
 
     onSuccess: (data, variables) => {

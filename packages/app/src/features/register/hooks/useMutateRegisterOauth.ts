@@ -3,6 +3,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { completeRegistrationOAuth } from '../api/registerApi';
 import type { RegistrationInfoRequest } from '@dev-dashboard/shared';
 import { useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
 
 export const useMutateRegisterOauth = () => {
@@ -19,6 +20,18 @@ export const useMutateRegisterOauth = () => {
       });
       localStorage.setItem('accessToken', data.accessToken);
       navigate('/todos');
+    },
+    onError: (error: Error | AxiosError) => {
+      if (error instanceof AxiosError) {
+        if (error?.response?.status === 401) {
+          navigate('/register', {
+            state: {
+              error: 'Invalid session. Please start registration again.',
+            },
+            replace: true,
+          });
+        }
+      }
     },
   });
 };

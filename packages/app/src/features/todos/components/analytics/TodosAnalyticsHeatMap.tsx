@@ -173,7 +173,7 @@ const TodosActivityHeatmap = ({
               month: 'short',
               day: 'numeric',
               year: 'numeric',
-              timeZone: 'UTC', // Ensure tooltip date is not affected by local timezone
+              timeZone: 'UTC',
             })}
           </div>
           <div className="text-base text-[var(--color-primary)]">

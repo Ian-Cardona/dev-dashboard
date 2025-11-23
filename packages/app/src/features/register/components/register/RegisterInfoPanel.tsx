@@ -17,7 +17,7 @@ const RegisterInfoPanel = () => {
       icon: CheckCircleIcon,
       title: 'Task Management',
       subtitle:
-        'Sync TODOs and activity from the extension, track completions, and view your history and analytics in Dev Dashboard.',
+        'Sync Todos and activity from the extension, track completions, and view your history and analytics in DevDashboard.',
     },
     {
       icon: CloudArrowUpIcon,
@@ -36,7 +36,7 @@ const RegisterInfoPanel = () => {
               DevDashboard
             </h1>
             <p className="text-lg text-[var(--color-accent)]">
-              Your developer workspace
+              Your full‑stack development dashboard
             </p>
           </div>
 
@@ -54,7 +54,8 @@ const RegisterInfoPanel = () => {
 
           <div className="mt-12 border-t pt-8 text-center">
             <p className="text-sm text-[var(--color-accent)]">
-              Streamline your workflow. Build smarter.
+              Everything you need for your developer workflow—focused,
+              centralized, and quick.
             </p>
           </div>
         </div>

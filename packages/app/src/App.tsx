@@ -6,7 +6,7 @@ import IntegrationsPage from './pages/Integrations';
 import OnboardingPage from './pages/Onboarding';
 import { Navigate, Route, Routes } from 'react-router';
 
-function App() {
+const App = () => {
   return (
     <>
       <Routes>
@@ -52,6 +52,6 @@ function App() {
       <CustomToast />
     </>
   );
-}
+};
 
 export default App;

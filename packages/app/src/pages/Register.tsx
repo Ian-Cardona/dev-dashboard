@@ -10,13 +10,14 @@ import { useLocation } from 'react-router';
 
 const RegisterPage = () => {
   const location = useLocation();
+
   const modalErrorMessage = location.state?.error;
 
   const oauthRegInitCookieKeys = getRegInitCookieKeys();
   const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
   const [displayError, setDisplayError] = useState<string | null>(null);
-  const [modalError, setModalError] = useState<string | null>(null);
+  const [modalError, setModalError] = useState<string | null>();
 
   const [sessionId] = useState(() =>
     getAndClearCookieValue(`${oauthRegInitCookieKeys.registration_id}`)
@@ -65,7 +66,7 @@ const RegisterPage = () => {
                 </div>
               )}
             </div>
-            <RegisterForm isRegisterPending={false} onError={setDisplayError} />
+            <RegisterForm onError={setDisplayError} />
           </div>
         </div>
       </div>

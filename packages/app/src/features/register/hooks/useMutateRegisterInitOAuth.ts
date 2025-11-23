@@ -1,7 +1,9 @@
-import { REG_INIT_COOKIE_KEYS } from '../../../utils/document/oauthCookies';
+import { getRegInitCookieKeys } from '../../../utils/configs/getConfig';
 import { registerInitGithub } from '../api/registerApi';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+
+const regInitCookieKeys = getRegInitCookieKeys();
 
 export const useMutateRegisterInitOAuth = () => {
   const navigate = useNavigate();
@@ -11,19 +13,12 @@ export const useMutateRegisterInitOAuth = () => {
     onSuccess: () => {
       const sessionId = document.cookie
         .split('; ')
-        .find(row => row.startsWith(`${REG_INIT_COOKIE_KEYS.registration_id}=`))
+        .find(row => row.startsWith(`${regInitCookieKeys.registration_id}=`))
         ?.split('=')[1];
 
       if (sessionId) {
-        const targetUrl = `/register/onboarding?flow=oauth&session=${sessionId}`;
-        console.log('Navigating to:', targetUrl);
-        navigate(targetUrl);
-      } else {
-        console.error('Session ID cookie not found');
+        navigate(`/register/onboarding?flow=oauth&session=${sessionId}`);
       }
-    },
-    onError: error => {
-      console.error('OAuth init failed:', error);
     },
   });
 };
