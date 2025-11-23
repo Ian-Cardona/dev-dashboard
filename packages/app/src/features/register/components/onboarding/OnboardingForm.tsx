@@ -25,17 +25,7 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
     e.preventDefault();
     if (!isValid) return;
 
-    registerMutation.mutate(
-      { email, firstName, lastName },
-      {
-        onSuccess: () => {
-          console.log('Registration complete');
-        },
-        onError: err => {
-          console.error('Failed to complete registration:', err);
-        },
-      }
-    );
+    registerMutation.mutate({ email, firstName, lastName });
   };
 
   return (
@@ -67,7 +57,7 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
             onChange={e => setEmail(e.target.value)}
             disabled={flow === 'email'}
             className="w-full rounded-lg border border-[var(--color-accent)]/40 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)]/70 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:bg-[var(--color-bg)]/50 disabled:text-[var(--color-accent)]"
-            placeholder="you@example.com"
+            placeholder="you@devdashboard.com"
             required
           />
         </div>
