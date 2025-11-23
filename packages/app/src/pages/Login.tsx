@@ -60,10 +60,10 @@ const LoginPage = () => {
 
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold text-[var(--color-fg)]">
-              Log in
+              Login
             </h1>
             <p className="text-base text-[var(--color-accent)]">
-              Welcome back to your workspace
+              Welcome to DevDashboard
             </p>
             {displayError && !isLoading && (
               <div className="mt-4 rounded-md border border-red-500 p-3 text-sm">
