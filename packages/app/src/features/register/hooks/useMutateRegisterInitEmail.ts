@@ -14,7 +14,7 @@ export const useMutateRegisterInitEmail = () => {
     onSuccess: () => {
       const sessionId = document.cookie
         .split('; ')
-        .find(row => row.startsWith('esi1='))
+        .find(row => row.startsWith('esi1=')) // TODO: use config for the cookies
         ?.split('=')[1];
 
       if (sessionId) {

@@ -37,10 +37,16 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
 
     let message = 'Registration failed';
 
-    const error = registerInitMutation.error;
-    if (error && typeof error === 'object' && 'message' in error) {
-      message = ((error as AxiosError) || (error as Error)).message || message;
-    }
+    const error = registerInitMutation.error as AxiosError<{
+      message?: string;
+      error?: string;
+    }>;
+
+    message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      error.message ||
+      message;
 
     onError?.(message);
   }, [registerInitMutation.error, onError]);
