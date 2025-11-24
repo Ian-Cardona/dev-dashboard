@@ -1,3 +1,4 @@
+import { uuidSchema } from '../utils/common';
 import { VALIDATION_CONSTANTS } from '../utils/constants';
 import z from 'zod';
 
@@ -68,9 +69,8 @@ export const processedTodoSchema = z.discriminatedUnion('type', [
   unprocessedOtherTodoSchema,
 ]);
 
-// Accepts either a UUID or a 64-character hex digest
 export const todoIdSchema = z.union([
-  z.string().uuid(),
+  uuidSchema,
   z.string().regex(/^[0-9a-f]{64}$/i),
 ]);
 
@@ -89,8 +89,8 @@ export const rawTodoBatchSchema = z.object({
 export const todoSchema = rawTodoBaseSchema.and(todoCommonSchema);
 
 export const todoBatchSchema = z.object({
-  userId: z.uuidv4(),
-  syncId: z.uuidv4(),
+  userId: uuidSchema,
+  syncId: uuidSchema,
   syncedAt: z.iso.datetime({ offset: true }),
   projectName: z
     .string()
@@ -114,7 +114,7 @@ export const todoMetaSchema = z.object({
 
 // Full Information with Metadata
 export const todosInfoSchema = z.object({
-  userId: z.uuidv4(),
+  userId: uuidSchema,
   todosBatches: z.array(todoBatchSchema),
   meta: todoMetaSchema,
 });
@@ -141,12 +141,12 @@ export const flattenedTodosInfoSchema = z.object({
 
 export const createResolutionSchema = z.object({
   id: todoIdSchema,
-  syncId: z.uuidv4(),
+  syncId: uuidSchema,
   reason: TodoReasonEnum,
 });
 
 const todoResolutionCommonSchema = z.object({
-  userId: z.uuidv4(),
+  userId: uuidSchema,
   resolved: z.boolean().default(false).optional(),
   resolvedAt: z.iso.datetime().optional(),
   reason: TodoReasonEnum.optional(),
@@ -160,3 +160,7 @@ export const todoResolutionSchema = todoSchema
       createdAt: z.iso.datetime().optional(),
     })
   );
+
+export const todosInfoWithResolvedSchema = todosInfoSchema.extend({
+  resolvedTodos: z.array(todoResolutionSchema),
+});

@@ -23,7 +23,7 @@ app.use(cors({
   origin: ENV.APP_BASE_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-App'],
 }));
 
 app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));

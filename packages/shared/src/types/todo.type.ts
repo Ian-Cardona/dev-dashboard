@@ -13,6 +13,7 @@ import {
   todoResolutionSchema,
   todoSchema,
   todosInfoSchema,
+  todosInfoWithResolvedSchema,
 } from '../schemas/todo.schema';
 import z from 'zod';
 
@@ -36,3 +37,5 @@ export type FlattenedTodo = z.infer<typeof flattenedTodosInfoSchema>;
 // Resolution Related
 export type TodoResolution = z.infer<typeof todoResolutionSchema>;
 export type CreateResolution = z.infer<typeof createResolutionSchema>;
+
+export type TodosInfoWithResolved = z.infer<typeof todosInfoWithResolvedSchema>;
