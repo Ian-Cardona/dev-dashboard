@@ -11,6 +11,7 @@ import {
   TodoMeta,
   TodoResolution,
   TodosInfo,
+  TodosInfoWithResolved,
 } from '@dev-dashboard/shared';
 import crypto from 'crypto';
 
@@ -177,18 +178,43 @@ export const TodoService = (TodoModel: ITodoRepository): ITodoService => {
       }
     },
 
+    // async getBatchesByUserIdAndProject(
+    //   userId: string,
+    //   projectName: string,
+    //   limit: number = 100
+    // ): Promise<TodosInfo> {
+    //   try {
+    //     const batches = await TodoModel.findByUserIdAndProject(
+    //       userId,
+    //       projectName,
+    //       limit
+    //     );
+    //     return buildTodosInfoResponse(userId, batches);
+    //   } catch (error) {
+    //     if (error instanceof Error) {
+    //       throw error;
+    //     }
+    //     throw new Error('Failed to retrieve tasks by project');
+    //   }
+    // },
+
     async getBatchesByUserIdAndProject(
       userId: string,
       projectName: string,
       limit: number = 100
-    ): Promise<TodosInfo> {
+    ): Promise<TodosInfoWithResolved> {
       try {
-        const batches = await TodoModel.findByUserIdAndProject(
-          userId,
-          projectName,
-          limit
-        );
-        return buildTodosInfoResponse(userId, batches);
+        const [batches, resolvedTodos] = await Promise.all([
+          TodoModel.findByUserIdAndProject(userId, projectName, limit),
+          TodoModel.getResolved(userId),
+        ]);
+
+        const todosInfo = buildTodosInfoResponse(userId, batches);
+
+        return {
+          ...todosInfo,
+          resolvedTodos,
+        };
       } catch (error) {
         if (error instanceof Error) {
           throw error;

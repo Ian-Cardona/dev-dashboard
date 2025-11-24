@@ -5,6 +5,7 @@ import {
   Todo,
   TodoResolution,
   TodosInfo,
+  TodosInfoWithResolved,
 } from '@dev-dashboard/shared';
 
 export type ComparisonResult = {
@@ -26,7 +27,7 @@ export interface ITodoService {
     userId: string,
     projectName: string,
     limit?: number
-  ): Promise<TodosInfo>;
+  ): Promise<TodosInfoWithResolved>;
   compareLatestBatchesByProject(
     userId: string,
     projectName: string,
