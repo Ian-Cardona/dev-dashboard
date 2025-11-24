@@ -4,6 +4,7 @@ import type {
   ProjectNames,
   TodoResolution,
   TodosInfo,
+  TodosInfoWithResolved,
 } from '@dev-dashboard/shared';
 
 export const fetchLatestTodos = async (): Promise<TodosInfo> => {
@@ -28,7 +29,7 @@ export const fetchProjectNames = async (): Promise<ProjectNames> => {
 
 export const fetchTodosByProject = async (
   projectName: string
-): Promise<TodosInfo> => {
+): Promise<TodosInfoWithResolved> => {
   if (!projectName || projectName.trim() === '') {
     throw new Error('Project name is required');
   }

@@ -94,12 +94,7 @@ const TodosHistory = () => {
             </div>
           </div>
         ) : (
-          data &&
-          data.todosBatches && (
-            <TodosHistoryTable
-              batch={data.todosBatches.flatMap(batch => batch)}
-            />
-          )
+          data && <TodosHistoryTable data={data} />
         )}
       </div>
     </section>
