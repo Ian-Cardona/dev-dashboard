@@ -154,14 +154,21 @@ export const AuthenticationService = (
           throw error;
         }
 
+        if (!user.passwordHash) {
+          throw new UnauthorizedError(
+            'Invalid email or password. You may have used OAuth.'
+          );
+        }
+
         const passwordMatches = await bcryptCompare(
           data.password,
-          user.passwordHash!
+          user.passwordHash
         );
 
         if (!passwordMatches) {
           throw new UnauthorizedError('Invalid email or password');
         }
+
         if (!user.isActive) {
           throw new UnauthorizedError('User account is inactive');
         }
@@ -192,6 +199,7 @@ export const AuthenticationService = (
           user: responseUser,
         } as LoginPrivate;
       } catch (error) {
+        console.log(error);
         if (
           error instanceof UnauthorizedError ||
           error instanceof NotFoundError

@@ -5,7 +5,6 @@ interface TodosHistoryTableHeaderProps {
   typeFilter: string;
   setTypeFilter: (type: string) => void;
   uniqueTypes: string[];
-  showDateFilter: boolean;
   handleSort: (key: string) => void;
   getSortIcon: (key: string) => ReactNode;
 }
@@ -14,7 +13,6 @@ const TodosHistoryTableHeader = ({
   typeFilter,
   setTypeFilter,
   uniqueTypes,
-  showDateFilter,
   handleSort,
   getSortIcon,
 }: TodosHistoryTableHeaderProps) => {
@@ -91,19 +89,28 @@ const TodosHistoryTableHeader = ({
             {getSortIcon('content')}
           </button>
         </th>
-        {showDateFilter && (
-          <th className="w-56 px-6 py-3 text-left text-base whitespace-nowrap">
-            <button
-              onClick={() => handleSort('date')}
-              className="flex cursor-pointer items-center gap-2 select-none"
-              title="Sort by Date"
-              type="button"
-            >
-              Created at
-              {getSortIcon('date')}
-            </button>
-          </th>
-        )}
+        <th className="w-48 px-6 py-3 text-left text-base whitespace-nowrap">
+          <button
+            onClick={() => handleSort('syncedAt')}
+            className="flex cursor-pointer items-center gap-2 select-none"
+            title="Sort by Synced At"
+            type="button"
+          >
+            Synced At
+            {getSortIcon('syncedAt')}
+          </button>
+        </th>
+        <th className="w-48 px-6 py-3 text-left text-base whitespace-nowrap">
+          <button
+            onClick={() => handleSort('resolvedAt')}
+            className="flex cursor-pointer items-center gap-2 select-none"
+            title="Sort by Resolved At"
+            type="button"
+          >
+            Resolved At
+            {getSortIcon('resolvedAt')}
+          </button>
+        </th>
       </tr>
     </thead>
   );

@@ -1,6 +1,9 @@
 import TodosHistoryTableHeader from './TodosHistoryTableHeader';
 import TodosHistoryTableRow from './TodosHistoryTableRow';
-import type { FlattenedTodo, TodoBatch } from '@dev-dashboard/shared';
+import type {
+  FlattenedTodo,
+  TodosInfoWithResolved,
+} from '@dev-dashboard/shared';
 import {
   ChevronDownIcon,
   ChevronUpDownIcon,
@@ -9,60 +12,75 @@ import {
 import { useMemo, useState } from 'react';
 
 interface TodosHistoryTableProps {
-  batch: TodoBatch[];
+  data: TodosInfoWithResolved;
 }
 
-const TodosHistoryTable = ({ batch }: TodosHistoryTableProps) => {
+const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   const [typeFilter, setTypeFilter] = useState('');
   const [sortField, setSortField] = useState<
-    'type' | 'content' | 'date' | null
+    'type' | 'content' | 'syncedAt' | 'resolvedAt' | null
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const flattenedTodos = useMemo((): (FlattenedTodo & {
     _uniqueId: string;
+    resolved?: boolean;
+    resolvedAt?: string;
+    reason?: string;
   })[] => {
-    return batch.flatMap(batchItem =>
-      batchItem.todos.map((todo, todoIndex) => ({
-        ...todo,
-        syncedAt: batchItem.syncedAt,
-        projectName: batchItem.projectName,
-        userId: batchItem.userId,
-        syncId: batchItem.syncId,
-        _uniqueId: `${batchItem.syncId}-${todoIndex}`,
-      }))
+    const resolvedMap = new Map(
+      data.resolvedTodos.map(todo => [todo.id, todo])
     );
-  }, [batch]);
+
+    return data.todosBatches.flatMap(batchItem =>
+      batchItem.todos.map((todo, todoIndex) => {
+        const resolvedInfo = resolvedMap.get(todo.id);
+        return {
+          ...todo,
+          syncedAt: batchItem.syncedAt,
+          projectName: batchItem.projectName,
+          userId: batchItem.userId,
+          syncId: batchItem.syncId,
+          _uniqueId: `${batchItem.syncId}-${todoIndex}`,
+          resolved: resolvedInfo?.resolved,
+          resolvedAt: resolvedInfo?.resolvedAt,
+          reason: resolvedInfo?.reason,
+        };
+      })
+    );
+  }, [data.todosBatches, data.resolvedTodos]);
 
   const uniqueTypes = useMemo(
     () => [...new Set(flattenedTodos.map(todo => todo.type))],
     [flattenedTodos]
   );
 
-  const uniqueDates = useMemo(
-    () =>
-      [...new Set(flattenedTodos.map(todo => todo.syncedAt))].sort().reverse(),
-    [flattenedTodos]
-  );
-
-  const showDateFilter = uniqueDates.length > 1;
-
   const handleSort = (field: string) => {
-    if (field === 'type' || field === 'content' || field === 'date') {
+    if (
+      field === 'type' ||
+      field === 'content' ||
+      field === 'syncedAt' ||
+      field === 'resolvedAt'
+    ) {
       if (sortField === field) {
         setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
       } else {
-        setSortField(field);
+        setSortField(field as any);
         setSortDirection('asc');
       }
     }
   };
 
   const getSortIcon = (key: string): React.ReactNode => {
-    if (key !== 'type' && key !== 'content' && key !== 'date') {
+    if (
+      key !== 'type' &&
+      key !== 'content' &&
+      key !== 'syncedAt' &&
+      key !== 'resolvedAt'
+    ) {
       return null;
     }
-    const field = key as 'type' | 'content' | 'date';
+    const field = key as 'type' | 'content' | 'syncedAt' | 'resolvedAt';
     if (sortField !== field) {
       return (
         <ChevronUpDownIcon
@@ -97,9 +115,13 @@ const TodosHistoryTable = ({ batch }: TodosHistoryTableProps) => {
             aValue = a.content.toLowerCase();
             bValue = b.content.toLowerCase();
             break;
-          case 'date':
+          case 'syncedAt':
             aValue = new Date(a.syncedAt).getTime();
             bValue = new Date(b.syncedAt).getTime();
+            break;
+          case 'resolvedAt':
+            aValue = a.resolvedAt ? new Date(a.resolvedAt).getTime() : 0;
+            bValue = b.resolvedAt ? new Date(b.resolvedAt).getTime() : 0;
             break;
           default:
             return 0;
@@ -122,7 +144,6 @@ const TodosHistoryTable = ({ batch }: TodosHistoryTableProps) => {
             getSortIcon={getSortIcon}
             handleSort={handleSort}
             setTypeFilter={setTypeFilter}
-            showDateFilter={showDateFilter}
             typeFilter={typeFilter}
             uniqueTypes={uniqueTypes}
           />
@@ -131,7 +152,6 @@ const TodosHistoryTable = ({ batch }: TodosHistoryTableProps) => {
               <TodosHistoryTableRow
                 key={todo._uniqueId || `${todo.syncId}-${index}`}
                 todo={todo}
-                showDateFilter={showDateFilter}
               />
             ))}
           </tbody>
