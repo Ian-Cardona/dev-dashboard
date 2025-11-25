@@ -26,6 +26,7 @@ export const GithubIntegrationController = (
 
         const data =
           await githubIntegrationService.getUserRepositories(accessToken);
+
         res.status(200).json(data);
       } catch (error) {
         handleValidationError(

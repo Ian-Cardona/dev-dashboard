@@ -31,7 +31,11 @@ export const githubRepositorySchema = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1).max(200),
   full_name: z.string().min(1).max(300),
-  owner: z.string().min(1).max(100),
+  owner: z.object({
+    login: z.string().min(1).max(100),
+    id: z.number().int().positive(),
+    html_url: urlSchema,
+  }),
   private: z.boolean(),
   html_url: urlSchema,
   description: z.string().max(500).optional(),

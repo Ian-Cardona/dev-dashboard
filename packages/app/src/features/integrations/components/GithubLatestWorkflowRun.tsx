@@ -35,7 +35,7 @@ const GithubLatestWorkflowRun = () => {
   useEffect(() => {
     if (repositories && repositories.length > 0 && !selectedRepo) {
       setSelectedRepo(repositories[0].name);
-      setOwner(repositories[0].owner);
+      setOwner(repositories[0].owner.login);
     }
   }, [repositories, selectedRepo]);
 
@@ -46,12 +46,11 @@ const GithubLatestWorkflowRun = () => {
     );
     if (repo) {
       setSelectedRepo(repo.name);
-      setOwner(repo.owner);
+      setOwner(repo.owner.login);
     }
   };
 
-  const latestWorkflow: GithubWorkflowResponse | null =
-    workflows && workflows.length > 0 ? workflows[0] : null;
+  const latestWorkflow: GithubWorkflowResponse | null = workflows ?? null;
 
   return (
     <div className="flex min-w-full flex-col rounded-2xl border bg-[var(--color-surface)] lg:flex-1">
