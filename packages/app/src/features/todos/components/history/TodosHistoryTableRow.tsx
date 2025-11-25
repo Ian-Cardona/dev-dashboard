@@ -1,13 +1,9 @@
 import IconSelector from '../common/IconSelector';
-import type { FlattenedTodo } from '@dev-dashboard/shared';
+import type { TodoHistory } from '@dev-dashboard/shared';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 
 interface TodosHistoryTableRowProps {
-  todo: FlattenedTodo & {
-    resolved?: boolean;
-    resolvedAt?: string;
-    reason?: string;
-  };
+  todo: TodoHistory;
 }
 
 const TodosHistoryTableRow = ({ todo }: TodosHistoryTableRowProps) => {
@@ -20,6 +16,8 @@ const TodosHistoryTableRow = ({ todo }: TodosHistoryTableRowProps) => {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
+
+  const latestOccurrence = todo.occurrences[todo.occurrences.length - 1];
 
   return (
     <tr
@@ -48,7 +46,11 @@ const TodosHistoryTableRow = ({ todo }: TodosHistoryTableRowProps) => {
         </div>
       </td>
       <td className="px-6 py-2 align-middle text-base normal-case">
-        <span>{new Date(todo.syncedAt).toLocaleString()}</span>
+        <span>
+          {latestOccurrence
+            ? new Date(latestOccurrence.syncedAt).toLocaleString()
+            : '-'}
+        </span>
       </td>
       <td className="px-6 py-2 align-middle text-base normal-case">
         {isResolved && todo.resolvedAt ? (

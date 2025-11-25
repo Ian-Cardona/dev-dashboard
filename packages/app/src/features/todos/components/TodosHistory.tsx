@@ -58,7 +58,7 @@ const TodosHistory = () => {
         description: 'Please wait while we fetch your todo history.',
       };
     }
-    if (!data?.todosBatches || data.todosBatches.length === 0) {
+    if (!data) {
       return {
         icon: (
           <CalendarDaysIcon className="mx-auto h-12 w-12 text-[var(--color-accent)]" />

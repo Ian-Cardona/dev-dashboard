@@ -161,6 +161,16 @@ export const todoResolutionSchema = todoSchema
     })
   );
 
-export const todosInfoWithResolvedSchema = todosInfoSchema.extend({
-  resolvedTodos: z.array(todoResolutionSchema),
+export const todoHistoryOccurrenceSchema = z.object({
+  syncId: todoBatchSchema.shape.syncId,
+  syncedAt: todoBatchSchema.shape.syncedAt,
 });
+
+export const todoHistorySchema = todoSchema.and(
+  z.object({
+    occurrences: z.array(todoHistoryOccurrenceSchema),
+    resolved: z.boolean(),
+    resolvedAt: z.string().optional(),
+    reason: TodoReasonEnum.optional(),
+  })
+);

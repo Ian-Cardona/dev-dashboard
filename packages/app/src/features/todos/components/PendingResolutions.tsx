@@ -41,6 +41,9 @@ const PendingResolutions = () => {
       queryClient.invalidateQueries({
         queryKey: ['todos', 'resolutions', 'pending'],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['todos', 'project'],
+      });
       setSelectedReasons({});
       setIsEditMode(false);
       setShowConfirmSubmit(false);
