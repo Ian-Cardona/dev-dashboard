@@ -44,7 +44,7 @@ const TodosHistory = () => {
     if (error) {
       return {
         icon: (
-          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-[var(--color-danger)]" />
+          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-[var(--color-primary)]" />
         ),
         title: 'Failed to load todos',
         description:
@@ -73,9 +73,11 @@ const TodosHistory = () => {
   }, [error, isLoading, data, currentProjectName]);
 
   return (
-    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-      <div className="mb-8 flex items-center justify-between px-8">
-        <h2 className="flex items-center text-3xl">History</h2>
+    <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
+      <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
+        <h2 className="flex items-center text-2xl font-bold text-[var(--color-fg)]">
+          History
+        </h2>
         <TodosHistoryProjectMenu
           title={displayTitle}
           onGoLeft={goLeft}
@@ -84,13 +86,17 @@ const TodosHistory = () => {
           canGoRight={selectedProjectIndex < projects.length - 1}
         />
       </div>
-      <div className="min-h-0 flex-1 overflow-auto rounded-b-4xl">
+      <div className="flex-1 overflow-hidden">
         {emptyState ? (
           <div className="flex h-full items-center justify-center">
-            <div className="text-center text-[var(--color-accent)]">
+            <div className="text-center">
               {emptyState.icon}
-              <div className="mt-4 text-lg font-medium">{emptyState.title}</div>
-              <div className="mt-2 text-sm">{emptyState.description}</div>
+              <div className="mt-4 text-lg font-semibold text-[var(--color-fg)]">
+                {emptyState.title}
+              </div>
+              <div className="mt-2 text-sm text-[var(--color-accent)]">
+                {emptyState.description}
+              </div>
             </div>
           </div>
         ) : (

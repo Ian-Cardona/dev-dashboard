@@ -20,17 +20,17 @@ const ResolutionsTableHeader = ({
 }: ResolutionsTableHeaderProps) => {
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   return (
-    <thead className="sticky top-0 z-2 border-b bg-[var(--color-surface)]">
-      <tr className="border-b">
+    <thead className="sticky top-0 z-2 border-b border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
+      <tr className="border-b border-[var(--color-accent)]/20">
         <th
-          className="w-36 px-6 py-2 text-left text-base whitespace-nowrap"
+          className="w-36 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]"
           onMouseEnter={() => setShowTypeDropdown(true)}
           onMouseLeave={() => setShowTypeDropdown(false)}
         >
           <div className="relative">
             <button
               onClick={() => handleSort('type')}
-              className="flex cursor-pointer items-center gap-2 select-none"
+              className="flex cursor-pointer items-center gap-2 text-[var(--color-fg)] transition-colors duration-200 select-none hover:text-[var(--color-primary)]"
               title="Sort by Type"
               type="button"
             >
@@ -41,15 +41,15 @@ const ResolutionsTableHeader = ({
             </button>
 
             {showTypeDropdown && (
-              <div className="absolute z-10 mt-1 w-40 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-md">
+              <div className="absolute z-10 mt-1 w-40 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
                 <div
-                  className="cursor-pointer rounded-md px-6 py-2 text-base uppercase transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
+                  className="cursor-pointer rounded-lg px-4 py-3 text-base transition-all duration-200 hover:bg-[var(--color-bg)]"
                   onClick={() => {
                     setTypeFilter('');
                     setShowTypeDropdown(false);
                   }}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-[var(--color-fg)]">
                     <IconSelector type="OTHER" />
                     All
                   </div>
@@ -58,13 +58,13 @@ const ResolutionsTableHeader = ({
                   return (
                     <div
                       key={type}
-                      className="cursor-pointer rounded-md px-6 py-2 text-base uppercase transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
+                      className="cursor-pointer rounded-lg px-4 py-3 text-base transition-all duration-200 hover:bg-[var(--color-bg)]"
                       onClick={() => {
                         setTypeFilter(type);
                         setShowTypeDropdown(false);
                       }}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-[var(--color-fg)]">
                         <IconSelector type={type} />
                         {type}
                       </div>
@@ -75,10 +75,10 @@ const ResolutionsTableHeader = ({
             )}
           </div>
         </th>
-        <th className="px-6 py-3 text-left text-base whitespace-nowrap">
+        <th className="px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
           <button
             onClick={() => handleSort('content')}
-            className="flex cursor-pointer items-center gap-2 select-none"
+            className="flex cursor-pointer items-center gap-2 text-[var(--color-fg)] transition-colors duration-200 select-none hover:text-[var(--color-primary)]"
             title="Sort by Content"
             type="button"
           >
@@ -87,10 +87,10 @@ const ResolutionsTableHeader = ({
           </button>
         </th>
 
-        <th className="w-56 px-6 py-3 text-left text-base whitespace-nowrap">
+        <th className="w-56 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
           <button
             onClick={() => handleSort('createdAt')}
-            className="flex cursor-pointer items-center gap-2 select-none"
+            className="flex cursor-pointer items-center gap-2 text-[var(--color-fg)] transition-colors duration-200 select-none hover:text-[var(--color-primary)]"
             title="Sort by Created At"
             type="button"
           >
@@ -99,7 +99,7 @@ const ResolutionsTableHeader = ({
           </button>
         </th>
         {isEditMode && (
-          <th className="w-72 px-6 py-3 text-left text-base whitespace-nowrap">
+          <th className="w-72 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
             Reason
           </th>
         )}

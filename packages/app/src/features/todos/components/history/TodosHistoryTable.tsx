@@ -43,15 +43,21 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
     if (sortField !== field) {
       return (
         <ChevronUpDownIcon
-          className="inline-block h-4 w-4"
+          className="inline-block h-4 w-4 text-[var(--color-accent)]"
           aria-hidden="true"
         />
       );
     }
     return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="inline-block h-4 w-4" aria-hidden="true" />
+      <ChevronUpIcon
+        className="inline-block h-4 w-4 text-[var(--color-primary)]"
+        aria-hidden="true"
+      />
     ) : (
-      <ChevronDownIcon className="inline-block h-4 w-4" aria-hidden="true" />
+      <ChevronDownIcon
+        className="inline-block h-4 w-4 text-[var(--color-primary)]"
+        aria-hidden="true"
+      />
     );
   };
 
@@ -91,10 +97,16 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
     return filtered;
   }, [data, typeFilter, sortField, sortDirection]);
 
+  if (!data || data.length === 0) {
+    return (
+      <div className="px-6 text-[var(--color-fg)]">No todo history found.</div>
+    );
+  }
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full table-auto">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="relative min-h-0 flex-1 overflow-auto">
+        <table className="w-full table-fixed border-collapse">
           <TodosHistoryTableHeader
             getSortIcon={getSortIcon}
             handleSort={handleSort}
@@ -102,7 +114,7 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
             typeFilter={typeFilter}
             uniqueTypes={uniqueTypes}
           />
-          <tbody>
+          <tbody className="relative">
             {filteredAndSortedTodos.map(todo => (
               <TodosHistoryTableRow key={todo.id} todo={todo} />
             ))}
@@ -110,7 +122,7 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
         </table>
 
         {filteredAndSortedTodos.length === 0 && (
-          <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
+          <div className="py-8 text-center text-sm text-[var(--color-accent)]">
             No todos match the current filters
           </div>
         )}

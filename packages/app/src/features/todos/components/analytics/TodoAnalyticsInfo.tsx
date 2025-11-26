@@ -14,9 +14,9 @@ const TodosAnalyticsInfo = ({
   resolvedData,
 }: TodosAnalyticsInfoProps) => {
   return selectedDay ? (
-    <div className="flex min-w-full flex-col rounded-2xl border bg-[var(--color-surface)] lg:flex-1">
+    <div className="flex min-w-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] lg:flex-1">
       <div className="flex-shrink-0 p-6 pb-4">
-        <h3 className="text-xl font-semibold">
+        <h3 className="text-xl font-semibold text-[var(--color-fg)]">
           Details for {new Date(selectedDay).toLocaleDateString()}
         </h3>
       </div>
@@ -30,12 +30,12 @@ const TodosAnalyticsInfo = ({
             .map((todo, index) => (
               <div
                 key={index}
-                className="mb-4 overflow-auto rounded-2xl border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5"
+                className="mb-4 overflow-auto rounded-lg border border-[var(--color-accent)]/20 p-4 transition-all duration-200 hover:bg-[var(--color-bg)]"
               >
                 <div className="mb-2 text-[var(--color-fg)]">
                   {todo.content}
                 </div>
-                <div className="space-y-1 text-xs text-[var(--color-muted)]">
+                <div className="space-y-1 text-sm text-[var(--color-accent)]">
                   <div>Reason: {todo.reason || 'N/A'}</div>
                   <div>File: {todo.filePath || 'N/A'}</div>
                   <div>
@@ -46,14 +46,14 @@ const TodosAnalyticsInfo = ({
               </div>
             ))
         ) : (
-          <div className="text-sm text-[var(--color-muted)]">
+          <div className="text-sm text-[var(--color-accent)]">
             No todos resolved on this day.
           </div>
         )}
       </div>
     </div>
   ) : (
-    <div className="flex items-center justify-center rounded-2xl border bg-[var(--color-surface)] p-6 text-center text-sm text-[var(--color-muted)] lg:h-full lg:flex-1">
+    <div className="flex items-center justify-center rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 text-center text-sm text-[var(--color-accent)] lg:h-full lg:flex-1">
       Click a day on the heatmap to see details
     </div>
   );

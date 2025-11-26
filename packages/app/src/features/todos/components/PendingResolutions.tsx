@@ -11,7 +11,6 @@ import {
   ChevronUpIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  PencilSquareIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { useQueryClient } from '@tanstack/react-query';
@@ -96,15 +95,21 @@ const PendingResolutions = () => {
     if (sortField !== field) {
       return (
         <ChevronUpDownIcon
-          className="inline-block h-4 w-4"
+          className="inline-block h-4 w-4 text-[var(--color-accent)]"
           aria-hidden="true"
         />
       );
     }
     return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="inline-block h-4 w-4" aria-hidden="true" />
+      <ChevronUpIcon
+        className="inline-block h-4 w-4 text-[var(--color-primary)]"
+        aria-hidden="true"
+      />
     ) : (
-      <ChevronDownIcon className="inline-block h-4 w-4" aria-hidden="true" />
+      <ChevronDownIcon
+        className="inline-block h-4 w-4 text-[var(--color-primary)]"
+        aria-hidden="true"
+      />
     );
   };
 
@@ -199,7 +204,7 @@ const PendingResolutions = () => {
     if (isError) {
       return {
         icon: (
-          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-[var(--color-danger)]" />
+          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-[var(--color-primary)]" />
         ),
         title: 'Failed to load resolutions',
         description:
@@ -228,22 +233,22 @@ const PendingResolutions = () => {
   const hasData = !emptyState;
 
   return (
-    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-      <div className="mb-8 flex items-center justify-between px-8">
-        <h2 className="flex items-center text-3xl">
+    <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
+      <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
+        <h2 className="flex items-center text-2xl font-bold text-[var(--color-fg)]">
           Pending Resolutions
           <div className="relative ml-3">
             <InformationCircleIcon
-              className="h-6 w-6 cursor-pointer"
+              className="h-5 w-5 cursor-pointer text-[var(--color-accent)] transition-colors duration-200 hover:text-[var(--color-primary)]"
               onMouseEnter={() => setIsTooltipVisible(true)}
               onMouseLeave={() => setIsTooltipVisible(false)}
             />
             {isTooltipVisible && (
-              <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-2xl border bg-[var(--color-surface)] p-4 shadow-lg">
-                <p className="text-left text-sm font-normal">
+              <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-4">
+                <p className="text-left text-sm font-normal text-[var(--color-fg)]">
                   Pending resolutions are TODOs that need your input. Use{' '}
-                  <span className="font-semibold text-orange-500">
-                    Edit mode
+                  <span className="font-semibold text-[var(--color-primary)]">
+                    Resolve mode
                   </span>{' '}
                   to assign reasons or resolve them.
                 </p>
@@ -254,29 +259,33 @@ const PendingResolutions = () => {
         {hasData && (
           <button
             onClick={handleEditButtonClick}
-            className={`flex items-center gap-2 rounded-4xl border px-6 py-1 text-base font-medium shadow-md transition-all ${
+            className={`group flex items-center gap-3 rounded-lg border px-5 py-2 text-base font-semibold transition-all duration-200 ${
               isEditMode
-                ? 'hover:border-red-600 hover:bg-red-600'
-                : 'hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]'
-            } hover:text-white`}
+                ? 'border-[var(--color-accent)]/20 text-[var(--color-fg)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)]'
+                : 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:-translate-y-0.5 hover:bg-[var(--color-primary)]/90'
+            }`}
           >
             {isEditMode ? (
-              <XMarkIcon className="h-5 w-5" />
+              <XMarkIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
             ) : (
-              <PencilSquareIcon className="h-5 w-5" />
+              <CheckIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
             )}
-            {isEditMode ? 'Discard' : 'Edit'}
+            {isEditMode ? 'Cancel' : 'Resolve'}
           </button>
         )}
       </div>
 
-      <div className="flex-1 overflow-hidden rounded-b-2xl">
+      <div className="flex-1 overflow-hidden">
         {emptyState ? (
           <div className="flex h-full items-center justify-center">
-            <div className="text-center text-[var(--color-accent)]">
+            <div className="text-center">
               {emptyState.icon}
-              <div className="mt-4 text-lg font-medium">{emptyState.title}</div>
-              <div className="mt-2 text-sm">{emptyState.description}</div>
+              <div className="mt-4 text-lg font-semibold text-[var(--color-fg)]">
+                {emptyState.title}
+              </div>
+              <div className="mt-2 text-sm text-[var(--color-accent)]">
+                {emptyState.description}
+              </div>
             </div>
           </div>
         ) : (
@@ -303,24 +312,26 @@ const PendingResolutions = () => {
           <button
             onClick={handleSubmitClick}
             disabled={!hasValidSelection}
-            className={`flex items-center gap-2 rounded-4xl border bg-[var(--color-surface)] px-6 py-1 text-base font-medium shadow-md transition-all ${
+            className={`group flex items-center gap-3 rounded-lg border px-5 py-3 text-base font-semibold transition-all duration-200 ${
               !hasValidSelection
-                ? 'cursor-not-allowed opacity-50'
-                : 'hover:border-green-600 hover:bg-green-600 hover:text-white'
+                ? 'cursor-not-allowed border-[var(--color-accent)]/20 bg-[var(--color-surface)] text-[var(--color-accent)] opacity-50'
+                : 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:-translate-y-0.5 hover:bg-[var(--color-primary)]/90'
             }`}
           >
-            <CheckIcon className="h-6 w-6" />
-            Submit
+            <CheckIcon
+              className={`h-5 w-5 transition-transform duration-200 ${!hasValidSelection ? '' : 'group-hover:scale-110'}`}
+            />
+            Submit Resolutions
           </button>
         </div>
       )}
 
       {showConfirmDiscard && (
         <ConfirmModal
-          title="Discard Changes"
-          message="Are you sure you want to discard all your changes? This action cannot be undone."
-          confirmText="Yes, Discard"
-          cancelText="Cancel"
+          title="Cancel Resolutions"
+          message="Are you sure you want to cancel all your changes? This action cannot be undone."
+          confirmText="Yes, Cancel"
+          cancelText="Continue Editing"
           confirmVariant="danger"
           onConfirm={handleDiscardConfirm}
           onCancel={handleDiscardCancel}

@@ -31,17 +31,17 @@ const TodosAnalyticsCustomTooltip = ({
   };
 
   return (
-    <div className="rounded-lg border bg-[var(--color-surface)] text-sm shadow-lg">
-      <div className="px-4 py-2 font-medium text-[var(--color-primary)]">
+    <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] text-sm">
+      <div className="px-4 py-3 font-semibold text-[var(--color-primary)]">
         {formatDate(data.fullDate)}
       </div>
 
-      <div className="px-4 pb-2 text-[var(--color-accent)]">
+      <div className="px-4 pb-3 text-[var(--color-fg)]">
         {data.todos} resolved {data.created > 0 && `of ${data.created} created`}
       </div>
 
       {Object.keys(data.breakdown).length > 0 && (
-        <div className="border-t border-[var(--color-border)] py-2 text-xs text-[var(--color-accent)]">
+        <div className="border-t border-[var(--color-accent)]/20 py-3 text-sm text-[var(--color-accent)]">
           <div className="px-4">
             {Object.entries(data.breakdown).map(([reason, count], index) => (
               <span key={reason}>
