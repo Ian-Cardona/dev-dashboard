@@ -11,7 +11,7 @@ import {
   TodoMeta,
   TodoResolution,
   TodosInfo,
-  TodosInfoWithResolved,
+  TodoHistory,
 } from '@dev-dashboard/shared';
 import crypto from 'crypto';
 
@@ -178,43 +178,81 @@ export const TodoService = (TodoModel: ITodoRepository): ITodoService => {
       }
     },
 
-    // async getBatchesByUserIdAndProject(
-    //   userId: string,
-    //   projectName: string,
-    //   limit: number = 100
-    // ): Promise<TodosInfo> {
-    //   try {
-    //     const batches = await TodoModel.findByUserIdAndProject(
-    //       userId,
-    //       projectName,
-    //       limit
-    //     );
-    //     return buildTodosInfoResponse(userId, batches);
-    //   } catch (error) {
-    //     if (error instanceof Error) {
-    //       throw error;
-    //     }
-    //     throw new Error('Failed to retrieve tasks by project');
-    //   }
-    // },
-
     async getBatchesByUserIdAndProject(
       userId: string,
       projectName: string,
       limit: number = 100
-    ): Promise<TodosInfoWithResolved> {
+    ): Promise<TodoHistory[]> {
       try {
         const [batches, resolvedTodos] = await Promise.all([
           TodoModel.findByUserIdAndProject(userId, projectName, limit),
           TodoModel.getResolved(userId),
         ]);
 
-        const todosInfo = buildTodosInfoResponse(userId, batches);
+        const todosMap = new Map<string, TodoHistory>();
 
-        return {
-          ...todosInfo,
-          resolvedTodos,
-        };
+        for (const batch of batches) {
+          if (!batch.todos || !Array.isArray(batch.todos)) continue;
+
+          for (const todo of batch.todos) {
+            if (!todo.id) continue;
+
+            const existing = todosMap.get(todo.id);
+
+            if (!existing) {
+              todosMap.set(todo.id, {
+                type: todo.type,
+                content: todo.content,
+                filePath: todo.filePath,
+                lineNumber: todo.lineNumber,
+                id: todo.id,
+                occurrences: [
+                  {
+                    syncId: batch.syncId,
+                    syncedAt: batch.syncedAt,
+                  },
+                ],
+                resolved: false,
+              });
+            } else {
+              existing.occurrences.push({
+                syncId: batch.syncId,
+                syncedAt: batch.syncedAt,
+              });
+            }
+          }
+        }
+
+        for (const resolvedTodo of resolvedTodos) {
+          if (!resolvedTodo.id) continue;
+
+          const existing = todosMap.get(resolvedTodo.id);
+
+          if (existing) {
+            existing.resolved = resolvedTodo.resolved ?? true;
+            existing.resolvedAt = resolvedTodo.resolvedAt;
+            existing.reason = resolvedTodo.reason;
+          } else {
+            todosMap.set(resolvedTodo.id, {
+              type: resolvedTodo.type,
+              content: resolvedTodo.content,
+              filePath: resolvedTodo.filePath,
+              lineNumber: resolvedTodo.lineNumber,
+              id: resolvedTodo.id,
+              occurrences: [
+                {
+                  syncId: resolvedTodo.syncId,
+                  syncedAt: resolvedTodo.createdAt ?? new Date().toISOString(),
+                },
+              ],
+              resolved: resolvedTodo.resolved ?? true,
+              resolvedAt: resolvedTodo.resolvedAt,
+              reason: resolvedTodo.reason,
+            });
+          }
+        }
+
+        return Array.from(todosMap.values());
       } catch (error) {
         if (error instanceof Error) {
           throw error;

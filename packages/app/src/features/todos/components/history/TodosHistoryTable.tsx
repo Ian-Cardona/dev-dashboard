@@ -1,9 +1,6 @@
 import TodosHistoryTableHeader from './TodosHistoryTableHeader';
 import TodosHistoryTableRow from './TodosHistoryTableRow';
-import type {
-  FlattenedTodo,
-  TodosInfoWithResolved,
-} from '@dev-dashboard/shared';
+import type { TodoHistory } from '@dev-dashboard/shared';
 import {
   ChevronDownIcon,
   ChevronUpDownIcon,
@@ -12,56 +9,23 @@ import {
 import { useMemo, useState } from 'react';
 
 interface TodosHistoryTableProps {
-  data: TodosInfoWithResolved;
+  data: TodoHistory[];
 }
 
 const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   const [typeFilter, setTypeFilter] = useState('');
   const [sortField, setSortField] = useState<
-    'type' | 'content' | 'syncedAt' | 'resolvedAt' | null
+    'type' | 'content' | 'resolvedAt' | null
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const flattenedTodos = useMemo((): (FlattenedTodo & {
-    _uniqueId: string;
-    resolved?: boolean;
-    resolvedAt?: string;
-    reason?: string;
-  })[] => {
-    const resolvedMap = new Map(
-      data.resolvedTodos.map(todo => [todo.id, todo])
-    );
-
-    return data.todosBatches.flatMap(batchItem =>
-      batchItem.todos.map((todo, todoIndex) => {
-        const resolvedInfo = resolvedMap.get(todo.id);
-        return {
-          ...todo,
-          syncedAt: batchItem.syncedAt,
-          projectName: batchItem.projectName,
-          userId: batchItem.userId,
-          syncId: batchItem.syncId,
-          _uniqueId: `${batchItem.syncId}-${todoIndex}`,
-          resolved: resolvedInfo?.resolved,
-          resolvedAt: resolvedInfo?.resolvedAt,
-          reason: resolvedInfo?.reason,
-        };
-      })
-    );
-  }, [data.todosBatches, data.resolvedTodos]);
-
   const uniqueTypes = useMemo(
-    () => [...new Set(flattenedTodos.map(todo => todo.type))],
-    [flattenedTodos]
+    () => [...new Set(data.map(todo => todo.type))],
+    [data]
   );
 
   const handleSort = (field: string) => {
-    if (
-      field === 'type' ||
-      field === 'content' ||
-      field === 'syncedAt' ||
-      field === 'resolvedAt'
-    ) {
+    if (field === 'type' || field === 'content' || field === 'resolvedAt') {
       if (sortField === field) {
         setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
       } else {
@@ -72,32 +36,33 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   };
 
   const getSortIcon = (key: string): React.ReactNode => {
-    if (
-      key !== 'type' &&
-      key !== 'content' &&
-      key !== 'syncedAt' &&
-      key !== 'resolvedAt'
-    ) {
+    if (key !== 'type' && key !== 'content' && key !== 'resolvedAt') {
       return null;
     }
-    const field = key as 'type' | 'content' | 'syncedAt' | 'resolvedAt';
+    const field = key as 'type' | 'content' | 'resolvedAt';
     if (sortField !== field) {
       return (
         <ChevronUpDownIcon
-          className="inline-block h-4 w-4"
+          className="inline-block h-4 w-4 text-[var(--color-accent)]"
           aria-hidden="true"
         />
       );
     }
     return sortDirection === 'asc' ? (
-      <ChevronUpIcon className="inline-block h-4 w-4" aria-hidden="true" />
+      <ChevronUpIcon
+        className="inline-block h-4 w-4 text-[var(--color-primary)]"
+        aria-hidden="true"
+      />
     ) : (
-      <ChevronDownIcon className="inline-block h-4 w-4" aria-hidden="true" />
+      <ChevronDownIcon
+        className="inline-block h-4 w-4 text-[var(--color-primary)]"
+        aria-hidden="true"
+      />
     );
   };
 
   const filteredAndSortedTodos = useMemo(() => {
-    let filtered = flattenedTodos.filter(todo => {
+    let filtered = data.filter(todo => {
       const matchesType = !typeFilter || todo.type === typeFilter;
       return matchesType;
     });
@@ -115,10 +80,6 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
             aValue = a.content.toLowerCase();
             bValue = b.content.toLowerCase();
             break;
-          case 'syncedAt':
-            aValue = new Date(a.syncedAt).getTime();
-            bValue = new Date(b.syncedAt).getTime();
-            break;
           case 'resolvedAt':
             aValue = a.resolvedAt ? new Date(a.resolvedAt).getTime() : 0;
             bValue = b.resolvedAt ? new Date(b.resolvedAt).getTime() : 0;
@@ -134,12 +95,18 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
     }
 
     return filtered;
-  }, [flattenedTodos, typeFilter, sortField, sortDirection]);
+  }, [data, typeFilter, sortField, sortDirection]);
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="px-6 text-[var(--color-fg)]">No todo history found.</div>
+    );
+  }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full table-auto">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="relative min-h-0 flex-1 overflow-auto">
+        <table className="w-full table-fixed border-collapse">
           <TodosHistoryTableHeader
             getSortIcon={getSortIcon}
             handleSort={handleSort}
@@ -147,18 +114,15 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
             typeFilter={typeFilter}
             uniqueTypes={uniqueTypes}
           />
-          <tbody>
-            {filteredAndSortedTodos.map((todo, index) => (
-              <TodosHistoryTableRow
-                key={todo._uniqueId || `${todo.syncId}-${index}`}
-                todo={todo}
-              />
+          <tbody className="relative">
+            {filteredAndSortedTodos.map(todo => (
+              <TodosHistoryTableRow key={todo.id} todo={todo} />
             ))}
           </tbody>
         </table>
 
         {filteredAndSortedTodos.length === 0 && (
-          <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
+          <div className="py-8 text-center text-sm text-[var(--color-accent)]">
             No todos match the current filters
           </div>
         )}

@@ -102,7 +102,7 @@ const TodosActivityHeatmap = ({
           {dayLabels.map((day, i) => (
             <div
               key={i}
-              className="flex h-8 w-8 items-center justify-center text-sm"
+              className="flex h-8 w-8 items-center justify-center text-sm text-[var(--color-accent)]"
             >
               {day}
             </div>
@@ -129,7 +129,10 @@ const TodosActivityHeatmap = ({
                 (i > 0 && monthDate.getMonth() !== prevMonthDate.getMonth());
 
               return (
-                <div key={i} className="w-8 text-center text-sm">
+                <div
+                  key={i}
+                  className="w-8 text-center text-sm text-[var(--color-accent)]"
+                >
                   {showLabel ? monthName : ''}
                 </div>
               );
@@ -146,9 +149,9 @@ const TodosActivityHeatmap = ({
               return (
                 <div
                   key={cell.date}
-                  className={`h-8 w-8 cursor-pointer rounded border ${getColor(
+                  className={`h-8 w-8 cursor-pointer rounded-lg border border-[var(--color-accent)]/20 ${getColor(
                     intensity
-                  )} hover:border-[var(--color-primary)]`}
+                  )} transition-all duration-200 hover:border-[var(--color-primary)]`}
                   onMouseEnter={e => handleCellHover(cell, e)}
                   onMouseLeave={() => setHoveredCell(null)}
                   onClick={() => onDayClick?.(cell.date)}
@@ -161,14 +164,14 @@ const TodosActivityHeatmap = ({
 
       {hoveredCell && (
         <div
-          className="pointer-events-none fixed z-50 rounded-xl border bg-[var(--color-surface)] px-4 py-3 shadow-lg"
+          className="pointer-events-none fixed z-50 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] px-4 py-3"
           style={{
             left: `${tooltipPosition.x}px`,
             top: `${tooltipPosition.y}px`,
             transform: 'translate(-50%, -100%)',
           }}
         >
-          <div className="text-sm font-medium text-[var(--color-fg)]">
+          <div className="text-sm font-semibold text-[var(--color-fg)]">
             {new Date(hoveredCell.date).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',

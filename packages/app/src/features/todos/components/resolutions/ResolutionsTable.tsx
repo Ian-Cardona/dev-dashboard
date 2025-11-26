@@ -30,19 +30,27 @@ const ResolutionsTable = ({
   onReasonChange,
 }: ResolutionsTableProps) => {
   if (isLoading) {
-    return <div className="px-8">Loading pending resolutions...</div>;
+    return (
+      <div className="px-6 text-[var(--color-fg)]">
+        Loading pending resolutions...
+      </div>
+    );
   }
 
   if (isError) {
     return (
-      <div className="px-8 text-[var(--color-primary)]">
+      <div className="px-6 text-[var(--color-primary)]">
         Error loading pending resolutions.
       </div>
     );
   }
 
   if (!resolutions || resolutions.length === 0) {
-    return <div className="px-8">No pending resolutions found.</div>;
+    return (
+      <div className="px-6 text-[var(--color-fg)]">
+        No pending resolutions found.
+      </div>
+    );
   }
 
   return (
@@ -74,7 +82,7 @@ const ResolutionsTable = ({
         </table>
 
         {resolutions.length === 0 && (
-          <div className="py-8 text-center text-sm text-[var(--color-fg)]/50">
+          <div className="py-8 text-center text-sm text-[var(--color-accent)]">
             No resolutions match the current filters
           </div>
         )}

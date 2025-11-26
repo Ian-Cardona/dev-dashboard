@@ -16,27 +16,27 @@ const ResolutionsTableRow = ({
   onReasonChange,
 }: ResolutionsTableRowProps) => {
   return (
-    <tr className="border-b border-[var(--color-border)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
-      <td className="px-6 py-3 align-middle text-base normal-case">
+    <tr className="border-b border-[var(--color-accent)]/20 transition-all duration-200 hover:bg-[var(--color-bg)]">
+      <td className="px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
         <div className="flex items-center gap-2">
           <IconSelector type={resolution.type} />
           <span>{resolution.type}</span>
         </div>
       </td>
-      <td className="max-w-xs px-6 py-3 align-middle text-base font-bold normal-case">
+      <td className="max-w-xs px-6 py-4 align-middle text-base font-semibold text-[var(--color-fg)] normal-case">
         {resolution.content}
       </td>
-      <td className="px-6 py-3 align-middle text-base normal-case">
+      <td className="px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
         {resolution.createdAt
           ? new Date(resolution.createdAt).toLocaleString()
           : 'N/A'}
       </td>
       {isEditMode && (
-        <td className="w-72 px-6 py-3 text-left align-middle text-base whitespace-nowrap normal-case">
+        <td className="w-72 px-6 py-4 text-left align-middle text-base whitespace-nowrap normal-case">
           <select
             value={selectedReason}
             onChange={e => onReasonChange(e.target.value)}
-            className="w-full truncate rounded border border-[var(--color-border)] px-4 text-base transition-colors hover:border-[var(--color-primary)] focus:border-[var(--color-primary)] focus:outline-none"
+            className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] px-4 py-3 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none"
           >
             <option value="">Select reason</option>
             {TodoReasonEnum.options.map((option: string) => (
