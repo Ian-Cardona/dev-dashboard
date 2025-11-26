@@ -1,16 +1,17 @@
 import GithubIntegrations from '../features/integrations/components/GithubIntegrations';
+import { CodeBracketIcon } from '@heroicons/react/24/outline';
 import { Link, useLocation } from 'react-router';
 
 const IntegrationsPage = () => {
   const location = useLocation();
-
   const currentTab = location.pathname.split('/').pop() || 'github';
 
   const getTabClass = (tabName: string) => {
-    return `px-4 py-2 text-lg font-medium transition-colors duration-200 ${
-      currentTab === tabName
-        ? 'border-b-2 border-l-4 border-[var(--color-primary)] text-[var(--color-primary)]'
-        : 'border-b-2 border-l-4 border-transparent'
+    const isActive = currentTab === tabName;
+    return `flex items-center gap-3 rounded-lg px-4 py-3 text-base font-semibold transition-all duration-200 ${
+      isActive
+        ? 'border-l-4 border-l-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
+        : 'border-[var(--color-accent)]/20 text-[var(--color-fg)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)]'
     }`;
   };
 
@@ -24,18 +25,17 @@ const IntegrationsPage = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-bg)] p-8">
-      <header className="mb-4 flex flex-shrink-0 items-center gap-2">
-        <h1 className="text-4xl">Integrations</h1>
-      </header>
+    <div className="flex h-full">
+      <aside className="w-64 flex-shrink-0 border-r border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
+        <nav className="space-y-3">
+          <Link to="/integrations/github" className={getTabClass('github')}>
+            <CodeBracketIcon className="h-5 w-5" />
+            <span>GitHub</span>
+          </Link>
+        </nav>
+      </aside>
 
-      <div className="mb-4 flex">
-        <Link to="/integrations/github" className={getTabClass('github')}>
-          GitHub
-        </Link>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-hidden">{renderContent()}</div>
+      <div className="flex-1 overflow-hidden p-6">{renderContent()}</div>
     </div>
   );
 };
