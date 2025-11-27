@@ -1,7 +1,7 @@
 import useQueryFetchGithubNotifications from '../hooks/useQueryFetchGithubNotifications';
 import GithubLatestWorkflowRun from './GithubLatestWorkflowRun';
 import GithubNotifications from './GithubNotifications';
-import { BellIcon } from '@heroicons/react/24/outline';
+import { InboxIcon } from '@heroicons/react/24/outline';
 import { useState, useRef, useEffect } from 'react';
 
 const GithubIntegrations = () => {
@@ -41,7 +41,10 @@ const GithubIntegrations = () => {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="group relative flex items-center gap-3 rounded-lg border border-[var(--color-accent)]/20 px-5 py-3 text-base font-semibold transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
           >
-            <BellIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+            <div className="flex-shrink-0 transition-all duration-200 group-hover:scale-110">
+              <InboxIcon className="h-5 w-5" />
+            </div>
+            Notifications
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-semibold text-white">
                 {unreadCount}
@@ -50,12 +53,13 @@ const GithubIntegrations = () => {
           </button>
 
           {isDropdownOpen && (
-            <GithubNotifications
-              notifications={notifications}
-              isLoading={notificationsLoading}
-              isError={notificationsError}
-              onClose={() => setIsDropdownOpen(false)}
-            />
+            <div className="absolute top-full right-0 z-10 mt-2 w-80">
+              <GithubNotifications
+                notifications={notifications}
+                isLoading={notificationsLoading}
+                isError={notificationsError}
+              />
+            </div>
           )}
         </div>
       </div>
