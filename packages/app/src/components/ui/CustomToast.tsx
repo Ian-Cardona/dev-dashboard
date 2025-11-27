@@ -10,11 +10,12 @@ const CustomToast = () => {
       closeButton={false}
       hideProgressBar
       toastClassName={() => `
-        bg-[var(--color-surface)] border border-[var(--color-fg)]
-        text-[var(--color-fg)] rounded-4xl p-4 text-sm font-medium
-        shadow-lg mb-2 flex items-center gap-2 justify-between overflow-hidden
+        bg-[var(--color-surface)] border border-[var(--color-accent)]/20
+        text-[var(--color-fg)] rounded-lg p-4 text-sm font-medium
+        shadow-lg mb-2 flex items-center gap-3 justify-between overflow-hidden
         cursor-pointer
       `}
+      progressClassName={() => 'bg-[var(--color-primary)]'}
     />
   );
 };

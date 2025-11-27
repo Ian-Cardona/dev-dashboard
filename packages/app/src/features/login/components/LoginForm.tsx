@@ -1,3 +1,4 @@
+import GithubSvg from '../../../components/ui/svgs/GithubSvg';
 import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { useMutateLoginEmail } from '../hooks/useMutateLoginEmail';
@@ -97,86 +98,74 @@ const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
   const isLoading = isLoginPending || loginEmailMutation.isPending;
 
   return (
-    <div className="w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-2 block text-sm font-medium text-[var(--color-fg)]"
-          >
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={handleEmailChange}
-            placeholder="you@devdashboard.com"
-            required
-            disabled={isLoading}
-            className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            aria-invalid={!isValid}
-          />
+    <div className="w-full max-w-none">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+        <button
+          type="button"
+          onClick={handleGithubLoginClick}
+          disabled={isConnecting || isLoading}
+          className="group w-full flex items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/20 px-6 py-3 text-base font-semibold text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--github-blue)] hover:bg-[var(--github-blue)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          aria-busy={isConnecting}
+        >
+          <GithubSvg className="h-5 w-5 transition-colors duration-200 group-hover:text-white" />
+          {isConnecting ? 'Connecting...' : 'GitHub'}
+        </button>
+
+        <div className="my-2 flex items-center gap-4">
+          <div className="h-px flex-grow border-t border-[var(--color-accent)]/20"></div>
+          <span className="text-sm text-[var(--color-accent)]">or</span>
+          <div className="h-px flex-grow border-t border-[var(--color-accent)]/20"></div>
         </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-2 block text-sm font-medium text-[var(--color-fg)]"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={handlePasswordChange}
-            placeholder="••••••••"
-            required
-            disabled={isLoading}
-            className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            aria-invalid={!isValid}
-          />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-semibold text-[var(--color-fg)]"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={handleEmailChange}
+              placeholder="Enter your email"
+              required
+              disabled={isLoading}
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!isValid}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold text-[var(--color-fg)]"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={handlePasswordChange}
+              placeholder="Enter your password"
+              required
+              disabled={isLoading}
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!isValid}
+            />
+          </div>
         </div>
 
         <button
           type="submit"
           disabled={isLoading || !isValid}
-          className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-3 text-base font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           aria-busy={isLoading}
         >
-          {isLoading ? 'Logging in...' : 'Log in'}
-        </button>
-
-        <div className="my-2 flex items-center gap-4">
-          <div className="h-px flex-grow border-t"></div>
-          <span className="text-sm text-[var(--color-accent)]">
-            or log in with
-          </span>
-          <div className="h-px flex-grow border-t"></div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGithubLoginClick}
-          disabled={isConnecting || isLoading}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/30 bg-transparent py-4 text-base font-medium text-[var(--color-fg)] transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-busy={isConnecting}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-          </svg>
-          {isConnecting ? 'Connecting...' : 'GitHub'}
+          {isLoading ? 'Signing in...' : 'Sign in'}
         </button>
 
         <div className="mt-4 text-center">

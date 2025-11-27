@@ -18,34 +18,38 @@ const ConfirmModal = ({
   confirmVariant = 'default',
 }: ConfirmModalProps) => {
   const getConfirmButtonStyles = () => {
+    const baseStyles =
+      'rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200';
+
     switch (confirmVariant) {
       case 'danger':
-        return 'hover:bg-red-600 hover:text-white';
+        return `${baseStyles} bg-red-600 text-white hover:bg-red-700`;
       case 'success':
-        return 'hover:bg-green-600 hover:text-[var(--color-surface)]';
+        return `${baseStyles} bg-green-600 text-white hover:bg-green-700`;
       default:
-        return 'hover:bg-[var(--color-fg)] hover:text-[var(--color-surface)]';
+        return `${baseStyles} bg-[var(--color-primary)] text-white hover:opacity-90`;
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="mx-4 w-full max-w-md rounded-4xl border border-[var(--color-fg)] bg-[var(--color-surface)] p-8 shadow-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="mx-4 w-full max-w-md rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
         {title && (
-          <h3 className="mb-4 text-center text-xl font-medium">{title}</h3>
+          <h3 className="mb-4 text-center text-xl font-bold text-[var(--color-fg)]">
+            {title}
+          </h3>
         )}
-        <p className="mb-6 text-center text-lg font-normal">{message}</p>
+        <p className="mb-6 text-center text-base text-[var(--color-fg)]">
+          {message}
+        </p>
         <div className="flex justify-center gap-4">
           <button
             onClick={onCancel}
-            className="rounded-4xl border border-[var(--color-fg)] px-6 py-2 transition-colors hover:bg-[var(--color-fg)] hover:text-[var(--color-surface)]"
+            className="rounded-lg border border-[var(--color-accent)]/20 px-5 py-2 text-sm font-semibold text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
           >
             {cancelText}
           </button>
-          <button
-            onClick={onConfirm}
-            className={`rounded-4xl border border-[var(--color-fg)] px-6 py-2 transition-colors ${getConfirmButtonStyles()}`}
-          >
+          <button onClick={onConfirm} className={getConfirmButtonStyles()}>
             {confirmText}
           </button>
         </div>
