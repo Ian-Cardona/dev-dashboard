@@ -1,5 +1,4 @@
 import { useMutateLogout } from '../../hooks/useMutateLogout';
-// import { useMutateUpdateUserProfile } from '../../hooks/useMutateUpdateUserProfile';
 import { useQueryFetchUserProfile } from '../../hooks/useQueryFetchUserProfile';
 import {
   CheckIcon,
@@ -11,7 +10,6 @@ import { useState } from 'react';
 
 const SettingsAccount = () => {
   const { data: userProfile } = useQueryFetchUserProfile();
-  // const updateProfile = useMutateUpdateUserProfile();
   const queryClient = useQueryClient();
   const logoutMutation = useMutateLogout();
 
@@ -29,7 +27,6 @@ const SettingsAccount = () => {
   const handleSave = async () => {
     setIsPending(true);
     try {
-      // await updateProfile.mutateAsync({ firstName, lastName });
       queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
       setIsEditMode(false);
     } finally {
@@ -55,7 +52,7 @@ const SettingsAccount = () => {
   const handleLogout = async () => {
     setIsPending(true);
     try {
-      await logoutMutation.mutateAsync(); // Use the mutation object
+      await logoutMutation.mutateAsync();
     } catch (err) {
       console.error('Logout failed', err);
     } finally {
@@ -68,16 +65,14 @@ const SettingsAccount = () => {
     (firstName !== userProfile.firstName || lastName !== userProfile.lastName);
 
   return (
-    <section className="relative flex h-full flex-col rounded-4xl border bg-[var(--color-surface)] pt-8">
-      <div className="mb-8 flex items-center justify-between px-8">
-        <h2 className="flex items-center text-3xl">Account</h2>
+    <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
+      <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
+        <h2 className="flex items-center text-2xl font-bold text-[var(--color-fg)]">
+          Account
+        </h2>
         <button
           onClick={isEditMode ? handleCancel : handleEditClick}
-          className={`flex items-center gap-2 rounded-4xl border px-6 py-1 text-base font-medium shadow-md transition-all ${
-            isEditMode
-              ? 'hover:border-[var(--color-primary)] hover:bg-red-600 hover:text-white'
-              : 'hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white'
-          }`}
+          className={`flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/20 px-5 py-3 text-base font-semibold transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white`}
         >
           {isEditMode ? (
             <XMarkIcon className="h-5 w-5" />
@@ -88,14 +83,14 @@ const SettingsAccount = () => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden rounded-4xl">
-        <div className="h-full overflow-y-auto px-8 pb-8">
+      <div className="flex-1 overflow-hidden p-6">
+        <div className="h-full overflow-y-auto">
           <p className="mb-6 text-sm text-[var(--color-accent)]">
             Manage your profile information and account settings.
           </p>
 
           <div className="grid grid-cols-1 gap-6">
-            <div className="rounded-4xl border bg-[var(--color-surface)] p-6">
+            <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="mb-2 text-sm font-semibold text-[var(--color-fg)]">
@@ -106,7 +101,7 @@ const SettingsAccount = () => {
                       type="text"
                       value={firstName}
                       onChange={e => setFirstName(e.target.value)}
-                      className="w-full rounded-4xl border border-[var(--color-fg)]/10 bg-[var(--color-bg)] px-3 py-2 text-base font-medium text-[var(--color-fg)] focus:border-[var(--color-primary)] focus:outline-none"
+                      className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-3 py-2 text-base font-medium text-[var(--color-fg)] focus:border-[var(--color-primary)] focus:outline-none"
                       placeholder="First Name"
                     />
                   ) : (
@@ -124,7 +119,7 @@ const SettingsAccount = () => {
                       type="text"
                       value={lastName}
                       onChange={e => setLastName(e.target.value)}
-                      className="w-full rounded-4xl border border-[var(--color-fg)]/10 bg-[var(--color-bg)] px-3 py-2 text-base font-medium text-[var(--color-fg)] focus:border-[var(--color-primary)] focus:outline-none"
+                      className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-3 py-2 text-base font-medium text-[var(--color-fg)] focus:border-[var(--color-primary)] focus:outline-none"
                       placeholder="Last Name"
                     />
                   ) : (
@@ -136,7 +131,7 @@ const SettingsAccount = () => {
               </div>
             </div>
 
-            <div className="rounded-4xl border bg-[var(--color-surface)] p-6">
+            <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="mb-2 text-sm font-semibold text-[var(--color-fg)]">
@@ -149,7 +144,7 @@ const SettingsAccount = () => {
               </div>
             </div>
 
-            <div className="rounded-4xl border bg-[var(--color-surface)] p-6">
+            <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="mb-2 text-sm font-semibold text-[var(--color-fg)]">
@@ -161,7 +156,7 @@ const SettingsAccount = () => {
                   <button
                     onClick={handleLogout}
                     disabled={isPending}
-                    className="inline-flex items-center justify-center rounded-4xl border px-6 py-2 text-sm font-medium transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white disabled:opacity-50"
+                    className="inline-flex items-center justify-center rounded-lg border border-[var(--color-accent)]/20 px-5 py-2 text-sm font-medium transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white disabled:opacity-50"
                   >
                     {isPending ? 'Signing out...' : 'Logout'}
                   </button>
@@ -169,7 +164,7 @@ const SettingsAccount = () => {
               </div>
             </div>
 
-            <div className="rounded-4xl border border-red-200 bg-red-50 p-6 dark:border-red-900/50 dark:bg-red-950/20">
+            <div className="rounded-lg border border-red-300 bg-red-50 p-6 dark:border-red-700 dark:bg-red-950/20">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="mb-2 text-sm font-semibold text-red-700 dark:text-red-400">
@@ -181,7 +176,7 @@ const SettingsAccount = () => {
                   </div>
                   <button
                     onClick={() => setShowConfirm(true)}
-                    className="inline-flex items-center justify-center rounded-4xl border border-red-300 bg-white px-6 py-2 text-sm font-medium text-red-700 transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white dark:border-red-800 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+                    className="inline-flex items-center justify-center rounded-lg border border-red-300 bg-white px-5 py-2 text-sm font-medium text-red-700 transition-all duration-200 hover:border-red-600 hover:bg-red-600 hover:text-white dark:border-red-700 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-800"
                   >
                     Delete Account
                   </button>
@@ -189,29 +184,29 @@ const SettingsAccount = () => {
               </div>
             </div>
           </div>
+
+          {isEditMode && (
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={handleSave}
+                disabled={!hasChanges || isPending}
+                className={`flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/20 px-5 py-3 text-base font-semibold transition-all duration-200 ${
+                  !hasChanges || isPending
+                    ? 'cursor-not-allowed opacity-50'
+                    : 'hover:border-green-600 hover:bg-green-600 hover:text-white'
+                }`}
+              >
+                <CheckIcon className="h-5 w-5" />
+                {isPending ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {isEditMode && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges || isPending}
-            className={`flex items-center gap-2 rounded-4xl border bg-[var(--color-surface)] px-6 py-1 text-base font-medium shadow-md transition-all ${
-              !hasChanges || isPending
-                ? 'cursor-not-allowed opacity-50'
-                : 'hover:border-green-600 hover:bg-green-600 hover:text-white'
-            }`}
-          >
-            <CheckIcon className="h-6 w-6" />
-            {isPending ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      )}
-
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 max-w-md rounded-4xl border border-[var(--color-fg)] bg-[var(--color-surface)] p-8 shadow-md">
+          <div className="mx-4 max-w-md rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 shadow-md">
             <h3 className="mb-2 text-lg font-semibold text-[var(--color-fg)]">
               Delete Account
             </h3>
@@ -222,7 +217,7 @@ const SettingsAccount = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="inline-flex items-center justify-center rounded-4xl border border-[var(--color-fg)]/10 bg-[var(--color-surface)] px-6 py-2 text-sm font-medium text-[var(--color-fg)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+                className="inline-flex items-center justify-center rounded-lg border border-[var(--color-accent)]/20 px-5 py-2 text-sm font-medium text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
                 disabled={isDeleting}
               >
                 Cancel
@@ -230,7 +225,7 @@ const SettingsAccount = () => {
               <button
                 onClick={handleDeleteAccount}
                 disabled={isDeleting}
-                className="inline-flex items-center justify-center rounded-4xl border border-red-600 bg-red-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50 dark:border-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                className="inline-flex items-center justify-center rounded-lg border border-red-600 bg-red-600 px-5 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-red-700 disabled:opacity-50 dark:border-red-700 dark:bg-red-700 dark:hover:bg-red-800"
               >
                 {isDeleting ? 'Deleting...' : 'Delete Account'}
               </button>
