@@ -1,6 +1,7 @@
 import useQueryFetchGithubOAuthLink from '../../../../oauth/hooks/useQueryFetchGithubAuthLink';
 import { useMutateRegisterInitEmail } from '../../hooks/useMutateRegisterInitEmail';
 import { useRegisterInitForm } from '../../hooks/useRegisterForm';
+import GithubSvg from '../../../../components/ui/svg/GithubSvg';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
@@ -23,8 +24,17 @@ const PASSWORD_CHECKS = [
 
 const RegisterForm = ({ onError }: RegisterFormProps) => {
   const navigate = useNavigate();
-  const { email, password, setEmail, setPassword, isValid } =
-    useRegisterInitForm();
+  const {
+    email,
+    password,
+    confirmPassword,
+    setEmail,
+    setPassword,
+    setConfirmPassword,
+    isValid,
+    passwordsMatch,
+  } = useRegisterInitForm();
+
   const registerInitMutation = useMutateRegisterInitEmail();
   const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('register');
   const [isConnecting, setIsConnecting] = useState(false);
@@ -35,7 +45,7 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
       return;
     }
 
-    let message = 'Registration failed';
+    let message = 'Registration failed. Please try again.';
 
     const error = registerInitMutation.error as AxiosError<{
       message?: string;
@@ -51,136 +61,189 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
     onError?.(message);
   }, [registerInitMutation.error, onError]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isValid) return;
-    registerInitMutation.mutate({ email, password });
-  };
+  useEffect(() => {
+    if (githubAuthorizeQuery.isError && !isConnecting) {
+      onError?.('Could not retrieve GitHub registration link. Please try again later.');
+    }
+  }, [githubAuthorizeQuery.isError, isConnecting, onError]);
 
-  const handleGithubSignup = async () => {
+  const handleGithubRegisterClick = async (): Promise<void> => {
     setIsConnecting(true);
+    onError?.(null);
+
     try {
       const response = await githubAuthorizeQuery.refetch();
-      if (response.data != null) {
-        const url = response.data.authorize_uri;
-        if (!url) {
-          setIsConnecting(false);
-          return;
-        }
+      const url = response?.data?.authorize_uri;
 
-        window.location.href = url;
+      if (!url || typeof url !== 'string') {
+        onError?.('GitHub authorize URL not found. Please try again.');
+        setIsConnecting(false);
+        return;
       }
+
+      window.location.href = url;
     } catch (error) {
-      console.error('Failed to initiate GitHub register:', error);
+      console.error('GitHub registration error:', error);
+      onError?.('Failed to initiate GitHub registration. Please try again.');
       setIsConnecting(false);
     }
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    if (!isValid) return;
+
+    onError?.(null);
+    registerInitMutation.mutate({ email, password });
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    if (registerInitMutation.error) {
+      onError?.(null);
+    }
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    if (registerInitMutation.error) {
+      onError?.(null);
+    }
+    setPassword(e.target.value);
+  };
+
+  const handleConfirmPasswordChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    if (registerInitMutation.error) {
+      onError?.(null);
+    }
+    setConfirmPassword(e.target.value);
+  };
+
+  const handleNavigateToLogin = (): void => {
+    navigate('/login');
+  };
+
+  const isLoading = registerInitMutation.isPending;
+
   return (
-    <div className="w-full">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-2 block text-sm font-medium text-[var(--color-fg)]"
-          >
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="you@devdashboard.com"
-            required
-            disabled={registerInitMutation.isPending}
-            className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            aria-invalid={!isValid}
-          />
+    <div className="w-full max-w-none">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+        <button
+          type="button"
+          onClick={handleGithubRegisterClick}
+          disabled={isConnecting || isLoading}
+          className="group flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/20 px-6 py-3 text-base font-semibold text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--github-blue)] hover:bg-[var(--github-blue)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          aria-busy={isConnecting}
+        >
+          <GithubSvg className="h-5 w-5 transition-colors duration-200 group-hover:text-white" />
+          {isConnecting ? 'Connecting...' : 'GitHub'}
+        </button>
+
+        <div className="my-2 flex items-center gap-4">
+          <div className="h-px flex-grow border-t border-[var(--color-accent)]/20"></div>
+          <span className="text-sm text-[var(--color-accent)]">or</span>
+          <div className="h-px flex-grow border-t border-[var(--color-accent)]/20"></div>
         </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-2 block text-sm font-medium text-[var(--color-fg)]"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            disabled={registerInitMutation.isPending}
-            className="w-full rounded-lg border border-[var(--color-accent)]/30 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            aria-invalid={!isValid}
-          />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-semibold text-[var(--color-fg)]"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={handleEmailChange}
+              placeholder="Enter your email"
+              required
+              disabled={isLoading}
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!isValid}
+            />
+          </div>
 
-          <div className="mt-4 flex flex-col gap-2">
-            {PASSWORD_CHECKS.map(({ label, test }) => {
-              const isCheckValid = test(password);
-              return (
-                <div key={label} className="flex items-center gap-2 text-sm">
-                  {isCheckValid ? (
-                    <CheckIcon className="h-4 w-4 text-[var(--color-accent)]" />
-                  ) : (
-                    <XMarkIcon className="h-4 w-4 text-[var(--color-danger)]" />
-                  )}
-                  <span
-                    className={
-                      isCheckValid
-                        ? 'text-[var(--color-accent)] line-through'
-                        : 'text-[var(--color-danger)]'
-                    }
-                  >
-                    {label}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="space-y-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold text-[var(--color-fg)]"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={handlePasswordChange}
+              placeholder="Enter your password"
+              required
+              disabled={isLoading}
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!isValid}
+            />
+
+            <div className="mt-3 flex flex-col gap-2">
+              {PASSWORD_CHECKS.map(({ label, test }) => {
+                const isCheckValid = test(password);
+                return (
+                  <div key={label} className="flex items-center gap-2 text-sm transition-all duration-200">
+                    {isCheckValid ? (
+                      <CheckIcon className="h-4 w-4 text-green-600 transition-colors duration-200" />
+                    ) : (
+                      <XMarkIcon className="h-4 w-4 text-[var(--color-accent)] transition-colors duration-200" />
+                    )}
+                    <span
+                      className={
+                        isCheckValid
+                          ? 'text-green-600 line-through transition-all duration-200'
+                          : 'text-[var(--color-accent)] transition-all duration-200'
+                      }
+                    >
+                      {label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-semibold text-[var(--color-fg)]"
+            >
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={handleConfirmPasswordChange}
+              placeholder="Confirm your password"
+              required
+              disabled={isLoading}
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              aria-invalid={!passwordsMatch && confirmPassword.length > 0}
+            />
+            {!passwordsMatch && confirmPassword.length > 0 && (
+              <p className="text-sm text-red-600">Passwords do not match</p>
+            )}
           </div>
         </div>
 
         <button
           type="submit"
-          disabled={registerInitMutation.isPending || !isValid}
-          className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-busy={registerInitMutation.isPending}
+          disabled={isLoading || !isValid}
+          className="w-full rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-3 text-base font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-busy={isLoading}
         >
-          {registerInitMutation.isPending ? 'Registering...' : 'Create Account'}
-        </button>
-
-        <div className="my-2 flex items-center gap-4">
-          <div className="h-px flex-grow border-t"></div>
-          <span className="text-sm text-[var(--color-accent)]">
-            or sign up with
-          </span>
-          <div className="h-px flex-grow border-t"></div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGithubSignup}
-          disabled={isConnecting}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/30 bg-transparent py-4 text-base font-medium text-[var(--color-fg)] transition-all hover:border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-busy={isConnecting}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-          </svg>
-          {isConnecting ? 'Connecting...' : 'GitHub'}
+          {isLoading ? 'Creating account...' : 'Create account'}
         </button>
 
         <div className="mt-4 text-center">
@@ -188,11 +251,11 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
             Already have an account?{' '}
             <button
               type="button"
-              onClick={() => navigate('/login')}
-              disabled={registerInitMutation.isPending}
+              onClick={handleNavigateToLogin}
+              disabled={isLoading}
               className="font-semibold text-[var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Log in
+              Sign in
             </button>
           </p>
         </div>
