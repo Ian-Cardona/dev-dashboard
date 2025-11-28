@@ -1,4 +1,4 @@
-import GithubSvg from '../../../components/ui/svgs/GithubSvg';
+import GithubSvg from '../../../components/ui/svg/GithubSvg';
 import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { useMutateLoginEmail } from '../hooks/useMutateLoginEmail';
@@ -104,7 +104,7 @@ const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
           type="button"
           onClick={handleGithubLoginClick}
           disabled={isConnecting || isLoading}
-          className="group w-full flex items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/20 px-6 py-3 text-base font-semibold text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--github-blue)] hover:bg-[var(--github-blue)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="group flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/20 px-6 py-3 text-base font-semibold text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--github-blue)] hover:bg-[var(--github-blue)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
           aria-busy={isConnecting}
         >
           <GithubSvg className="h-5 w-5 transition-colors duration-200 group-hover:text-white" />

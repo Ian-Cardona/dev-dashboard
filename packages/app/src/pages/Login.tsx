@@ -58,14 +58,14 @@ const LoginPage = () => {
       </div>
 
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] p-4 sm:p-8">
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="mx-auto w-full max-w-2xl">
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-2xl text-[var(--color-fg)]">
               Sign in to DevDashboard
             </h1>
           </div>
 
-          <div className="relative rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 sm:p-8 w-full min-w-80">
+          <div className="relative w-full min-w-80 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 sm:p-8">
             {isLoading && (
               <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[var(--color-surface)]/80">
                 <div className="text-center">
