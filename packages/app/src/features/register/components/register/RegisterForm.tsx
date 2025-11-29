@@ -1,7 +1,7 @@
+import GithubSvg from '../../../../components/ui/svg/GithubSvg';
 import useQueryFetchGithubOAuthLink from '../../../../oauth/hooks/useQueryFetchGithubAuthLink';
 import { useMutateRegisterInitEmail } from '../../hooks/useMutateRegisterInitEmail';
 import { useRegisterInitForm } from '../../hooks/useRegisterForm';
-import GithubSvg from '../../../../components/ui/svg/GithubSvg';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
@@ -63,7 +63,9 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
 
   useEffect(() => {
     if (githubAuthorizeQuery.isError && !isConnecting) {
-      onError?.('Could not retrieve GitHub registration link. Please try again later.');
+      onError?.(
+        'Could not retrieve GitHub registration link. Please try again later.'
+      );
     }
   }, [githubAuthorizeQuery.isError, isConnecting, onError]);
 
@@ -192,7 +194,10 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
               {PASSWORD_CHECKS.map(({ label, test }) => {
                 const isCheckValid = test(password);
                 return (
-                  <div key={label} className="flex items-center gap-2 text-sm transition-all duration-200">
+                  <div
+                    key={label}
+                    className="flex items-center gap-2 text-sm transition-all duration-200"
+                  >
                     {isCheckValid ? (
                       <CheckIcon className="h-4 w-4 text-green-600 transition-colors duration-200" />
                     ) : (
