@@ -1,4 +1,4 @@
-import ErrorModal from '../components/ui/ErrorModal.tsx';
+import ErrorModal from '../components/ui/modals/ErrorModal.tsx';
 import RegisterForm from '../features/register/components/register/RegisterForm';
 import useQueryFetchOAuthSession from '../features/register/hooks/useQueryFetchOAuthSession';
 import { useOAuthErrorFromCookie } from '../oauth/hooks/useOauthErrorFromCookie.ts';

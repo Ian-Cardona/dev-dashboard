@@ -28,85 +28,89 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
     registerMutation.mutate({ email, firstName, lastName });
   };
 
+  const isLoading = registerMutation.isPending;
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex w-full max-w-xl flex-col gap-8 rounded-4xl border bg-[var(--color-surface)] p-12 shadow-lg transition-all duration-300"
-    >
-      <header className="text-center">
-        <h2 className="mb-3 text-4xl font-bold text-[var(--color-fg)]">
-          Complete Your Setup
-        </h2>
-        <p className="text-base text-[var(--color-accent)]">
-          Provide a few details to finish registration.
+    <div className="mx-auto w-full max-w-2xl">
+      <div className="mb-6 text-center">
+        <h2 className="mb-2 text-xl text-[var(--color-fg)]">Your Profile</h2>
+        <p className="text-sm text-[var(--color-accent)]">
+          Complete your account setup
         </p>
-      </header>
-
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium text-[var(--color-fg)]"
-          >
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            disabled={flow === 'email'}
-            className="w-full rounded-lg border border-[var(--color-accent)]/40 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)]/70 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:bg-[var(--color-bg)]/50 disabled:text-[var(--color-accent)]"
-            placeholder="you@devdashboard.com"
-            required
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="firstName"
-            className="text-sm font-medium text-[var(--color-fg)]"
-          >
-            First Name
-          </label>
-          <input
-            id="firstName"
-            type="text"
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-            className="w-full rounded-lg border border-[var(--color-accent)]/40 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)]/70 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none"
-            placeholder="Enter your first name"
-            required
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="lastName"
-            className="text-sm font-medium text-[var(--color-fg)]"
-          >
-            Last Name
-          </label>
-          <input
-            id="lastName"
-            type="text"
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            className="w-full rounded-lg border border-[var(--color-accent)]/40 bg-transparent p-4 text-base text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)]/70 hover:border-[var(--color-primary)]/60 focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] focus:outline-none"
-            placeholder="Enter your last name"
-            required
-          />
-        </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={!isValid || registerMutation.isPending}
-        className="hover:bg-opacity-90 w-full rounded-lg bg-[var(--color-primary)] py-4 text-base font-semibold text-white transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {registerMutation.isPending ? 'Loading...' : 'Continue'}
-      </button>
-    </form>
+      <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <div className="space-y-1.5">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-[var(--color-fg)]"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              disabled={flow === 'email' || isLoading}
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="your@email.com"
+              required
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="firstName"
+                className="block text-sm font-medium text-[var(--color-fg)]"
+              >
+                First Name
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                disabled={isLoading}
+                className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Dev"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-medium text-[var(--color-fg)]"
+              >
+                Last Name
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                disabled={isLoading}
+                className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Dashboard"
+                required
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={!isValid || isLoading}
+            className="w-full rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-busy={isLoading}
+          >
+            {isLoading ? 'Setting up...' : 'Complete'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 
