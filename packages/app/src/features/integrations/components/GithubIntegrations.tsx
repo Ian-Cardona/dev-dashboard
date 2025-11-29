@@ -1,3 +1,4 @@
+import { getErrorMessage } from '../../../utils/errors/getErrorMessage';
 import useQueryFetchGithubNotifications from '../hooks/useQueryFetchGithubNotifications';
 import GithubLatestWorkflowRun from './GithubLatestWorkflowRun';
 import GithubNotifications from './GithubNotifications';
@@ -12,6 +13,8 @@ const GithubIntegrations = () => {
     data: notifications,
     isLoading: notificationsLoading,
     isError: notificationsError,
+    error: notificationsErrorData,
+    refetch: refetchNotifications,
   } = useQueryFetchGithubNotifications();
 
   const unreadCount = notifications?.filter(n => n.unread)?.length || 0;
@@ -58,6 +61,9 @@ const GithubIntegrations = () => {
                 notifications={notifications}
                 isLoading={notificationsLoading}
                 isError={notificationsError}
+                errorMessage={getErrorMessage(notificationsErrorData)}
+                errorData={notificationsErrorData}
+                onRetry={refetchNotifications}
               />
             </div>
           )}
