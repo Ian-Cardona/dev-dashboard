@@ -106,8 +106,6 @@ export const RegisterInitController = (
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        console.table(result);
-
         res.status(201).json();
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid registration data');

@@ -111,7 +111,6 @@ export const UserRepository = (
     },
 
     async findByEmail(email: string): Promise<User | null> {
-      console.log('Attempting to find user by email:', email);
       const result = await docClient.send(
         new QueryCommand({
           TableName: USERS_TABLE,
@@ -120,8 +119,6 @@ export const UserRepository = (
           ExpressionAttributeValues: { ':email': email },
         })
       );
-
-      console.log('Fetched user:', result);
 
       return (result.Items?.[0] as User) ?? null;
     },
@@ -203,6 +200,148 @@ export const UserRepository = (
           ConditionExpression: 'attribute_exists(providerUserId)',
         })
       );
+    },
+
+    async linkProvider(user: User, providerAccessToken: string): Promise<User> {
+      if (
+        !user.providers ||
+        user.providers.length === 0 ||
+        !providerAccessToken
+      ) {
+        throw new ConflictError(
+          `[${MODULE_NAME}] ${user.id} missing providers or access token`
+        );
+      }
+
+      const provider = user.providers[0];
+      const updatedAt = new Date().toISOString();
+      const transactItems: NonNullable<
+        TransactWriteCommandInput['TransactItems']
+      > = [
+        {
+          Update: {
+            TableName: USERS_TABLE,
+            Key: { id: user.id },
+            UpdateExpression:
+              'SET #providers = :providers, #updatedAt = :updatedAt',
+            ExpressionAttributeNames: {
+              '#providers': 'providers',
+              '#updatedAt': 'updatedAt',
+            },
+            ExpressionAttributeValues: {
+              ':providers': user.providers,
+              ':updatedAt': updatedAt,
+            },
+            ConditionExpression: 'attribute_exists(id)',
+          },
+        },
+        {
+          Put: {
+            TableName: PROVIDERS_TABLE,
+            Item: {
+              provider: provider.provider,
+              providerUserId: provider.providerUserId,
+              userId: user.id,
+              accessTokenEncrypted: providerAccessToken,
+              updatedAt: updatedAt,
+            },
+            ConditionExpression:
+              'attribute_not_exists(providerUserId) OR userId = :userId',
+            ExpressionAttributeValues: {
+              ':userId': user.id,
+            },
+          },
+        },
+      ];
+
+      try {
+        await docClient.send(
+          new TransactWriteCommand({
+            TransactItems: transactItems,
+          })
+        );
+        return user;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.name === 'TransactionCanceledException'
+        ) {
+          throw new ConflictError(
+            `[${MODULE_NAME}] ${user.id} failed to link provider - user may not exist or provider already linked to another user`
+          );
+        }
+        throw error;
+      }
+    },
+
+    async unlinkProvider(userId: string, provider: string): Promise<void> {
+      const user = await this.findById(userId);
+      if (!user) {
+        throw new ConflictError(`[${MODULE_NAME}] User ${userId} not found`);
+      }
+
+      const existingProvider = await this.findProviderByUserId(
+        userId,
+        provider
+      );
+      if (!existingProvider) {
+        throw new ConflictError(
+          `[${MODULE_NAME}] Provider ${provider} not linked to user ${userId}`
+        );
+      }
+
+      const updatedAt = new Date().toISOString();
+
+      const transactItems: NonNullable<
+        TransactWriteCommandInput['TransactItems']
+      > = [
+        {
+          Update: {
+            TableName: USERS_TABLE,
+            Key: { id: userId },
+            UpdateExpression: 'REMOVE #providers SET #updatedAt = :updatedAt',
+            ExpressionAttributeNames: {
+              '#providers': 'providers',
+              '#updatedAt': 'updatedAt',
+            },
+            ExpressionAttributeValues: {
+              ':updatedAt': updatedAt,
+            },
+            ConditionExpression: 'attribute_exists(id)',
+          },
+        },
+        {
+          Delete: {
+            TableName: PROVIDERS_TABLE,
+            Key: {
+              provider: provider,
+              providerUserId: existingProvider.providerUserId,
+            },
+            ConditionExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+              ':userId': userId,
+            },
+          },
+        },
+      ];
+
+      try {
+        await docClient.send(
+          new TransactWriteCommand({
+            TransactItems: transactItems,
+          })
+        );
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.name === 'TransactionCanceledException'
+        ) {
+          throw new ConflictError(
+            `[${MODULE_NAME}] Failed to unlink provider ${provider} from user ${userId}`
+          );
+        }
+        throw error;
+      }
     },
 
     async update(id: string, updates: UpdateUser): Promise<User> {

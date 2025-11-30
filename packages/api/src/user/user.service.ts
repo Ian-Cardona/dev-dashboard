@@ -207,6 +207,38 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       }
     },
 
+    async linkProvider(user: User, providerAccessToken: string): Promise<User> {
+      try {
+        const updatedUser = await userRepository.linkProvider(
+          user,
+          providerAccessToken
+        );
+        return updatedUser;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.name === 'TransactionCanceledException'
+        ) {
+          throw new ConflictError(`[${MODULE_NAME}] Failed to link provider`);
+        }
+        throw new Error(`[${MODULE_NAME}] Failed to link provider`);
+      }
+    },
+
+    async unlinkProvider(userId: string, provider: string): Promise<void> {
+      try {
+        await userRepository.unlinkProvider(userId, provider);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.name === 'TransactionCanceledException'
+        ) {
+          throw new ConflictError(`[${MODULE_NAME}] Failed to unlink provider`);
+        }
+        throw new Error(`[${MODULE_NAME}] Failed to unlink provider`);
+      }
+    },
+
     async updateProvider(updates: GithubProvider): Promise<void> {
       try {
         await userRepository.updateProvider(updates);

@@ -14,9 +14,7 @@ export const accessAuthorizationMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    console.log('Req: ', req);
     const token = extractBearerToken(req);
-    console.log('Token: ', token);
     const payload: AccessTokenPayload = verifyJWT<AccessTokenPayload>(token);
 
     const user = await userService.findById(payload.userId);

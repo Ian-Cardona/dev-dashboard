@@ -17,6 +17,8 @@ export interface IUserService {
     userId: string,
     provider: string
   ): Promise<GithubProvider | null>;
+  linkProvider(user: User, providerAccessToken: string): Promise<User>;
+  unlinkProvider(userId: string, provider: string): Promise<void>;
   updateProvider(updates: GithubProvider): Promise<void>;
   emailExists(email: string): Promise<boolean>;
   update(

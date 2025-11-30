@@ -13,6 +13,8 @@ export interface IUserRepository {
     userId: string,
     provider: string
   ): Promise<GithubProvider | null>;
+  linkProvider(user: User, providerAccessToken: string): Promise<User>;
+  unlinkProvider(userId: string, provider: string): Promise<void>;
   updateProvider(updates: GithubProvider): Promise<void>;
   update(id: string, updates: UpdateUser): Promise<User>;
   delete(id: string): Promise<void>;

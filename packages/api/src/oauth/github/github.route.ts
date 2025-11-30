@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { RegisterInitService } from 'src/auth-related/register-init/register-init.service';
 import { docClient } from 'src/config/dynamodb';
 import { redisClient } from 'src/config/redis';
+import { conditionalAccessAuthorizationMiddleware } from 'src/middlewares/authorization/conditional-access-authorization.middleware';
 import { UserRepository } from 'src/user/user.repository';
 import { UserService } from 'src/user/user.service';
 
@@ -22,7 +23,11 @@ const controller = GithubController(
   userService
 );
 
-router.get('/authorize/callback', controller.getAuthorizationCallbackUrl);
+router.get(
+  '/authorize/callback',
+  conditionalAccessAuthorizationMiddleware,
+  controller.getAuthorizationCallbackUrl
+);
 router.get('/authorize/link', controller.getAuthorizeLink);
 
 export default router;
