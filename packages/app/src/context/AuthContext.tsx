@@ -1,100 +1,41 @@
-import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { authApi } from '../lib/auth';
-import { userApi } from '../lib/user';
+import { LoadingState } from '../components/ui/states/LoadingState';
+import { useAuthQuery } from '../hooks/useAuthQuery';
+import type { AuthState } from '../lib/states/AuthState';
 import type { UserPublic } from '@dev-dashboard/shared';
-import { isAxiosError } from 'axios';
-import {
-  type Dispatch,
-  type ReactNode,
-  createContext,
-  useEffect,
-  useReducer,
-  useRef,
-} from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import React, { createContext, useState, useEffect } from 'react';
 
-type State = {
-  authUser: UserPublic | null;
-  status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
-};
+export const AuthContext = createContext<AuthState | undefined>(undefined);
 
-const initialState: State = {
-  authUser: null,
-  status: 'loading',
-};
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<UserPublic | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const queryClient = useQueryClient();
 
-export const AUTH_REDUCER_ACTION_TYPE = {
-  SET_AUTH: 'SET_AUTH',
-  CLEAR_AUTH: 'CLEAR_AUTH',
-} as const;
-
-type Action =
-  | {
-      type: typeof AUTH_REDUCER_ACTION_TYPE.SET_AUTH;
-      payload: UserPublic;
-    }
-  | {
-      type: typeof AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH;
-    };
-
-type AuthContextType = {
-  state: State;
-  dispatch: Dispatch<Action>;
-};
-
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case AUTH_REDUCER_ACTION_TYPE.SET_AUTH:
-      return { authUser: action.payload, status: 'authenticated' };
-    case AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH:
-      return { authUser: null, status: 'unauthenticated' };
-    default:
-      return state;
-  }
-};
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const effectRan = useRef(false);
+  const { data, isLoading, error } = useAuthQuery();
 
   useEffect(() => {
-    const hydrateAuth = async () => {
-      if (import.meta.env.DEV && effectRan.current === true) {
-        return;
-      }
+    if (data) {
+      setUser(data);
+      setIsAuthenticated(true);
+    } else if (error) {
+      localStorage.removeItem('accessToken');
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  }, [data, error]);
 
-      try {
-        const response = await authApi.refresh();
-        localStorage.setItem('accessToken', response.accessToken);
+  const refreshAuth = () => {
+    queryClient.invalidateQueries({ queryKey: ['auth'] });
+  };
 
-        const user = await userApi.getProfile();
-        dispatch({ type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH, payload: user });
-      } catch (error) {
-        if (isAxiosError(error)) {
-          dispatch({ type: AUTH_REDUCER_ACTION_TYPE.CLEAR_AUTH });
-        }
-      }
-    };
-
-    hydrateAuth();
-
-    return () => {
-      if (import.meta.env.DEV) {
-        effectRan.current = true;
-      }
-    };
-  }, []);
-
-  if (state.status === 'loading') {
-    return <LoadingSpinner />;
+  if (isLoading) {
+    return <LoadingState />;
   }
 
   return (
-    <AuthContext.Provider value={{ state, dispatch }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-export default AuthContext;
