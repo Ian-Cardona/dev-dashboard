@@ -1,8 +1,8 @@
 import ErrorModal from '../../components/ui/modals/ErrorModal';
 import RegisterForm from '../../features/register/components/register/RegisterForm';
 import useQueryFetchOAuthSession from '../../features/register/hooks/useQueryFetchOAuthSession';
+import { getRegInitCookieKeys } from '../../lib/configs/getConfig';
 import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie';
-import { getRegInitCookieKeys } from '../../utils/configs/getConfig';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
@@ -84,8 +84,12 @@ const RegisterPage = () => {
   );
 };
 
+type RegisterSearch = {
+  error?: string;
+};
+
 export const Route = createFileRoute('/register/')({
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): RegisterSearch => {
     return {
       error: (search.error as string) || undefined,
     };

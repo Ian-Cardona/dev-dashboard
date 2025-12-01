@@ -1,12 +1,19 @@
 import LoginForm from '../../features/login/components/LoginForm.tsx';
 import { useMutateLoginOAuth } from '../../features/login/hooks/useMutateLoginOAuth.ts';
+import { getOAuthSuccessCookieKeys } from '../../lib/configs/getConfig.ts';
 import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie.ts';
-import { getOAuthSuccessCookieKeys } from '../../utils/configs/getConfig.ts';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue.ts';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const { redirect: redirectUrl } = Route.useSearch();
+
+  const handleLoginSuccess = () => {
+    navigate({ to: redirectUrl || '/todos/pending' });
+  };
+
   const mutation = useMutateLoginOAuth();
 
   const oauthSuccessCookieKeys = getOAuthSuccessCookieKeys();
@@ -33,15 +40,22 @@ const LoginPage = () => {
     }
 
     if (provider && id && login && !hasInitiated.current && enc) {
-      mutation.mutate({
-        provider: provider as 'github',
-        id,
-        login,
-        access_token: enc,
-      });
+      mutation.mutate(
+        {
+          provider: provider as 'github',
+          id,
+          login,
+          access_token: enc,
+        },
+        {
+          onSuccess: () => {
+            handleLoginSuccess();
+          },
+        }
+      );
       hasInitiated.current = true;
     }
-  }, [mutation, oauthErrorFromCookie]);
+  }, [mutation, oauthErrorFromCookie, handleLoginSuccess]);
 
   const isLoading = mutation.isPending;
 
@@ -84,7 +98,11 @@ const LoginPage = () => {
               </div>
             )}
 
-            <LoginForm isLoginPending={isLoading} onError={setDisplayError} />
+            <LoginForm
+              isLoginPending={isLoading}
+              onError={setDisplayError}
+              onSuccess={handleLoginSuccess}
+            />
           </div>
         </div>
       </div>
@@ -92,6 +110,22 @@ const LoginPage = () => {
   );
 };
 
+type LoginSearch = {
+  redirect?: string;
+};
+
 export const Route = createFileRoute('/login/')({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => {
+    return {
+      redirect: (search.redirect as string) || undefined,
+    };
+  },
+  beforeLoad: ({ context }) => {
+    if (context.auth.isAuthenticated) {
+      throw redirect({
+        to: '/todos/pending',
+      });
+    }
+  },
   component: LoginPage,
 });

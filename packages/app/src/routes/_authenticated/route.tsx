@@ -1,29 +1,20 @@
 import AppLayout from '../../components/layout/AppLayout';
-import { useAuth } from '../../hooks/useAuth';
-import { createFileRoute, Outlet, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
-const AuthenticatedLayout = () => {
-  const { state } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (state.status === 'unauthenticated') {
-      navigate({ to: '/login', replace: true });
+export const Route = createFileRoute('/_authenticated')({
+  beforeLoad: ({ context, location }) => {
+    if (!context.auth.isAuthenticated) {
+      throw redirect({
+        to: '/login',
+        search: {
+          redirect: location.href,
+        },
+      });
     }
-  }, [state.status, navigate]);
-
-  if (state.status === 'unauthenticated') {
-    return null;
-  }
-
-  return (
+  },
+  component: () => (
     <AppLayout>
       <Outlet />
     </AppLayout>
-  );
-};
-
-export const Route = createFileRoute('/_authenticated')({
-  component: AuthenticatedLayout,
+  ),
 });

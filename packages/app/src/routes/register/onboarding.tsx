@@ -76,6 +76,17 @@ const OnboardingPage = () => {
   );
 };
 
+type OnboardingSearch = {
+  flow?: 'oauth' | 'email';
+  session?: string;
+};
+
 export const Route = createFileRoute('/register/onboarding')({
+  validateSearch: (search: Record<string, unknown>): OnboardingSearch => {
+    return {
+      flow: (search.flow as 'oauth' | 'email') || undefined,
+      session: (search.session as string) || undefined,
+    };
+  },
   component: OnboardingPage,
 });
