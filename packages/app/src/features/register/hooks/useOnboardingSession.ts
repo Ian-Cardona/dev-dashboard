@@ -1,7 +1,7 @@
 import useQueryFetchEmailSession from './useQueryFetchEmailSession';
 import useQueryFetchOAuthSession from './useQueryFetchOAuthSession';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
 
 type OnboardingFlow = 'oauth' | 'email';
 
@@ -12,11 +12,11 @@ interface UseOnboardingSessionResult {
 }
 
 const useOnboardingSession = (): UseOnboardingSessionResult => {
-  const [searchParams] = useSearchParams();
+  const search = useSearch({ from: '/register/onboarding' });
   const navigate = useNavigate();
 
-  const flow = searchParams.get('flow') as OnboardingFlow | null;
-  const session = searchParams.get('session');
+  const flow = search.flow as OnboardingFlow | null;
+  const session = search.session;
 
   const isValidFlow = flow === 'email' || flow === 'oauth';
   const hasSession = !!session;
@@ -32,7 +32,7 @@ const useOnboardingSession = (): UseOnboardingSessionResult => {
 
   useEffect(() => {
     if (!isValidFlow || !hasSession || activeQuery.isError) {
-      navigate('/register/invalid-link', { replace: true });
+      navigate({ to: '/register', search: {} });
     }
   }, [isValidFlow, hasSession, activeQuery.isError, navigate]);
 

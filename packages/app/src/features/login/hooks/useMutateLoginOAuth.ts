@@ -1,26 +1,33 @@
-import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
-import { useAuth } from '../../../hooks/useAuth';
+import { authQueryKeys } from '../../../lib/tanstack/auth';
 import { loginByOAuth } from '../api/loginApi';
 import type { OAuthRequest } from '@dev-dashboard/shared';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 
 export const useMutateLoginOAuth = () => {
   const navigate = useNavigate();
-  const { dispatch } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: OAuthRequest) => loginByOAuth(data),
     retry: false,
-    onSuccess: data => {
+    onSuccess: async data => {
       localStorage.setItem('accessToken', data.accessToken);
 
-      dispatch({
-        type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,
-        payload: data.user,
+      queryClient.setQueryData(authQueryKeys.user(), data.user);
+      queryClient.invalidateQueries({ queryKey: authQueryKeys.user() });
+
+      await queryClient.refetchQueries({
+        queryKey: authQueryKeys.user(),
+        type: 'active',
       });
 
-      navigate('/todos', { replace: true });
+      navigate({ to: '/todos/pending' });
+    },
+    onError: error => {
+      console.error('Login error:', error);
+      localStorage.removeItem('accessToken');
+      queryClient.setQueryData(authQueryKeys.user(), null);
     },
   });
 };

@@ -1,12 +1,28 @@
+import { authQueryKeys } from '../../../lib/tanstack/auth';
 import { logoutUser } from '../api/userProfileApi';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 
 export const useMutateLogout = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationKey: ['user', 'logout'],
     mutationFn: () => logoutUser(),
-    onSuccess: () => {
-      window.location.href = '/login';
+    onMutate: () => {
+      localStorage.removeItem('accessToken');
+      queryClient.setQueryData(authQueryKeys.user(), null);
     },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: authQueryKeys.user() });
+      queryClient.clear();
+
+      navigate({ to: '/login' });
+    },
+    onError: error => {
+      console.error('Logout error:', error);
+      navigate({ to: '/login' });
+    },
+    retry: false,
   });
 };

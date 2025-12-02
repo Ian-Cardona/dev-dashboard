@@ -1,7 +1,7 @@
-import { getRegInitCookieKeys } from '../../../utils/configs/getConfig';
+import { getRegInitCookieKeys } from '../../../lib/configs/getConfig';
 import { registerInitGithub } from '../api/registerApi';
 import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { useNavigate } from '@tanstack/react-router';
 
 const regInitCookieKeys = getRegInitCookieKeys();
 
@@ -17,7 +17,13 @@ export const useMutateRegisterInitOAuth = () => {
         ?.split('=')[1];
 
       if (sessionId) {
-        navigate(`/register/onboarding?flow=oauth&session=${sessionId}`);
+        navigate({
+          to: '/register/onboarding',
+          search: {
+            flow: 'oauth',
+            session: sessionId,
+          },
+        });
       }
     },
   });
