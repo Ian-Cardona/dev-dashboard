@@ -1,15 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
-  beforeLoad: ({ context }) => {
-    if (context.auth.isAuthenticated) {
-      throw redirect({
-        to: '/todos/pending',
-      });
-    } else {
-      throw redirect({
-        to: '/login',
-      });
-    }
+  loader: () => {
+    throw redirect({ to: '/todos/pending' });
   },
 });

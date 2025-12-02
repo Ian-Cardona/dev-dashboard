@@ -1,8 +1,9 @@
 import OnboardingExtension from '../../features/register/components/onboarding/OnboardingExtension';
 import OnboardingForm from '../../features/register/components/onboarding/OnboardingForm';
 import useOnboardingSession from '../../features/register/hooks/useOnboardingSession';
+import { authQueryKeys } from '../../lib/tanstack/auth';
 import { CodeBracketIcon, UserCircleIcon } from '@heroicons/react/24/outline';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useState } from 'react';
 
 type OnboardingStep = 'vscode' | 'profile';
@@ -87,6 +88,12 @@ export const Route = createFileRoute('/register/onboarding')({
       flow: (search.flow as 'oauth' | 'email') || undefined,
       session: (search.session as string) || undefined,
     };
+  },
+  beforeLoad: ({ context }) => {
+    const auth = context.queryClient.getQueryData(authQueryKeys.user());
+    if (auth) {
+      throw redirect({ to: '/todos/pending' });
+    }
   },
   component: OnboardingPage,
 });

@@ -1,10 +1,12 @@
 import LoginForm from '../../features/login/components/LoginForm.tsx';
 import { useMutateLoginOAuth } from '../../features/login/hooks/useMutateLoginOAuth.ts';
 import { getOAuthSuccessCookieKeys } from '../../lib/configs/getConfig.ts';
+import { authQueryKeys } from '../../lib/tanstack/auth.ts';
 import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie.ts';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue.ts';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -57,52 +59,63 @@ const LoginPage = () => {
     }
   }, [mutation, oauthErrorFromCookie, handleLoginSuccess]);
 
-  const isLoading = mutation.isPending;
+  const isLoading = mutation.isPending && hasInitiated.current;
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <div className="absolute top-8 left-8 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-primary)] text-lg font-bold text-white">
-          DD
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-[var(--color-fg)]">
-            DevDashboard
-          </h1>
-        </div>
+        {isLoading ? (
+          <>
+            <Skeleton circle width={40} height={40} />
+            <Skeleton width={120} height={24} />
+          </>
+        ) : (
+          <>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-primary)] text-lg font-bold text-white">
+              DD
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-[var(--color-fg)]">
+                DevDashboard
+              </h1>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] p-4 sm:p-8">
         <div className="mx-auto w-full max-w-2xl">
           <div className="mb-8 text-center">
-            <h1 className="mb-2 text-2xl text-[var(--color-fg)]">
-              Sign in to DevDashboard
-            </h1>
+            {isLoading ? (
+              <Skeleton width={250} height={32} className="mx-auto mb-2" />
+            ) : (
+              <h1 className="mb-2 text-2xl text-[var(--color-fg)]">
+                Sign in to DevDashboard
+              </h1>
+            )}
           </div>
 
           <div className="relative w-full min-w-80 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 sm:p-8">
-            {isLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[var(--color-surface)]/80">
-                <div className="text-center">
-                  <div className="mb-3 inline-block h-6 w-6 animate-spin rounded-full border-2 border-[var(--color-accent)]/20 border-t-[var(--color-primary)]"></div>
-                  <p className="text-sm text-[var(--color-accent)]">
-                    Signing in...
-                  </p>
-                </div>
-              </div>
-            )}
-
             {displayError && !isLoading && (
               <div className="mb-4 rounded-lg border border-red-600/20 bg-red-600/10 p-3">
                 <p className="text-sm text-red-600">{displayError}</p>
               </div>
             )}
 
-            <LoginForm
-              isLoginPending={isLoading}
-              onError={setDisplayError}
-              onSuccess={handleLoginSuccess}
-            />
+            {isLoading ? (
+              <div className="space-y-6">
+                <Skeleton height={40} />
+                <Skeleton height={40} />
+                <Skeleton height={48} />
+                <Skeleton height={40} />
+              </div>
+            ) : (
+              <LoginForm
+                isLoginPending={isLoading}
+                onError={setDisplayError}
+                onSuccess={handleLoginSuccess}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -121,10 +134,9 @@ export const Route = createFileRoute('/login/')({
     };
   },
   beforeLoad: ({ context }) => {
-    if (context.auth.isAuthenticated) {
-      throw redirect({
-        to: '/todos/pending',
-      });
+    const auth = context.queryClient.getQueryData(authQueryKeys.user());
+    if (auth) {
+      throw redirect({ to: '/todos/pending' });
     }
   },
   component: LoginPage,

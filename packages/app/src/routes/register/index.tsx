@@ -2,9 +2,10 @@ import ErrorModal from '../../components/ui/modals/ErrorModal';
 import RegisterForm from '../../features/register/components/register/RegisterForm';
 import useQueryFetchOAuthSession from '../../features/register/hooks/useQueryFetchOAuthSession';
 import { getRegInitCookieKeys } from '../../lib/configs/getConfig';
+import { authQueryKeys } from '../../lib/tanstack/auth';
 import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 const RegisterPage = () => {
@@ -93,6 +94,12 @@ export const Route = createFileRoute('/register/')({
     return {
       error: (search.error as string) || undefined,
     };
+  },
+  beforeLoad: ({ context }) => {
+    const auth = context.queryClient.getQueryData(authQueryKeys.user());
+    if (auth) {
+      throw redirect({ to: '/todos/pending' });
+    }
   },
   component: RegisterPage,
 });
