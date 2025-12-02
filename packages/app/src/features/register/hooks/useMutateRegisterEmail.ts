@@ -1,34 +1,42 @@
-import { AUTH_REDUCER_ACTION_TYPE } from '../../../context/AuthContext';
-import { useAuth } from '../../../hooks/useAuth';
+import { authQueryKeys } from '../../../lib/tanstack/auth';
 import { completeRegistrationEmail } from '../api/registerApi';
 import type { RegistrationInfoRequest } from '@dev-dashboard/shared';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import { AxiosError } from 'axios';
-import { useNavigate } from 'react-router';
 
 export const useMutateRegisterEmail = () => {
   const navigate = useNavigate();
-  const { dispatch } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: RegistrationInfoRequest) =>
       completeRegistrationEmail(data),
-    onSuccess: data => {
-      dispatch({
-        type: AUTH_REDUCER_ACTION_TYPE.SET_AUTH,
-        payload: data.user,
-      });
+    retry: false,
+    onSuccess: async data => {
       localStorage.setItem('accessToken', data.accessToken);
-      navigate('/todos');
+
+      queryClient.setQueryData(authQueryKeys.user(), data.user);
+      queryClient.invalidateQueries({ queryKey: authQueryKeys.user() });
+
+      await queryClient.refetchQueries({
+        queryKey: authQueryKeys.user(),
+        type: 'active',
+      });
+
+      navigate({ to: '/todos/pending' });
     },
     onError: (error: Error | AxiosError) => {
       if (error instanceof AxiosError) {
         if (error?.response?.status === 401) {
-          navigate('/register', {
-            state: {
+          console.error('Registration error:', error);
+          localStorage.removeItem('accessToken');
+          queryClient.setQueryData(authQueryKeys.user(), null);
+          navigate({
+            to: '/register',
+            search: {
               error: 'Invalid session. Please start registration again.',
             },
-            replace: true,
           });
         }
       }

@@ -1,6 +1,8 @@
 import { IGithubController } from './interfaces/igithub.controller';
 import { IGithubService } from './interfaces/igithub.service';
 import {
+  AuthFlowQueryParam,
+  authFlowQueryParamSchema,
   githubCallbackRequestSchema,
   githubTokenSchema,
 } from '@dev-dashboard/shared';
@@ -11,7 +13,6 @@ import { IUserService } from 'src/user/interfaces/iuser.service';
 import { encrypt } from 'src/utils/crypto.utils';
 import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { handleValidationError } from 'src/utils/validation-error.utils';
-import z from 'zod';
 
 export const GithubController = (
   githubService: IGithubService,
@@ -27,7 +28,7 @@ export const GithubController = (
       try {
         const { code, state } = githubCallbackRequestSchema.parse(req.query);
 
-        let flow: 'login' | 'register' = 'login';
+        let flow: AuthFlowQueryParam = 'login';
 
         if (state) {
           try {
@@ -64,6 +65,68 @@ export const GithubController = (
         const githubUser = await githubService.getUserProfile(
           validatedToken.access_token
         );
+
+        if (flow === 'link') {
+          try {
+            const userId = req.user?.userId;
+            const email = req.user?.email;
+            if (!userId || !email) {
+              throw new Error('Missing user authentication');
+            }
+
+            const existingUser = await userService.findByEmailPrivate(email);
+
+            if (existingUser && existingUser.id !== userId) {
+              res.clearCookie('gh_o_e');
+              res.cookie('gh_o_e', 'not_found', {
+                secure: true,
+                httpOnly: false,
+                sameSite: 'none',
+                maxAge: 300000,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/settings`);
+            }
+
+            const existingUserProvider = await userService.findByProvider(
+              'github',
+              githubUser.id.toString()
+            );
+
+            if (existingUserProvider && existingUserProvider.id !== userId) {
+              res.clearCookie('gh_o_e');
+              res.cookie('gh_o_e', 'github_already_linked', {
+                secure: true,
+                httpOnly: false,
+                sameSite: 'none',
+                maxAge: 300000,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/settings`);
+            }
+
+            const encryptedToken = encrypt(validatedToken.access_token);
+            await userService.linkProvider(existingUser, encryptedToken);
+
+            res.clearCookie('gh_o_e');
+            res.cookie('gh_o_s', 'github_connected', {
+              secure: true,
+              httpOnly: false,
+              sameSite: 'none',
+              maxAge: 300000,
+            });
+
+            return res.redirect(`${ENV.APP_BASE_URL}/settings`);
+          } catch (error) {
+            console.error('Error during link flow:', error);
+            res.clearCookie('gh_o_e');
+            res.cookie('gh_o_e', 'link_failed', {
+              secure: true,
+              httpOnly: false,
+              sameSite: 'none',
+              maxAge: 300000,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/settings`);
+          }
+        }
 
         if (flow === 'register') {
           try {
@@ -176,6 +239,7 @@ export const GithubController = (
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
           }
         }
+
         throw new Error('Invalid OAuth flow');
       } catch (error) {
         console.error('Error in GitHub OAuth callback:', error);
@@ -194,8 +258,7 @@ export const GithubController = (
       next: NextFunction
     ): Promise<void> {
       try {
-        const flowSchema = z.enum(['login', 'register']);
-        const flow = flowSchema.parse(req.query.flow);
+        const flow = authFlowQueryParamSchema.parse(req.query.flow);
 
         const result = await githubService.getAuthorizeLink(flow);
         res.status(200).json(result);

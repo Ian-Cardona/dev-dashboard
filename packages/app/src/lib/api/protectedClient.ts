@@ -1,18 +1,7 @@
-import { getApiUrl, getClientAppName } from '../utils/configs/getConfig';
+import { getApiUrl, getClientAppName } from '../configs/getConfig';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
 const baseURL = getApiUrl();
-// const baseURL = '/api';
-
-export const publicClient = axios.create({
-  baseURL,
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-    'X-Client-App': getClientAppName(),
-  },
-  withCredentials: true,
-});
 
 export const protectedClient = axios.create({
   baseURL,
