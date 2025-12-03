@@ -1,3 +1,4 @@
+import { IApiKeysRepository } from './interfaces/iapi-keys.repository';
 import {
   DynamoDBDocumentClient,
   GetCommand,
@@ -10,17 +11,9 @@ import { ENV } from 'src/config/env';
 
 const API_KEYS_TABLE = ENV.API_KEYS_TABLE;
 
-export interface IApiKeysModel {
-  create(key: ApiKey): Promise<ApiKey>;
-  findById(id: string): Promise<ApiKey | null>;
-  findByUserId(userId: string): Promise<ApiKey[]>;
-  revoke(id: string): Promise<void>;
-  updateLastUsed(id: string, timestamp: string): Promise<ApiKey>;
-}
-
-export const ApiKeysModel: (
+export const ApiKeysRepository = (
   docClient: DynamoDBDocumentClient
-) => IApiKeysModel = docClient => {
+): IApiKeysRepository => {
   return {
     async create(data: ApiKey): Promise<ApiKey> {
       await docClient.send(
@@ -32,7 +25,7 @@ export const ApiKeysModel: (
       return data;
     },
 
-    findById: async (id: string) => {
+    async findById(id: string): Promise<ApiKey | null> {
       const result = await docClient.send(
         new GetCommand({
           TableName: API_KEYS_TABLE,
@@ -43,35 +36,33 @@ export const ApiKeysModel: (
       return result.Item as ApiKey;
     },
 
-    findByUserId: async (userId: string) => {
+    async findByUserId(userId: string): Promise<ApiKey[]> {
       const result = await docClient.send(
         new QueryCommand({
           TableName: API_KEYS_TABLE,
           IndexName: 'UserIdIndex',
-          KeyConditionExpression: 'userId = :u',
+          KeyConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: {
-            ':u': userId,
+            ':userId': userId,
           },
         })
       );
       return result.Items as ApiKey[];
     },
 
-    revoke: async (id: string) => {
+    async revoke(userId: string, id: string): Promise<void> {
       await docClient.send(
         new UpdateCommand({
           TableName: API_KEYS_TABLE,
           Key: { id },
           UpdateExpression: 'SET isActive = :isActive',
+          ConditionExpression: 'userId = :userId',
           ExpressionAttributeValues: {
             ':isActive': false,
+            ':userId': userId,
           },
         })
       );
-    },
-
-    updateLastUsed: async () => {
-      throw new Error('Not implemented');
     },
   };
 };

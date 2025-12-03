@@ -1,6 +1,6 @@
 import { docClient } from '../config/dynamodb';
 import { ApiKeysController } from './api-keys.controller';
-import { ApiKeysModel } from './api-keys.model';
+import { ApiKeysRepository } from './api-keys.repository';
 import { ApiKeysService } from './api-keys.service';
 import { Router } from 'express';
 import { apiKeysMiddleware } from 'src/middlewares/api-keys.middleware';
@@ -8,20 +8,13 @@ import { accessAuthorizationMiddleware } from 'src/middlewares/authorization/acc
 
 const router = Router();
 
-const modelInstance = ApiKeysModel(docClient);
-const serviceInstance = ApiKeysService(modelInstance);
-const controllerInstance = ApiKeysController(serviceInstance);
+const repository = ApiKeysRepository(docClient);
+const service = ApiKeysService(repository);
+const controller = ApiKeysController(service);
 
-router.get(
-  '/list',
-  accessAuthorizationMiddleware,
-  controllerInstance.findByUserId
-);
-router.post(
-  '/create',
-  accessAuthorizationMiddleware,
-  controllerInstance.create
-);
-router.get('/check', apiKeysMiddleware, controllerInstance.check);
+router.get('/list', accessAuthorizationMiddleware, controller.findByUserId);
+router.post('/create', accessAuthorizationMiddleware, controller.create);
+router.get('/check', apiKeysMiddleware, controller.check);
+router.put('/revoke/:id', accessAuthorizationMiddleware, controller.revoke);
 
 export default router;
