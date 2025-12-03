@@ -2,6 +2,7 @@ import z from 'zod';
 
 export const uuidSchema = z.uuidv4({ message: 'Invalid UUID' });
 export const emailSchema = z.email({ message: 'Invalid email' });
+export const flowSchema = z.enum(['login', 'register', 'link']);
 export const passwordHashSchema = z
   .string({ message: 'Invalid password hash' })
   .length(60, 'Invalid bcrypt hash length');

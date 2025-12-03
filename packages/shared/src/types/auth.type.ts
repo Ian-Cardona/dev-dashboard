@@ -14,6 +14,7 @@ import {
   registrationSessionSchema,
   cookieUserSchema,
   oauthRequestSchema,
+  authFlowQueryParamSchema,
 } from '../schemas/auth.schema';
 import { JwtPayload } from 'jsonwebtoken';
 import z from 'zod';
@@ -45,6 +46,7 @@ export type RefreshRequestPrivate = z.infer<typeof refreshRequestPrivateSchema>;
 
 export type AuthorizationJwt = z.infer<typeof authorizationJwtSchema>;
 export type CookieUser = z.infer<typeof cookieUserSchema>;
+export type AuthFlowQueryParam = z.infer<typeof authFlowQueryParamSchema>;
 export interface AccessTokenPayload extends JwtPayload {
   userId: string;
   email: string;

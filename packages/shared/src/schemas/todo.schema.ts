@@ -2,23 +2,7 @@ import { uuidSchema } from '../utils/common';
 import { VALIDATION_CONSTANTS } from '../utils/constants';
 import z from 'zod';
 
-export const TodoReasonEnum = z.enum([
-  'done',
-  'moved',
-  'not_needed',
-  'done_by_others',
-  'blocked',
-  'refactored',
-  'moved_elsewhere',
-  'duplicate',
-  'obsolete',
-  'invalid',
-  'wont_fix',
-  'out_of_scope',
-  'implemented',
-  'cannot_reproduce',
-  'not_reproducible',
-]);
+export const TodoReasonEnum = z.enum(['done', 'moved', 'obsolete', 'wont_fix']);
 
 export const PredefinedTodoTypeEnum = z.enum([
   'TODO',
