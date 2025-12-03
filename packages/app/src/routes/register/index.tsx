@@ -2,7 +2,7 @@ import ErrorModal from '../../components/ui/modals/ErrorModal';
 import RegisterForm from '../../features/register/components/register/RegisterForm';
 import useQueryFetchOAuthSession from '../../features/register/hooks/useQueryFetchOAuthSession';
 import { getRegInitCookieKeys } from '../../lib/configs/getConfig';
-import { authQueryKeys } from '../../lib/tanstack/auth';
+import { authQueryKeys, fetchAuth } from '../../lib/tanstack/auth';
 import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
 import { createFileRoute, redirect } from '@tanstack/react-router';
@@ -95,11 +95,21 @@ export const Route = createFileRoute('/register/')({
       error: (search.error as string) || undefined,
     };
   },
-  beforeLoad: ({ context }) => {
-    const auth = context.queryClient.getQueryData(authQueryKeys.user());
-    if (auth) {
+  beforeLoad: async ({ context }) => {
+    const cachedUser = context.queryClient.getQueryData(authQueryKeys.user());
+    if (cachedUser) {
+      console.log('User already cached, redirecting');
       throw redirect({ to: '/todos/pending' });
     }
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.log('No token found, showing login page');
+      return;
+    }
+
+    const user = await fetchAuth();
+    context.queryClient.setQueryData(authQueryKeys.user(), user);
+    throw redirect({ to: '/todos/pending' });
   },
   component: RegisterPage,
 });

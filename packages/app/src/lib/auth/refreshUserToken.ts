@@ -1,12 +1,12 @@
 import { publicClient } from '../api/publicClient';
 import { getConfig } from '../configs/getConfig';
-import type { LoginPublic } from '@dev-dashboard/shared';
+import type { AuthorizationJwt } from '@dev-dashboard/shared';
 
 const getAuthenticationEndpoints = () => getConfig().AUTHENTICATION_ENDPOINTS;
 
-let refreshPromise: Promise<LoginPublic> | null = null;
+let refreshPromise: Promise<AuthorizationJwt> | null = null;
 
-export const refreshUserToken = async (): Promise<LoginPublic> => {
+export const refreshUserToken = async (): Promise<AuthorizationJwt> => {
   if (refreshPromise) {
     return refreshPromise;
   }

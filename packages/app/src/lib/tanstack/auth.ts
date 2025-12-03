@@ -1,5 +1,6 @@
 import { getUserProfile } from '../auth/getUserProfile';
 import { refreshUserToken } from '../auth/refreshUserToken';
+import type { AuthorizationJwt } from '@dev-dashboard/shared';
 import type { QueryObserverOptions } from '@tanstack/react-query';
 
 export const authQueryKeys = {
@@ -11,11 +12,20 @@ export type AuthQueryKey = ReturnType<typeof authQueryKeys.user>;
 
 export const fetchAuth = async () => {
   try {
-    const response = await refreshUserToken();
+    const refreshResponse: AuthorizationJwt = await refreshUserToken();
 
-    localStorage.setItem('accessToken', response.accessToken);
+    if (!refreshResponse || !refreshResponse.accessToken) {
+      console.error('Invalid refresh response:', refreshResponse);
+      throw new Error('Invalid token refresh response');
+    }
 
-    return response.user || (await getUserProfile());
+    localStorage.setItem('accessToken', refreshResponse.accessToken);
+    const userResponse = await getUserProfile();
+    if (!userResponse) {
+      throw new Error('Failed to fetch user profile after token refresh');
+    }
+
+    return userResponse;
   } catch (error) {
     localStorage.removeItem('accessToken');
     throw error;

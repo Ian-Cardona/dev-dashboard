@@ -1,13 +1,11 @@
 import AppLayout from '../../components/layout/AppLayout';
-import { authQueryKeys } from '../../lib/tanstack/auth';
+import { fetchAuth, authQueryKeys } from '../../lib/tanstack/auth';
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context, location }) => {
-    const user = context.queryClient.getQueryData(authQueryKeys.user());
-    if (user) {
-      return;
-    }
+    const cachedUser = context.queryClient.getQueryData(authQueryKeys.user());
+    if (cachedUser) return;
 
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -18,18 +16,11 @@ export const Route = createFileRoute('/_authenticated')({
     }
 
     try {
-      await context.queryClient.fetchQuery({
-        queryKey: authQueryKeys.user(),
-      });
-
-      const updatedUser = context.queryClient.getQueryData(
-        authQueryKeys.user()
-      );
-      if (!updatedUser) {
-        throw new Error('Failed to fetch user');
-      }
+      const user = await fetchAuth();
+      context.queryClient.setQueryData(authQueryKeys.user(), user);
     } catch (error) {
-      console.error('Auth check failed:', error);
+      localStorage.removeItem('accessToken');
+      context.queryClient.setQueryData(authQueryKeys.user(), null);
       throw redirect({
         to: '/login',
         search: { redirect: location.href },
