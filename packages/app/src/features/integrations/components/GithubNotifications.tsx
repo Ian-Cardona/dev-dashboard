@@ -7,7 +7,7 @@ import {
   InboxIcon,
   LinkIcon,
 } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router';
+import { useNavigate } from '@tanstack/react-router';
 
 interface GithubNotificationsProps {
   notifications: GithubNotificationResponse[] | undefined;
@@ -74,7 +74,9 @@ const GithubNotifications = ({
               </div>
               {isUnauthorized ? (
                 <button
-                  onClick={() => navigate('/settings')}
+                  onClick={() =>
+                    navigate({ to: '/_authenticated/settings/account' } as any)
+                  }
                   className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white transition-all duration-200 hover:bg-[var(--color-primary)]/90"
                 >
                   <LinkIcon className="h-3 w-3" />

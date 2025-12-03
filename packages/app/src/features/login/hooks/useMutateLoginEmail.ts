@@ -13,19 +13,11 @@ export const useMutateLoginEmail = () => {
     retry: false,
     onSuccess: async data => {
       localStorage.setItem('accessToken', data.accessToken);
-
       queryClient.setQueryData(authQueryKeys.user(), data.user);
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.user() });
 
-      await queryClient.refetchQueries({
-        queryKey: authQueryKeys.user(),
-        type: 'active',
-      });
-
-      navigate({ to: '/todos/pending' });
+      navigate({ to: '/todos/pending', replace: true });
     },
-    onError: error => {
-      console.error('Login error:', error);
+    onError: () => {
       localStorage.removeItem('accessToken');
       queryClient.setQueryData(authQueryKeys.user(), null);
     },

@@ -1,4 +1,4 @@
-import { protectedClient } from '../../../lib/api';
+import { protectedClient } from '../../../lib/api/protectedClient';
 import type {
   GithubRepository,
   GithubWorkflowResponse,

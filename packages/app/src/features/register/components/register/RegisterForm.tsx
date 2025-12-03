@@ -3,9 +3,9 @@ import useQueryFetchGithubOAuthLink from '../../../../oauth/hooks/useQueryFetchG
 import { useMutateRegisterInitEmail } from '../../hooks/useMutateRegisterInitEmail';
 import { useRegisterInitForm } from '../../hooks/useRegisterForm';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from '@tanstack/react-router';
 import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 
 interface RegisterFormProps {
   onError?: (error: string | null) => void;
@@ -125,7 +125,7 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
   };
 
   const handleNavigateToLogin = (): void => {
-    navigate('/login');
+    navigate({ to: '/login' });
   };
 
   const isLoading = registerInitMutation.isPending;

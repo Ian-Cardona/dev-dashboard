@@ -12,17 +12,9 @@ export const useMutateRegisterOauth = () => {
   return useMutation({
     mutationFn: (data: RegistrationInfoRequest) =>
       completeRegistrationOAuth(data),
-    onSuccess: async data => {
+    onSuccess: data => {
       localStorage.setItem('accessToken', data.accessToken);
-
       queryClient.setQueryData(authQueryKeys.user(), data.user);
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.user() });
-
-      await queryClient.refetchQueries({
-        queryKey: authQueryKeys.user(),
-        type: 'active',
-      });
-
       navigate({ to: '/todos/pending' });
     },
     onError: (error: Error | AxiosError) => {

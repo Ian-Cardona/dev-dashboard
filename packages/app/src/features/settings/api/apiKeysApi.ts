@@ -1,4 +1,4 @@
-import { protectedClient } from '../../../lib/api';
+import { protectedClient } from '../../../lib/api/protectedClient';
 import type { ApiKeyPublic, CreateApiKey } from '@dev-dashboard/shared';
 
 const createKey = async (data: CreateApiKey): Promise<ApiKeyPublic> => {
