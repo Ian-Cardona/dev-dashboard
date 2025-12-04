@@ -21,4 +21,9 @@ export interface IUserController {
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
+  findProvidersByUserId: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => void | Promise<void>;
 }

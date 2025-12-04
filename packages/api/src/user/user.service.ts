@@ -207,6 +207,16 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       }
     },
 
+    async findProvidersByUserId(userId: string): Promise<GithubProvider[]> {
+      try {
+        const providers = await userRepository.findProvidersByUserId(userId);
+        return providers;
+      } catch (error) {
+        if (error instanceof NotFoundError) throw error;
+        throw new Error(`[${MODULE_NAME}] Failed to find providers by user ID`);
+      }
+    },
+
     async linkProvider(user: User, providerAccessToken: string): Promise<User> {
       try {
         const updatedUser = await userRepository.linkProvider(
