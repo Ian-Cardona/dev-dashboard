@@ -1,13 +1,11 @@
 import TopBar from './TopBar';
-import { Outlet } from 'react-router';
+import type { ReactNode } from 'react';
 
-const AppLayout = () => {
+const AppLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex h-screen flex-col bg-[var(--color-bg)]">
       <TopBar />
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 };
