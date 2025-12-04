@@ -10,7 +10,7 @@ import { useMutateLogout } from '../../../features/settings/hooks/useMutateLogou
 import { useQueryFetchUserProfile } from '../../../features/settings/hooks/useQueryFetchUserProfile';
 import { useToast } from '../../../hooks/useToast';
 import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
-import { useQueryFetchGithubIntegration } from '../../../oauth/hooks/useQueryFetchGithubIntegration';
+// import { useQueryFetchGithubIntegration } from '../../../oauth/hooks/useQueryFetchGithubIntegration';
 import { getAndClearCookieValue } from '../../../utils/document/getAndClearCookieValue';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
@@ -19,7 +19,7 @@ import { useEffect, useState } from 'react';
 const SettingsAccount = () => {
   const { data: userProfile } = useQueryFetchUserProfile();
   const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('link');
-  const { data: githubIntegration } = useQueryFetchGithubIntegration();
+  // const { data: githubIntegration } = useQueryFetchGithubIntegration();
 
   const [isConnecting, setIsConnecting] = useState(false);
   const queryClient = useQueryClient();
@@ -119,7 +119,7 @@ const SettingsAccount = () => {
   const handleGithubConnect = () => {
     if (githubAuthorizeQuery.data) {
       setIsConnecting(true);
-      window.location.href = githubAuthorizeQuery.data;
+      // window.location.href = githubAuthorizeQuery.data;
     }
   };
 
@@ -157,7 +157,7 @@ const SettingsAccount = () => {
                 GitHub Integration
               </label>
               <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-4">
-                <div className="flex items-center gap-3">
+                {/* <div className="flex items-center gap-3">
                   <span className="text-sm text-[var(--color-text-primary)]">
                     {githubIntegration?.isConnected
                       ? 'GitHub account connected'
@@ -183,7 +183,7 @@ const SettingsAccount = () => {
                     : isConnecting
                       ? 'Connecting...'
                       : 'Connect GitHub'}
-                </button>
+                </button> */}
               </div>
             </div>
 

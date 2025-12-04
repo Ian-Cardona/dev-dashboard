@@ -1,4 +1,4 @@
-import { updateUserProfile } from '../api/userProfileApi';
+import { updateUserProfile } from '../api/accountApi';
 import type { UserPasswordUpdate } from '@dev-dashboard/shared';
 import { useMutation } from '@tanstack/react-query';
 

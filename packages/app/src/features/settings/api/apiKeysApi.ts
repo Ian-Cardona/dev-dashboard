@@ -1,7 +1,7 @@
 import { protectedClient } from '../../../lib/api/protectedClient';
 import type { ApiKeyPublic, CreateApiKey } from '@dev-dashboard/shared';
 
-const createKey = async (data: CreateApiKey): Promise<ApiKeyPublic> => {
+export const createKey = async (data: CreateApiKey): Promise<ApiKeyPublic> => {
   const response = await protectedClient.post<ApiKeyPublic>(
     '/api-keys/create',
     data
@@ -9,9 +9,11 @@ const createKey = async (data: CreateApiKey): Promise<ApiKeyPublic> => {
   return response.data;
 };
 
-const fetchKeys = async (): Promise<ApiKeyPublic[]> => {
+export const fetchKeys = async (): Promise<ApiKeyPublic[]> => {
   const response = await protectedClient.get<ApiKeyPublic[]>('/api-keys/list');
   return response.data;
 };
 
-export { createKey, fetchKeys };
+export const revokeKey = async (id: string): Promise<void> => {
+  await protectedClient.put(`/api-keys/revoke/${id}`);
+};

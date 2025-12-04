@@ -1,5 +1,5 @@
 import { authQueryKeys } from '../../../lib/tanstack/auth';
-import { logoutUser } from '../api/userProfileApi';
+import { logoutUser } from '../api/accountApi';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 
