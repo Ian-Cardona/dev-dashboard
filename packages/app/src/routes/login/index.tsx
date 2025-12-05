@@ -1,7 +1,7 @@
 import LoginForm from '../../features/login/components/LoginForm.tsx';
 import { useMutateLoginOAuth } from '../../features/login/hooks/useMutateLoginOAuth.ts';
 import { getOAuthSuccessCookieKeys } from '../../lib/configs/getConfig.ts';
-import { authQueryKeys } from '../../lib/tanstack/auth.ts';
+import { authQueryKeys, fetchAuth } from '../../lib/tanstack/auth.ts';
 import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie.ts';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue.ts';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
@@ -126,18 +126,27 @@ const LoginPage = () => {
 type LoginSearch = {
   redirect?: string;
 };
-
 export const Route = createFileRoute('/login/')({
   validateSearch: (search: Record<string, unknown>): LoginSearch => {
     return {
       redirect: (search.redirect as string) || undefined,
     };
   },
-  beforeLoad: ({ context }) => {
-    const auth = context.queryClient.getQueryData(authQueryKeys.user());
-    if (auth) {
+  beforeLoad: async ({ context }) => {
+    const cachedUser = context.queryClient.getQueryData(authQueryKeys.user());
+    if (cachedUser) {
+      console.log('User already cached, redirecting');
       throw redirect({ to: '/todos/pending' });
     }
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.log('No token found, showing login page');
+      return;
+    }
+
+    const user = await fetchAuth();
+    context.queryClient.setQueryData(authQueryKeys.user(), user);
+    throw redirect({ to: '/todos/pending' });
   },
   component: LoginPage,
 });

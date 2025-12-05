@@ -13,6 +13,7 @@ const userServiceInstance: IUserService = UserService(userRepositoryInstance);
 const userControllerInstance = UserController(userServiceInstance);
 
 router.get('/profile', userControllerInstance.getUserProfile);
+router.get('/profile/providers', userControllerInstance.findProvidersByUserId);
 router.put('/profile', userControllerInstance.updateUserAccount);
 router.put('/password', userControllerInstance.updateUserPassword);
 router.delete('/account', userControllerInstance.deactivateUserAccount);

@@ -1,15 +1,15 @@
 import { useMutateRegisterEmail } from '../../hooks/useMutateRegisterEmail';
 import { useMutateRegisterOauth } from '../../hooks/useMutateRegisterOauth';
+import { useSearch } from '@tanstack/react-router';
 import { type FormEvent, useState } from 'react';
-import { useSearchParams } from 'react-router';
 
 interface OnboardingFormProps {
   email?: string;
 }
 
 const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
-  const [searchParams] = useSearchParams();
-  const flow = searchParams.get('flow');
+  const search = useSearch({ from: '/register/onboarding' });
+  const flow = search.flow;
 
   const [email, setEmail] = useState(emailProp || '');
   const [firstName, setFirstName] = useState('');

@@ -1,4 +1,4 @@
-import { UserCircleIcon, KeyIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, KeyIcon, LinkIcon } from '@heroicons/react/24/outline';
 import {
   createFileRoute,
   Link,
@@ -35,6 +35,13 @@ const SettingsLayout = () => {
           >
             <KeyIcon className="h-5 w-5" />
             <span>API Keys</span>
+          </Link>
+          <Link
+            to="/settings/connections"
+            className={getTabClass('/settings/connections')}
+          >
+            <LinkIcon className="h-5 w-5" />
+            <span>Connections</span>
           </Link>
         </nav>
       </aside>

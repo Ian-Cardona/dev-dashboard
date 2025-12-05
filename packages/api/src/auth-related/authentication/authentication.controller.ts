@@ -166,6 +166,8 @@ export const AuthenticationController = (
           user: result.user,
         };
 
+        console.table(response);
+
         res.status(200).json(response);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid login data');

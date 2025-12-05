@@ -13,17 +13,9 @@ export const useMutateRegisterEmail = () => {
     mutationFn: (data: RegistrationInfoRequest) =>
       completeRegistrationEmail(data),
     retry: false,
-    onSuccess: async data => {
+    onSuccess: data => {
       localStorage.setItem('accessToken', data.accessToken);
-
       queryClient.setQueryData(authQueryKeys.user(), data.user);
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.user() });
-
-      await queryClient.refetchQueries({
-        queryKey: authQueryKeys.user(),
-        type: 'active',
-      });
-
       navigate({ to: '/todos/pending' });
     },
     onError: (error: Error | AxiosError) => {

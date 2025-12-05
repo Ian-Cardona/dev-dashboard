@@ -2,16 +2,21 @@ import GithubSvg from '../../../components/ui/svg/GithubSvg';
 import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { useMutateLoginEmail } from '../hooks/useMutateLoginEmail';
+import { useNavigate } from '@tanstack/react-router';
 import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 
 interface LoginFormProps {
   isLoginPending?: boolean;
   onError: (error: string | null) => void;
+  onSuccess?: () => void;
 }
 
-const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
+const LoginForm = ({
+  isLoginPending = false,
+  onError,
+  onSuccess,
+}: LoginFormProps) => {
   const navigate = useNavigate();
   const { email, password, setEmail, setPassword, isValid } = useLoginForm();
   const loginEmailMutation = useMutateLoginEmail();
@@ -38,6 +43,12 @@ const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
 
     onError(message);
   }, [loginEmailMutation.error, onError]);
+
+  useEffect(() => {
+    if (loginEmailMutation.isSuccess && onSuccess) {
+      onSuccess();
+    }
+  }, [loginEmailMutation.isSuccess, onSuccess]);
 
   useEffect(() => {
     if (githubAuthorizeQuery.isError && !isConnecting) {
@@ -92,7 +103,10 @@ const LoginForm = ({ isLoginPending = false, onError }: LoginFormProps) => {
   };
 
   const handleNavigateToRegister = (): void => {
-    navigate('/register');
+    navigate({
+      to: '/register',
+      search: {},
+    });
   };
 
   const isLoading = isLoginPending || loginEmailMutation.isPending;

@@ -1,5 +1,6 @@
 import {
   emailSchema,
+  flowSchema,
   jwtSchema,
   linkedProviderSchema,
   oauthProviderEnum,
@@ -108,3 +109,5 @@ export const cookieUserSchema = z.object({
   userId: uuidSchema,
   email: emailSchema.optional(),
 });
+
+export const authFlowQueryParamSchema = flowSchema;

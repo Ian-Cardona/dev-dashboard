@@ -1,4 +1,4 @@
-import { getOAuthErrorCookieKeys } from '../../utils/configs/getConfig';
+import { getOAuthErrorCookieKeys } from '../../lib/configs/getConfig';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
 import { useState, useEffect } from 'react';
 

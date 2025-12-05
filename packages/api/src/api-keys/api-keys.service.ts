@@ -1,5 +1,5 @@
-import { IApiKeysModel } from './api-keys.model';
-import { IApiKeysService } from './interfaces/api-keys.service';
+import { IApiKeysRepository } from './interfaces/iapi-keys.repository';
+import { IApiKeysService } from './interfaces/iapi-keys.service';
 import { ApiKey, ApiKeyPublic } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -11,7 +11,7 @@ const KEY_SEPARATOR = '_';
 const KEY_PREFIX = 'ddk';
 
 export const ApiKeysService = (
-  apiKeysModel: IApiKeysModel
+  apiKeysRepository: IApiKeysRepository
 ): IApiKeysService => {
   const _preHashIfNeeded = (key: string): string => {
     const byteLength = Buffer.byteLength(key, 'utf8');
@@ -63,7 +63,7 @@ export const ApiKeysService = (
         isActive: true,
       };
 
-      await apiKeysModel.create(key);
+      await apiKeysRepository.create(key);
 
       return {
         id,
@@ -88,7 +88,7 @@ export const ApiKeysService = (
       }
       const keyId = `${parts[1]}${KEY_SEPARATOR}${parts[2]}`;
 
-      const apiKey = await apiKeysModel.findById(keyId);
+      const apiKey = await apiKeysRepository.findById(keyId);
 
       if (!apiKey) {
         throw new UnauthorizedError('Invalid API key');
@@ -110,25 +110,17 @@ export const ApiKeysService = (
       return apiKey;
     },
 
-    // async findById(id: string): Promise<ApiKey | null> {
-    //   // Implementation here
-    // },
-
     async findByUserId(userId: string): Promise<ApiKey[]> {
       try {
-        return apiKeysModel.findByUserId(userId);
+        return apiKeysRepository.findByUserId(userId);
       } catch (error) {
         if (error instanceof Error) throw error;
         throw new Error('Failed to retrieve API keys');
       }
     },
 
-    // async revoke(id: string): Promise<void> {
-    //   // Implementation here
-    // },
-
-    // async updateLastUsed(id: string, timestamp: string): Promise<ApiKey> {
-    //   // Implementation here
-    // },
+    async revoke(userId: string, id: string): Promise<void> {
+      await apiKeysRepository.revoke(userId, id);
+    },
   };
 };

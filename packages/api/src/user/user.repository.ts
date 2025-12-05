@@ -176,6 +176,21 @@ export const UserRepository = (
       };
     },
 
+    async findProvidersByUserId(userId: string): Promise<GithubProvider[]> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: PROVIDERS_TABLE,
+          IndexName: 'UserIdIndex',
+          KeyConditionExpression: 'userId = :userId',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+          },
+        })
+      );
+
+      return result.Items ? (result.Items as GithubProvider[]) : [];
+    },
+
     async updateProvider(updates: GithubProvider): Promise<void> {
       const {
         provider,

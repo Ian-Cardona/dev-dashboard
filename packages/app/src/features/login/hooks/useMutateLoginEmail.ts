@@ -1,31 +1,28 @@
 import { authQueryKeys } from '../../../lib/tanstack/auth';
 import { loginByEmail } from '../api/loginApi';
-import type { LoginRequestPublic } from '@dev-dashboard/shared';
+import type { LoginPublic, LoginRequestPublic } from '@dev-dashboard/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 
 export const useMutateLoginEmail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: (data: LoginRequestPublic) => loginByEmail(data),
     retry: false,
-    onSuccess: async data => {
+    onSuccess: (data: LoginPublic) => {
       localStorage.setItem('accessToken', data.accessToken);
-
       queryClient.setQueryData(authQueryKeys.user(), data.user);
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.user() });
 
-      await queryClient.refetchQueries({
-        queryKey: authQueryKeys.user(),
-        type: 'active',
-      });
+      const location = router.state.location;
+      const searchParams = new URLSearchParams(location.search);
+      const redirectTo = searchParams.get('redirect') || '/todos/pending';
 
-      navigate({ to: '/todos/pending' });
+      navigate({ to: redirectTo });
     },
-    onError: error => {
-      console.error('Login error:', error);
+    onError: () => {
       localStorage.removeItem('accessToken');
       queryClient.setQueryData(authQueryKeys.user(), null);
     },

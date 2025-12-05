@@ -1,27 +1,22 @@
 import { NextFunction, Request, Response } from 'express';
 
-export interface IUserController {
-  getUserProfile: (
+export interface IApiKeysController {
+  create: (
     req: Request,
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
-  updateUserAccount: (
+  check: (
     req: Request,
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
-  updateUserPassword: (
+  findByUserId: (
     req: Request,
     res: Response,
     next: NextFunction
   ) => void | Promise<void>;
-  deactivateUserAccount: (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => void | Promise<void>;
-  findProvidersByUserId: (
+  revoke: (
     req: Request,
     res: Response,
     next: NextFunction

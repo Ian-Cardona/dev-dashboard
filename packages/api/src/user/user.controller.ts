@@ -61,5 +61,19 @@ export const UserController = (userService: IUserService): IUserController => {
         handleValidationError(error, res, next, 'User deactivation failed');
       }
     },
+
+    async findProvidersByUserId(
+      req: Request,
+      res: Response,
+      next: NextFunction
+    ) {
+      try {
+        const userId = uuidSchema.parse(req.user?.userId);
+        const result = await userService.findProvidersByUserId(userId);
+        res.json(result);
+      } catch (error) {
+        handleValidationError(error, res, next, 'User lookup failed');
+      }
+    },
   };
 };

@@ -1,4 +1,4 @@
-import { protectedClient } from '../../../lib/api';
+import { protectedClient } from '../../../lib/api/protectedClient';
 import type { UserPasswordUpdate, UserPublic } from '@dev-dashboard/shared';
 
 export const fetchUserProfile = async (): Promise<UserPublic> => {

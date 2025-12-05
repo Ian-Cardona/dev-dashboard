@@ -3,9 +3,27 @@ import {
   LinkIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
-import { NavLink } from 'react-router';
+import { Link, useMatchRoute } from '@tanstack/react-router';
 
 const TopBar = () => {
+  const matchRoute = useMatchRoute();
+
+  const getLinkClass = (path: string) => {
+    const isActive = matchRoute({ to: path, fuzzy: true });
+    return `group relative flex items-center gap-3 rounded-lg border px-4 py-2 text-base font-semibold transition-all duration-200 ${
+      isActive
+        ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+        : 'border-[var(--color-accent)]/20 text-[var(--color-fg)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)]'
+    }`;
+  };
+
+  const getIconClass = (path: string) => {
+    const isActive = matchRoute({ to: path, fuzzy: true });
+    return `flex-shrink-0 transition-all duration-200 ${
+      isActive ? '' : 'group-hover:scale-110'
+    }`;
+  };
+
   return (
     <header className="flex h-20 flex-shrink-0 items-center justify-between border-b border-[var(--color-accent)]/20 bg-[var(--color-surface)] px-6">
       <div className="flex items-center gap-3">
@@ -15,79 +33,28 @@ const TopBar = () => {
       </div>
 
       <nav className="flex items-center gap-3">
-        <NavLink
-          to="/todos"
-          className={({ isActive }) =>
-            `group relative flex items-center gap-3 rounded-lg border px-4 py-2 text-base font-semibold transition-all duration-200 ${
-              isActive
-                ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
-                : 'border-[var(--color-accent)]/20 text-[var(--color-fg)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)]'
-            }`
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <div
-                className={`flex-shrink-0 transition-all duration-200 ${
-                  isActive ? '' : 'group-hover:scale-110'
-                }`}
-              >
-                <CodeBracketIcon className="h-5 w-5" />
-              </div>
-              <span>Todos</span>
-            </>
-          )}
-        </NavLink>
+        <Link to="/todos" className={getLinkClass('/todos')}>
+          <div className={getIconClass('/todos')}>
+            <CodeBracketIcon className="h-5 w-5" />
+          </div>
+          <span>Todos</span>
+        </Link>
 
-        <NavLink
-          to="/integrations"
-          className={({ isActive }) =>
-            `group relative flex items-center gap-3 rounded-lg border px-4 py-2 text-base font-semibold transition-all duration-200 ${
-              isActive
-                ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
-                : 'border-[var(--color-accent)]/20 text-[var(--color-fg)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)]'
-            }`
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <div
-                className={`flex-shrink-0 transition-all duration-200 ${
-                  isActive ? '' : 'group-hover:scale-110'
-                }`}
-              >
-                <LinkIcon className="h-5 w-5" />
-              </div>
-              <span>Integrations</span>
-            </>
-          )}
-        </NavLink>
+        <Link to="/integrations" className={getLinkClass('/integrations')}>
+          <div className={getIconClass('/integrations')}>
+            <LinkIcon className="h-5 w-5" />
+          </div>
+          <span>Integrations</span>
+        </Link>
       </nav>
 
       <div className="flex items-center">
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            `group relative flex items-center gap-3 rounded-lg border px-4 py-2 text-base font-semibold transition-all duration-200 ${
-              isActive
-                ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
-                : 'border-[var(--color-accent)]/20 text-[var(--color-fg)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)]'
-            }`
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <div
-                className={`flex-shrink-0 transition-all duration-200 ${
-                  isActive ? '' : 'group-hover:scale-110'
-                }`}
-              >
-                <Cog6ToothIcon className="h-5 w-5" />
-              </div>
-              <span>Settings</span>
-            </>
-          )}
-        </NavLink>
+        <Link to="/settings" className={getLinkClass('/settings')}>
+          <div className={getIconClass('/settings')}>
+            <Cog6ToothIcon className="h-5 w-5" />
+          </div>
+          <span>Settings</span>
+        </Link>
       </div>
     </header>
   );

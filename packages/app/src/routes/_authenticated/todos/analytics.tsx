@@ -12,12 +12,7 @@ import {
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 
-const completedReasons: TodoReasonEnumType[] = [
-  'done',
-  'implemented',
-  'refactored',
-  'done_by_others',
-];
+const completedReasons: TodoReasonEnumType[] = ['done'];
 
 interface EmptyStateProps {
   icon: React.ReactNode;

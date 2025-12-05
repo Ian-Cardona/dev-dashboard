@@ -1,7 +1,7 @@
 import OnboardingExtension from '../../features/register/components/onboarding/OnboardingExtension';
 import OnboardingForm from '../../features/register/components/onboarding/OnboardingForm';
 import useOnboardingSession from '../../features/register/hooks/useOnboardingSession';
-import { authQueryKeys } from '../../lib/tanstack/auth';
+import { authQueryKeys, fetchAuth } from '../../lib/tanstack/auth';
 import { CodeBracketIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -89,10 +89,22 @@ export const Route = createFileRoute('/register/onboarding')({
       session: (search.session as string) || undefined,
     };
   },
-  beforeLoad: ({ context }) => {
-    const auth = context.queryClient.getQueryData(authQueryKeys.user());
-    if (auth) {
+  beforeLoad: async ({ context }) => {
+    const cachedUser = context.queryClient.getQueryData(authQueryKeys.user());
+    if (cachedUser) {
       throw redirect({ to: '/todos/pending' });
+    }
+
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      try {
+        const user = await fetchAuth();
+        context.queryClient.setQueryData(authQueryKeys.user(), user);
+        throw redirect({ to: '/todos/pending' });
+      } catch (error) {
+        localStorage.removeItem('accessToken');
+        context.queryClient.setQueryData(authQueryKeys.user(), null);
+      }
     }
   },
   component: OnboardingPage,

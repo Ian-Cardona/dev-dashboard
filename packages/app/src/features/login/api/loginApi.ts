@@ -1,5 +1,5 @@
-import { publicClient } from '../../../lib/api';
-import { getConfig } from '../../../utils/configs/getConfig';
+import { publicClient } from '../../../lib/api/publicClient';
+import { getConfig } from '../../../lib/configs/getConfig';
 import type {
   LoginPublic,
   LoginRequestPublic,

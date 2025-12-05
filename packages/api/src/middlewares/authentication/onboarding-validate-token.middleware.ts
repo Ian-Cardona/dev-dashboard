@@ -11,6 +11,7 @@ export const onboardingValidateTokenMiddleware = async (
 ) => {
   try {
     const token = req.cookies.regintkn;
+    console.table(token);
     if (!token)
       throw new UnauthorizedError('Missing registerInit token cookie');
     const payload: RegisterInitTokenPayload =
