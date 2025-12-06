@@ -26,3 +26,10 @@ export const apiKeyPublicSchema = z.object({
 export const createApiKeySchema = z.object({
   description: descriptionSchema,
 });
+
+export const apiKeyIdSchemaFlexible = z
+  .string()
+  .regex(/^key_[0-9a-f]+$/, 'Invalid API key ID format')
+  .min(1)
+  .max(36)
+  .describe('API key ID');
