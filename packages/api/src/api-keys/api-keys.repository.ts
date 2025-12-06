@@ -42,8 +42,13 @@ export const ApiKeysRepository = (
           TableName: API_KEYS_TABLE,
           IndexName: 'UserIdIndex',
           KeyConditionExpression: 'userId = :userId',
+          FilterExpression: '#isActive = :isActive',
           ExpressionAttributeValues: {
             ':userId': userId,
+            ':isActive': true,
+          },
+          ExpressionAttributeNames: {
+            '#isActive': 'isActive',
           },
         })
       );

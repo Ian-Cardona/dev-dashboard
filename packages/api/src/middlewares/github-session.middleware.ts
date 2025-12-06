@@ -37,11 +37,11 @@ export const githubSessionMiddleware = async (
     );
     console.table(userProvider);
 
-    if (!userProvider || !userProvider.providerAccessTokenEncrypted) {
+    if (!userProvider || !userProvider.accessTokenEncrypted) {
       throw new UnauthorizedError('GitHub integration not found');
     }
 
-    const decryptedToken = decrypt(userProvider?.providerAccessTokenEncrypted);
+    const decryptedToken = decrypt(userProvider?.accessTokenEncrypted);
 
     req.githubUser = {
       access_token: decryptedToken,

@@ -1,13 +1,16 @@
 import ConfirmModal from '../../../components/ui/modals/ConfirmModal';
 import CreateApiKeyForm from '../../../features/settings/components/api-keys/CreateApiKeyForm';
 import SettingsApiKeysItem from '../../../features/settings/components/api-keys/SettingsApiKeysItem';
-import { useMutateCreateKey } from '../../../features/settings/hooks/useMutateCreateKey';
-import { useQueryFetchKeys } from '../../../features/settings/hooks/useQueryFetchKeys';
+import {
+  useMutateCreateKey,
+  useQueryFetchKeys,
+} from '../../../features/settings/hooks';
 import {
   CheckIcon,
   ClipboardDocumentIcon,
   PlusIcon,
   XMarkIcon,
+  KeyIcon,
 } from '@heroicons/react/24/outline';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
@@ -85,7 +88,7 @@ const SettingsApiKeys = () => {
   return (
     <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
       <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
-        <h2 className="flex items-center text-2xl font-bold text-[var(--color-fg)]">
+        <h2 className="flex items-center gap-3 text-2xl font-bold text-[var(--color-fg)]">
           API Keys
         </h2>
         <button
@@ -211,6 +214,7 @@ const SettingsApiKeys = () => {
                   {keys.map((key: any) => (
                     <SettingsApiKeysItem
                       key={key.id}
+                      id={key.id}
                       description={key.description}
                       createdAt={key.createdAt}
                     />
@@ -218,8 +222,14 @@ const SettingsApiKeys = () => {
                 </ul>
               </div>
             ) : (
-              <div className="flex items-center justify-center py-8 text-sm text-[var(--color-accent)]">
-                No API keys have been created yet.
+              <div className="flex flex-col items-center justify-center py-12">
+                <KeyIcon className="mb-4 h-16 w-16 text-[var(--color-accent)]/40" />
+                <p className="text-sm text-[var(--color-accent)]">
+                  No API keys have been created yet.
+                </p>
+                <p className="mt-2 text-xs text-[var(--color-accent)]/70">
+                  Click "New Key" to create your first API key.
+                </p>
               </div>
             )}
           </div>

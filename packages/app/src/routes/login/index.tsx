@@ -135,12 +135,10 @@ export const Route = createFileRoute('/login/')({
   beforeLoad: async ({ context }) => {
     const cachedUser = context.queryClient.getQueryData(authQueryKeys.user());
     if (cachedUser) {
-      console.log('User already cached, redirecting');
       throw redirect({ to: '/todos/pending' });
     }
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      console.log('No token found, showing login page');
       return;
     }
 

@@ -5,5 +5,5 @@ export const fetchProviders = async (): Promise<GithubProvider[]> => {
   const response = await protectedClient.get<GithubProvider[]>(
     '/user/profile/providers'
   );
-  return response.data;
+  return response.data as GithubProvider[];
 };

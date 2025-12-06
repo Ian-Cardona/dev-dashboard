@@ -2,6 +2,7 @@ import { IApiKeysController } from './interfaces/iapi-keys.controller';
 import { IApiKeysService } from './interfaces/iapi-keys.service';
 import {
   ApiKey,
+  apiKeyIdSchemaFlexible,
   ApiKeyPublic,
   CreateApiKey,
   createApiKeySchema,
@@ -23,7 +24,7 @@ export const ApiKeysController = (
           userId,
           createApiKey.description
         );
-        res.json(result);
+        res.status(201).json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid API key data');
       }
@@ -53,10 +54,10 @@ export const ApiKeysController = (
     async revoke(req: Request, res: Response, next: NextFunction) {
       try {
         const userId: string = uuidSchema.parse(req.user?.userId);
-        const apiKeyId: string = uuidSchema.parse(req.params.id);
+        const apiKeyId: string = apiKeyIdSchemaFlexible.parse(req.params.id);
 
         await apiKeysService.revoke(userId, apiKeyId);
-        res.json({ message: 'API Key revoked successfully' });
+        res.status(204).send();
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid request data');
       }
