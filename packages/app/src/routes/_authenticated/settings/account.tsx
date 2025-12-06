@@ -1,28 +1,28 @@
 import ConfirmModal from '../../../components/ui/modals/ConfirmModal';
 import ErrorModal from '../../../components/ui/modals/ErrorModal';
-import { AccountHeader } from '../../../features/settings/components/account/AccountHeader';
-import { DeleteAccountSection } from '../../../features/settings/components/account/DeleteAccountSection';
-import { EmailSection } from '../../../features/settings/components/account/EmailSection';
-import { LogoutSection } from '../../../features/settings/components/account/LogoutSection';
-import { ProfileNameSection } from '../../../features/settings/components/account/ProfileNameSection';
-import { SaveChangesButton } from '../../../features/settings/components/account/SaveChangesButton';
-import { useMutateLogout } from '../../../features/settings/hooks/useMutateLogout';
-import { useQueryFetchUserProfile } from '../../../features/settings/hooks/useQueryFetchUserProfile';
+import {
+  AccountHeader,
+  EmailSection,
+  LogoutSection,
+  ProfileNameSection,
+  SaveChangesButton,
+} from '../../../features/settings/components/account';
+import {
+  useMutateLogout,
+  useQueryFetchUserProfile,
+} from '../../../features/settings/hooks';
 import { useToast } from '../../../hooks/useToast';
+import { queryClient } from '../../../lib/tanstack/queryClient';
 import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
-// import { useQueryFetchGithubIntegration } from '../../../oauth/hooks/useQueryFetchGithubIntegration';
 import { getAndClearCookieValue } from '../../../utils/document/getAndClearCookieValue';
-import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 const SettingsAccount = () => {
   const { data: userProfile } = useQueryFetchUserProfile();
   const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('link');
-  // const { data: githubIntegration } = useQueryFetchGithubIntegration();
 
   const [isConnecting, setIsConnecting] = useState(false);
-  const queryClient = useQueryClient();
   const logoutMutation = useMutateLogout();
   const toast = useToast();
 
@@ -98,7 +98,6 @@ const SettingsAccount = () => {
 
   const handleDeleteAccount = () => {
     setIsDeleting(true);
-    console.log('Account deletion initiated');
     setTimeout(() => {
       setIsDeleting(false);
       setShowConfirm(false);
@@ -113,13 +112,6 @@ const SettingsAccount = () => {
       console.error('Logout failed', err);
     } finally {
       setIsPending(false);
-    }
-  };
-
-  const handleGithubConnect = () => {
-    if (githubAuthorizeQuery.data) {
-      setIsConnecting(true);
-      // window.location.href = githubAuthorizeQuery.data;
     }
   };
 
@@ -152,44 +144,7 @@ const SettingsAccount = () => {
 
             <EmailSection email={userProfile?.email} />
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-[var(--color-text-secondary)]">
-                GitHub Integration
-              </label>
-              <div className="flex items-center justify-between rounded-md border border-[var(--color-border)] bg-[var(--color-surface-hover)] p-4">
-                {/* <div className="flex items-center gap-3">
-                  <span className="text-sm text-[var(--color-text-primary)]">
-                    {githubIntegration?.isConnected
-                      ? 'GitHub account connected'
-                      : 'No GitHub account connected'}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleGithubConnect}
-                  disabled={
-                    githubIntegration?.isConnected ||
-                    isConnecting ||
-                    !githubAuthorizeQuery.data
-                  }
-                  className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
-                    githubIntegration?.isConnected
-                      ? 'cursor-default bg-green-500/10 text-green-500'
-                      : 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90 disabled:opacity-50'
-                  }`}
-                >
-                  {githubIntegration?.isConnected
-                    ? 'Connected'
-                    : isConnecting
-                      ? 'Connecting...'
-                      : 'Connect GitHub'}
-                </button> */}
-              </div>
-            </div>
-
             <LogoutSection isPending={isPending} onLogout={handleLogout} />
-
-            <DeleteAccountSection onDeleteClick={() => setShowConfirm(true)} />
           </div>
 
           {isEditMode && (
