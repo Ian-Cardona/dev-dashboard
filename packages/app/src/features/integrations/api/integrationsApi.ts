@@ -23,7 +23,6 @@ export const fetchGithubWorkflow = async (
   owner: string,
   repository: string
 ): Promise<GithubWorkflowResponse> => {
-  console.log('Fetching GitHub workflow for', owner, repository);
   if (!owner || owner.trim() === '') {
     throw new Error('Valid owner is required');
   }

@@ -241,8 +241,8 @@ export const AuthenticationService = (
         const providerUpdates: GithubProvider = {
           provider: data.provider,
           providerUserId: data.id,
-          providerAccessTokenEncrypted: data.access_token,
-          providerUpdatedAt: new Date().toISOString(),
+          accessTokenEncrypted: data.access_token,
+          updatedAt: new Date().toISOString(),
         };
 
         await userService.updateProvider(providerUpdates);

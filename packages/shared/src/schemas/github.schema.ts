@@ -105,8 +105,8 @@ export const githubNotificationResponseSchema = z.object({
 export const githubProviderSchema = z.object({
   provider: oauthProviderEnum,
   providerUserId: z.string().min(1).max(100),
-  providerAccessTokenEncrypted: z.string().min(1).max(512),
-  providerUpdatedAt: isoDatetimeSchema,
+  accessTokenEncrypted: z.string().min(1).max(512),
+  updatedAt: isoDatetimeSchema,
 });
 
 export const githubErrorResponseSchema = z.object({

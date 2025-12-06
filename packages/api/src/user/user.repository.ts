@@ -171,8 +171,8 @@ export const UserRepository = (
       return {
         provider: item.provider,
         providerUserId: item.providerUserId,
-        providerAccessTokenEncrypted: item.accessTokenEncrypted,
-        providerUpdatedAt: item.updatedAt,
+        accessTokenEncrypted: item.accessTokenEncrypted,
+        updatedAt: item.updatedAt,
       };
     },
 
@@ -195,21 +195,21 @@ export const UserRepository = (
       const {
         provider,
         providerUserId,
-        providerUpdatedAt,
-        providerAccessTokenEncrypted,
+        updatedAt: providerUpdatedAt,
+        accessTokenEncrypted: providerAccessTokenEncrypted,
       } = updates;
       await docClient.send(
         new UpdateCommand({
           TableName: PROVIDERS_TABLE,
           Key: { provider, providerUserId },
           UpdateExpression:
-            'SET #accessToken = :accessToken, #updatedAt = :updatedAt',
+            'SET #accessTokenEncrypted = :accessTokenEncrypted, #updatedAt = :updatedAt',
           ExpressionAttributeNames: {
-            '#accessToken': 'accessTokenEncrypted',
+            '#accessTokenEncrypted': 'accessTokenEncrypted',
             '#updatedAt': 'updatedAt',
           },
           ExpressionAttributeValues: {
-            ':accessToken': providerAccessTokenEncrypted,
+            ':accessTokenEncrypted': providerAccessTokenEncrypted,
             ':updatedAt': providerUpdatedAt,
           },
           ConditionExpression: 'attribute_exists(providerUserId)',

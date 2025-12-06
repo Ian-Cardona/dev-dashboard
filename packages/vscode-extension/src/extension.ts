@@ -42,7 +42,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
 const initializeUI = async (context: vscode.ExtensionContext) => {
   const needsOnboarding = await shouldShowOnboarding(context);
-  console.log('🔧 initializeUI - needsOnboarding:', needsOnboarding);
 
   await vscode.commands.executeCommand(
     'setContext',
@@ -51,7 +50,6 @@ const initializeUI = async (context: vscode.ExtensionContext) => {
   );
 
   if (needsOnboarding) {
-    console.log('🔮 Setting up onboarding...');
     const onboardingProvider = new OnboardingProvider(context);
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
@@ -61,15 +59,11 @@ const initializeUI = async (context: vscode.ExtensionContext) => {
     );
     vscode.commands.executeCommand('devDashboardOnboarding.focus');
   } else {
-    console.log('🚀 Setting up protected client...');
     setupProtectedClient(context);
 
-    // Increase delay and add retry logic
     setTimeout(() => {
-      console.log('🎯 Attempting to focus main view...');
       vscode.commands.executeCommand('devDashboardMain.focus');
 
-      // Retry after another second if still loading
       setTimeout(() => {
         vscode.commands.executeCommand('devDashboardMain.focus');
       }, 1000);
