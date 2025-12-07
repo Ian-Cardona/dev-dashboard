@@ -76,9 +76,7 @@ const TodosHistory = () => {
   return (
     <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
       <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
-        <h2 className="flex items-center text-2xl font-bold text-[var(--color-fg)]">
-          History
-        </h2>
+        <h2 className="text-2xl text-[var(--color-fg)]">History</h2>
         <TodosHistoryProjectMenu
           title={displayTitle}
           onGoLeft={goLeft}
@@ -92,7 +90,7 @@ const TodosHistory = () => {
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
               {emptyState.icon}
-              <div className="mt-4 text-lg font-semibold text-[var(--color-fg)]">
+              <div className="mt-4 text-lg text-[var(--color-fg)]">
                 {emptyState.title}
               </div>
               <div className="mt-2 text-sm text-[var(--color-accent)]">

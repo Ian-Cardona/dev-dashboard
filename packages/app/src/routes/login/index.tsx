@@ -1,3 +1,4 @@
+import devDashboardLogo from '../../assets/devdb-logo.png';
 import LoginForm from '../../features/login/components/LoginForm.tsx';
 import { useMutateLoginOAuth } from '../../features/login/hooks/useMutateLoginOAuth.ts';
 import { getOAuthSuccessCookieKeys } from '../../lib/configs/getConfig.ts';
@@ -7,7 +8,6 @@ import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieVa
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import devDashboardLogo from '../../assets/devdb-logo.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -72,13 +72,16 @@ const LoginPage = () => {
           </>
         ) : (
           <>
-            <img 
-              src={devDashboardLogo} 
-              alt="DevDB Logo" 
+            <img
+              src={devDashboardLogo}
+              alt="DevDB Logo"
               className="h-6 w-6 object-contain"
             />
             <div>
-              <h1 className="text-lg font-bold text-[var(--color-fg)]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
+              <h1
+                className="text-lg font-bold text-[var(--color-fg)]"
+                style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
+              >
                 DevDashboard
               </h1>
             </div>
