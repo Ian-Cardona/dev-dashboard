@@ -5,7 +5,6 @@ import useQueryPendingResolutions from '../../../features/todos/hooks/useQueryPe
 import useQueryResolved from '../../../features/todos/hooks/useQueryResolvedTodos';
 import type { TodoReasonEnumType } from '@dev-dashboard/shared';
 import {
-  InformationCircleIcon,
   ExclamationTriangleIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline';
@@ -31,7 +30,6 @@ const TodosAnalytics = () => {
     isLoading: isLoadingPending,
     isError: isErrorPending,
   } = useQueryPendingResolutions();
-  const [isTooltipVisible, setIsTooltipVisible] = useState<boolean>(false);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const emptyState: EmptyStateProps | null = useMemo(() => {
@@ -129,34 +127,14 @@ const TodosAnalytics = () => {
   return (
     <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
       <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
-        <h2 className="flex items-center text-2xl font-bold text-[var(--color-fg)]">
-          Analytics
-          {!emptyState && (
-            <div className="relative ml-3">
-              <InformationCircleIcon
-                className="h-5 w-5 cursor-pointer text-[var(--color-accent)] transition-colors duration-200 hover:text-[var(--color-primary)]"
-                onMouseEnter={() => setIsTooltipVisible(true)}
-                onMouseLeave={() => setIsTooltipVisible(false)}
-              />
-              {isTooltipVisible && (
-                <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-4">
-                  <p className="text-left text-sm font-normal text-[var(--color-fg)]">
-                    Analytics show your todo completion trends and activity over
-                    time. Track your progress with completion rates and
-                    resolution patterns.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-        </h2>
+        <h2 className="text-2xl font-bold text-[var(--color-fg)]">Analytics</h2>
       </div>
       <div className="flex-1 overflow-hidden">
         {emptyState ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
               {emptyState.icon}
-              <div className="mt-4 text-lg font-semibold text-[var(--color-fg)]">
+              <div className="mt-4 text-lg text-[var(--color-fg)]">
                 {emptyState.title}
               </div>
               <div className="mt-2 text-sm text-[var(--color-accent)]">
@@ -167,8 +145,8 @@ const TodosAnalytics = () => {
         ) : (
           <div className="h-full overflow-y-auto p-6 lg:flex lg:flex-col lg:overflow-hidden">
             <div className="grid grid-cols-1 gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-4">
-              <div className="flex flex-col gap-4 lg:col-span-1 lg:min-h-0 lg:overflow-y-auto">
-                <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
+              <div className="flex flex-col gap-6 lg:col-span-1 lg:min-h-0 lg:overflow-y-auto">
+                <div className="group rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 transition-all duration-200 hover:border-[var(--color-primary)]/40 hover:shadow-md">
                   <TodosAnalyticsCardHeader
                     title="Completion Rate"
                     tooltip="Completion rate shows the percentage of completed todos relative to total todos."
@@ -181,7 +159,7 @@ const TodosAnalytics = () => {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
+                <div className="group rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 transition-all duration-200 hover:border-[var(--color-primary)]/40 hover:shadow-md">
                   <TodosAnalyticsCardHeader
                     title="Resolved Rate"
                     tooltip="Resolved rate shows the percentage of todos with any reason relative to total todos."
@@ -194,7 +172,7 @@ const TodosAnalytics = () => {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
+                <div className="group rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 transition-all duration-200 hover:border-[var(--color-primary)]/40 hover:shadow-md">
                   <TodosAnalyticsCardHeader title="Stale Todos" />
                   <span className="text-4xl font-bold text-[var(--color-primary)]">
                     {staleCount}
@@ -204,9 +182,9 @@ const TodosAnalytics = () => {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
+                <div className="group rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 transition-all duration-200 hover:border-[var(--color-primary)]/40 hover:shadow-md">
                   <TodosAnalyticsCardHeader title="Outcomes" />
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 space-y-3">
                     {Object.entries(reasonDistribution).map(
                       ([reason, count]) => (
                         <div
@@ -214,7 +192,7 @@ const TodosAnalytics = () => {
                           className="flex justify-between text-sm"
                         >
                           <span className="text-[var(--color-fg)] capitalize">
-                            {reason.replace('_', ' ')}
+                            {reason.replace(/_/g, ' ')}
                           </span>
                           <span className="font-medium text-[var(--color-primary)]">
                             {count} ({Math.round((count / totalResolved) * 100)}
@@ -227,19 +205,21 @@ const TodosAnalytics = () => {
                 </div>
               </div>
 
-              <div className="flex min-h-0 flex-col gap-6 overflow-hidden rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 lg:col-span-3 lg:flex-row">
-                <div className="flex flex-col gap-4 lg:flex-shrink-0">
-                  <TodosAnalyticsCardHeader title="Activity Over Last 30 Days" />
-                  <TodosActivityHeatmap
-                    resolvedData={resolvedData}
-                    onDayClick={date => setSelectedDay(date)}
-                  />
-                </div>
-                <div className="flex min-h-0 flex-1 lg:min-w-0">
-                  <TodosAnalyticsInfo
-                    selectedDay={selectedDay}
-                    resolvedData={resolvedData}
-                  />
+              <div className="flex min-h-0 flex-col gap-6 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 lg:col-span-3">
+                <TodosAnalyticsCardHeader title="Activity Over Last 30 Days" />
+                <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row">
+                  <div className="flex-1">
+                    <TodosActivityHeatmap
+                      resolvedData={resolvedData}
+                      onDayClick={date => setSelectedDay(date)}
+                    />
+                  </div>
+                  <div className="flex min-h-0 flex-1 lg:min-w-0">
+                    <TodosAnalyticsInfo
+                      selectedDay={selectedDay}
+                      resolvedData={resolvedData}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

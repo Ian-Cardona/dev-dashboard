@@ -236,7 +236,7 @@ const PendingResolutions = () => {
   return (
     <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
       <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
-        <h2 className="flex items-center text-2xl font-bold text-[var(--color-fg)]">
+        <h2 className="flex items-center text-2xl text-[var(--color-fg)]">
           Pending Resolutions
           <div className="relative ml-3">
             <InformationCircleIcon
@@ -248,7 +248,7 @@ const PendingResolutions = () => {
               <div className="absolute top-full left-1/2 z-10 mt-2 w-72 -translate-x-1/2 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-4">
                 <p className="text-left text-sm font-normal text-[var(--color-fg)]">
                   Pending resolutions are TODOs that need your input. Use{' '}
-                  <span className="font-semibold text-[var(--color-primary)]">
+                  <span className="text-[var(--color-primary)]">
                     Resolve mode
                   </span>{' '}
                   to assign reasons or resolve them.
@@ -260,16 +260,12 @@ const PendingResolutions = () => {
         {hasData && (
           <button
             onClick={handleEditButtonClick}
-            className={`group flex items-center gap-3 rounded-lg border px-5 py-2 text-base font-semibold transition-all duration-200 ${
-              isEditMode
-                ? 'border-[var(--color-accent)]/20 text-[var(--color-fg)] hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)]'
-                : 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:-translate-y-0.5 hover:bg-[var(--color-primary)]/90'
-            }`}
+            className="flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/20 px-4 py-2 text-sm transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
           >
             {isEditMode ? (
-              <XMarkIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+              <XMarkIcon className="h-5 w-5" />
             ) : (
-              <CheckIcon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+              <CheckIcon className="h-5 w-5" />
             )}
             {isEditMode ? 'Cancel' : 'Resolve'}
           </button>
@@ -281,7 +277,7 @@ const PendingResolutions = () => {
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
               {emptyState.icon}
-              <div className="mt-4 text-lg font-semibold text-[var(--color-fg)]">
+              <div className="mt-4 text-lg text-[var(--color-fg)]">
                 {emptyState.title}
               </div>
               <div className="mt-2 text-sm text-[var(--color-accent)]">
@@ -294,8 +290,6 @@ const PendingResolutions = () => {
             <ResolutionsTable
               isEditMode={isEditMode}
               resolutions={filteredAndSortedResolutions}
-              isLoading={isLoading}
-              isError={isError}
               getSortIcon={getSortIcon}
               handleSort={handleSort}
               setTypeFilter={setTypeFilter}
@@ -309,21 +303,21 @@ const PendingResolutions = () => {
       </div>
 
       {isEditMode && hasData && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-          <button
-            onClick={handleSubmitClick}
-            disabled={!hasValidSelection}
-            className={`group flex items-center gap-3 rounded-lg border px-5 py-3 text-base font-semibold transition-all duration-200 ${
-              !hasValidSelection
-                ? 'cursor-not-allowed border-[var(--color-accent)]/20 bg-[var(--color-surface)] text-[var(--color-accent)] opacity-50'
-                : 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:-translate-y-0.5 hover:bg-[var(--color-primary)]/90'
-            }`}
-          >
-            <CheckIcon
-              className={`h-5 w-5 transition-transform duration-200 ${!hasValidSelection ? '' : 'group-hover:scale-110'}`}
-            />
-            Submit Resolutions
-          </button>
+        <div className="border-t border-[var(--color-accent)]/20 p-6">
+          <div className="flex justify-center">
+            <button
+              onClick={handleSubmitClick}
+              disabled={!hasValidSelection}
+              className={`flex items-center gap-2 rounded-lg border px-5 py-3 text-base transition-all duration-200 ${
+                !hasValidSelection
+                  ? 'cursor-not-allowed border-[var(--color-accent)]/20 text-[var(--color-accent)] opacity-50'
+                  : 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90'
+              }`}
+            >
+              <CheckIcon className="h-5 w-5" />
+              Submit Resolutions
+            </button>
+          </div>
         </div>
       )}
 
