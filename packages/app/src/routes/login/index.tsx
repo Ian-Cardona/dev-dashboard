@@ -7,6 +7,7 @@ import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieVa
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import devDashboardLogo from '../../assets/devdb-logo.png';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -63,19 +64,21 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
-      <div className="absolute top-8 left-8 flex items-center gap-3">
+      <div className="absolute top-8 left-8 flex items-center gap-2">
         {isLoading ? (
           <>
-            <Skeleton circle width={40} height={40} />
-            <Skeleton width={120} height={24} />
+            <Skeleton circle width={24} height={24} />
+            <Skeleton width={120} height={20} />
           </>
         ) : (
           <>
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-primary)] text-lg font-bold text-white">
-              DD
-            </div>
+            <img 
+              src={devDashboardLogo} 
+              alt="DevDB Logo" 
+              className="h-6 w-6 object-contain"
+            />
             <div>
-              <h1 className="text-xl font-bold text-[var(--color-fg)]">
+              <h1 className="text-lg font-bold text-[var(--color-fg)]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                 DevDashboard
               </h1>
             </div>

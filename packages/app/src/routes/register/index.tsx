@@ -7,6 +7,7 @@ import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCook
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
+import devDashboardLogo from '../../assets/devdb-logo.png';
 
 const RegisterPage = () => {
   const { error: modalErrorMessage } = Route.useSearch();
@@ -47,12 +48,14 @@ const RegisterPage = () => {
         <ErrorModal message={modalError} onClose={handleCloseModal} />
       )}
       <div className="min-h-screen bg-[var(--color-bg)]">
-        <div className="absolute top-8 left-8 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-primary)] text-lg font-bold text-white">
-            DD
-          </div>
+        <div className="absolute top-8 left-8 flex items-center gap-2">
+          <img 
+            src={devDashboardLogo} 
+            alt="DevDB Logo" 
+            className="h-6 w-6 object-contain"
+          />
           <div>
-            <h1 className="text-xl font-bold text-[var(--color-fg)]">
+            <h1 className="text-lg font-bold text-[var(--color-fg)]" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
               DevDashboard
             </h1>
           </div>

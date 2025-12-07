@@ -34,7 +34,7 @@ export const ErrorState = ({
         </div>
         {isUnauthorized ? (
           <button
-            onClick={() => navigate({ to: '/settings/account' })}
+            onClick={() => navigate({ to: '/settings/connections' })}
             className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[var(--color-primary)]/90"
           >
             <LinkIcon className="h-4 w-4" />
