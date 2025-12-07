@@ -1,10 +1,11 @@
 import { getApiUrl, getClientAppName } from '../configs/getConfig';
-import axios, { type InternalAxiosRequestConfig } from 'axios';
+import axios, { type InternalAxiosRequestConfig, AxiosError } from 'axios';
 
 const baseURL = getApiUrl();
 
 export const protectedClient = axios.create({
   baseURL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -21,5 +22,17 @@ protectedClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+  }
+);
+
+protectedClient.interceptors.response.use(
+  response => response,
+  (error: AxiosError) => {
+    if (error.code === 'ECONNABORTED') {
+      error.message = 'Request timeout. Please try again.';
+    } else if (!error.response) {
+      error.message = 'Network error. Please check your connection.';
+    }
+    return Promise.reject(error);
   }
 );

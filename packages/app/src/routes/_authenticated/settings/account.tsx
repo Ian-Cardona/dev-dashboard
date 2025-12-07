@@ -27,13 +27,20 @@ const SettingsAccount = () => {
   const toast = useToast();
 
   const [isEditMode, setIsEditMode] = useState(false);
-  const [firstName, setFirstName] = useState(userProfile?.firstName ?? '');
-  const [lastName, setLastName] = useState(userProfile?.lastName ?? '');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [isPending, setIsPending] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (userProfile) {
+      setFirstName(userProfile.firstName ?? '');
+      setLastName(userProfile.lastName ?? '');
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     const oauthError = getAndClearCookieValue('gh_o_e');
@@ -60,7 +67,7 @@ const SettingsAccount = () => {
       toast.showSuccess(successMessages[oauthSuccess] || 'Success!');
       queryClient.invalidateQueries({ queryKey: ['githubIntegration'] });
     }
-  }, [toast, queryClient]);
+  }, [toast]);
 
   useEffect(() => {
     if (githubAuthorizeQuery.isError && !isConnecting) {
