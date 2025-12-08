@@ -41,7 +41,7 @@ const ResolutionsTableHeader = ({
             </button>
 
             {showTypeDropdown && (
-              <div className="absolute z-10 mt-1 w-40 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
+              <div className="absolute z-10 mt-1 w-40 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] shadow-lg">
                 <div
                   className="cursor-pointer rounded-lg px-4 py-3 text-base transition-all duration-200 hover:bg-[var(--color-bg)]"
                   onClick={() => {
@@ -84,6 +84,18 @@ const ResolutionsTableHeader = ({
           >
             Content
             {getSortIcon('content')}
+          </button>
+        </th>
+
+        <th className="w-64 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
+          <button
+            onClick={() => handleSort('filePath')}
+            className="flex cursor-pointer items-center gap-2 text-[var(--color-fg)] transition-colors duration-200 select-none hover:text-[var(--color-primary)]"
+            title="Sort by File Path"
+            type="button"
+          >
+            File
+            {getSortIcon('filePath')}
           </button>
         </th>
 

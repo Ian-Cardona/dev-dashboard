@@ -15,7 +15,7 @@ interface TodosHistoryTableProps {
 const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   const [typeFilter, setTypeFilter] = useState('');
   const [sortField, setSortField] = useState<
-    'type' | 'content' | 'resolvedAt' | null
+    'type' | 'content' | 'resolvedAt' | 'filePath' | null
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -25,7 +25,12 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   );
 
   const handleSort = (field: string) => {
-    if (field === 'type' || field === 'content' || field === 'resolvedAt') {
+    if (
+      field === 'type' ||
+      field === 'content' ||
+      field === 'resolvedAt' ||
+      field === 'filePath'
+    ) {
       if (sortField === field) {
         setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
       } else {
@@ -36,10 +41,15 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   };
 
   const getSortIcon = (key: string): React.ReactNode => {
-    if (key !== 'type' && key !== 'content' && key !== 'resolvedAt') {
+    if (
+      key !== 'type' &&
+      key !== 'content' &&
+      key !== 'resolvedAt' &&
+      key !== 'filePath'
+    ) {
       return null;
     }
-    const field = key as 'type' | 'content' | 'resolvedAt';
+    const field = key as 'type' | 'content' | 'resolvedAt' | 'filePath';
     if (sortField !== field) {
       return (
         <ChevronUpDownIcon
@@ -79,6 +89,10 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
           case 'content':
             aValue = a.content.toLowerCase();
             bValue = b.content.toLowerCase();
+            break;
+          case 'filePath':
+            aValue = a.filePath.toLowerCase();
+            bValue = b.filePath.toLowerCase();
             break;
           case 'resolvedAt':
             aValue = a.resolvedAt ? new Date(a.resolvedAt).getTime() : 0;
