@@ -6,7 +6,6 @@ import {
   uuidSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
-import { ConflictError } from 'src/utils/errors.utils';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
 export const UserController = (userService: IUserService): IUserController => {
@@ -37,11 +36,7 @@ export const UserController = (userService: IUserService): IUserController => {
         const userId = uuidSchema.parse(req.user?.userId);
         const validatedData = userPasswordUpdateSchema.parse(req.body);
 
-        if (typeof validatedData.newPassword !== 'string') {
-          throw new ConflictError('Invalid Password');
-        }
-
-        await userService.updatePassword(userId, validatedData.newPassword);
+        await userService.updatePassword(userId, validatedData);
         res.status(204).end();
       } catch (error) {
         handleValidationError(error, res, next, 'Password update failed');
@@ -70,7 +65,7 @@ export const UserController = (userService: IUserService): IUserController => {
       try {
         const userId = uuidSchema.parse(req.user?.userId);
         const result = await userService.findProvidersByUserId(userId);
-        res.json(result);
+        res.status(200).json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'User lookup failed');
       }

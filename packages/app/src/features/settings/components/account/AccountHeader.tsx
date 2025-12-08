@@ -12,12 +12,12 @@ export const AccountHeader = ({
 }: AccountHeaderProps) => {
   return (
     <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
-      <h2 className="flex items-center gap-3 text-2xl font-bold text-[var(--color-fg)]">
+      <h2 className="flex items-center gap-3 text-2xl text-[var(--color-fg)]">
         Account
       </h2>
       <button
         onClick={isEditMode ? onCancel : onEditClick}
-        className="flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/20 px-5 py-3 text-base font-semibold transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+        className="relative flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/20 px-4 py-2 text-sm transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
       >
         {isEditMode ? (
           <XMarkIcon className="h-5 w-5" />

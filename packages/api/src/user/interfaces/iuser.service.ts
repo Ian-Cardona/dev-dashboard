@@ -4,6 +4,7 @@ import {
   GithubProvider,
   User,
   UserPublic,
+  UserPasswordUpdate,
 } from '@dev-dashboard/shared';
 
 export interface IUserService {
@@ -28,6 +29,6 @@ export interface IUserService {
   ): Promise<UserPublic>;
   delete(userId: string): Promise<void>;
   updateLastLogin(userId: string, timestamp: string): Promise<UserPublic>;
-  updatePassword(userId: string, passwordHash: string): Promise<UserPublic>;
+  updatePassword(userId: string, data: UserPasswordUpdate): Promise<UserPublic>;
   deactivate(userId: string): Promise<UserPublic>;
 }

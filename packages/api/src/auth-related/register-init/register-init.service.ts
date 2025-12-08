@@ -6,10 +6,10 @@ import {
   RegistrationSession,
   UserPublic,
 } from '@dev-dashboard/shared';
-import bcrypt from 'bcryptjs';
 import { RedisClientType } from 'redis';
 import { ENV } from 'src/config/env';
 import { IUserService } from 'src/user/interfaces/iuser.service';
+import { bcryptGen } from 'src/utils/bcrypt.utils';
 import { encrypt } from 'src/utils/crypto.utils';
 import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { generateRegisterInitJWT } from 'src/utils/jwt.utils';
@@ -72,8 +72,7 @@ export const RegisterInitService = (
         );
       }
 
-      const salt = await bcrypt.genSalt(saltRounds);
-      const passwordHash = await bcrypt.hash(data.password, salt);
+      const passwordHash = await bcryptGen(data.password, saltRounds);
 
       const registrationJti = generateUUID();
       const registrationId = generateUUID();

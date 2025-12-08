@@ -1,8 +1,3 @@
-// import { ENV } from '../config/env_variables';
-import { ConflictError, NotFoundError } from '../utils/errors.utils';
-import { generateUUID } from '../utils/uuid.utils';
-import { IUserRepository } from './interfaces/iuser.repository';
-import { IUserService } from './interfaces/iuser.service';
 import {
   CompleteRegisterByEmailRequest,
   CompleteRegisterByOAuthRequest,
@@ -10,10 +5,18 @@ import {
   UserPublic,
   UpdateUser,
   GithubProvider,
+  UserPasswordUpdate,
 } from '@dev-dashboard/shared';
-import { isBcryptHash } from 'src/utils/bcrypt.utils';
-
-// import bcrypt from 'bcryptjs';
+import { ENV } from 'src/config/env';
+import { IUserRepository } from 'src/user/interfaces/iuser.repository';
+import { IUserService } from 'src/user/interfaces/iuser.service';
+import { bcryptCompare, bcryptGen, isBcryptHash } from 'src/utils/bcrypt.utils';
+import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from 'src/utils/errors.utils';
+import { generateUUID } from 'src/utils/uuid.utils';
 
 const MODULE_NAME = 'UserService';
 
@@ -23,15 +26,6 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       user: CompleteRegisterByEmailRequest
     ): Promise<UserPublic> {
       try {
-        // const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
-        // if (!saltRounds || isNaN(saltRounds)) {
-        //   throw new Error(
-        //     `[${MODULE_NAME}] Invalid bcrypt salt rounds configuration`
-        //   );
-        // }
-        // const salt = await bcrypt.genSalt(saltRounds);
-        // const hashedPassword = await bcrypt.hash(user.passwordHash, salt);
-
         if (!isBcryptHash(user.passwordHash)) {
           throw new Error(`[${MODULE_NAME}] Invalid bcrypt hash provided`);
         }
@@ -109,7 +103,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
       try {
         const user = await userRepository.findById(userId);
         if (!user) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -119,7 +113,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         if (error instanceof NotFoundError) {
           throw error;
         }
-        throw new Error('Could not find the user');
+        throw new Error(`[${MODULE_NAME}] Could not find the user`);
       }
     },
 
@@ -128,7 +122,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         const user = await userRepository.findByEmail(email);
 
         if (!user) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
 
         return user;
@@ -136,7 +130,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         if (error instanceof NotFoundError) {
           throw error;
         }
-        throw new Error('Could not find the user');
+        throw new Error(`[${MODULE_NAME}] Could not find the user`);
       }
     },
 
@@ -145,7 +139,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         const user = await userRepository.findByEmail(email);
 
         if (!user) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -155,7 +149,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         if (error instanceof NotFoundError) {
           throw error;
         }
-        throw new Error('Could not find the user');
+        throw new Error(`[${MODULE_NAME}] Could not find the user`);
       }
     },
 
@@ -178,7 +172,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           providerUserId
         );
         if (!user) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
 
         return user;
@@ -199,7 +193,9 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           userId,
           provider
         );
-        if (!providerData) throw new NotFoundError('Provider not found');
+        if (!providerData) {
+          throw new NotFoundError(`[${MODULE_NAME}] Provider not found`);
+        }
         return providerData;
       } catch (error) {
         if (error instanceof NotFoundError) throw error;
@@ -257,9 +253,9 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError('Provider not found');
+          throw new NotFoundError(`[${MODULE_NAME}] Provider not found`);
         }
-        throw new Error('[UserService] Failed to update provider');
+        throw new Error(`[${MODULE_NAME}] Failed to update provider`);
       }
     },
 
@@ -268,7 +264,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         const result = await userRepository.update(userId, updates);
 
         if (!result) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -279,9 +275,9 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User not found`);
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
-        throw new Error('Could not update the user');
+        throw new Error(`[${MODULE_NAME}] Could not update the user`);
       }
     },
 
@@ -293,9 +289,9 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User not found`);
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
-        throw new Error('Could not delete the user');
+        throw new Error(`[${MODULE_NAME}] Could not delete the user`);
       }
     },
 
@@ -307,7 +303,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         const result = await userRepository.updateLastLogin(userId, timestamp);
 
         if (!result) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -318,24 +314,66 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User not found`);
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
-        throw new Error('Could not update the user last login');
+        throw new Error(
+          `[${MODULE_NAME}] Could not update the user last login`
+        );
       }
     },
 
     async updatePassword(
       userId: string,
-      newPasswordHash: string
+      data: UserPasswordUpdate
     ): Promise<UserPublic> {
       try {
+        const user = await userRepository.findById(userId);
+
+        if (!user) {
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
+        }
+
+        if (!user.passwordHash) {
+          throw new ConflictError(
+            `[${MODULE_NAME}] User does not have a current password to update`
+          );
+        }
+
+        const passwordMatches = await bcryptCompare(
+          data.currentPassword,
+          user.passwordHash
+        );
+
+        if (!passwordMatches) {
+          throw new UnauthorizedError(
+            `[${MODULE_NAME}] Invalid email or password`
+          );
+        }
+
+        if (!user.isActive) {
+          throw new UnauthorizedError(
+            `[${MODULE_NAME}] User account is inactive`
+          );
+        }
+
+        const saltRounds = Number(ENV.BCRYPT_SALT_ROUNDS_PW);
+        if (!saltRounds || isNaN(saltRounds)) {
+          throw new Error(
+            `[${MODULE_NAME}] Invalid bcrypt salt rounds configuration`
+          );
+        }
+
+        const newPasswordHash = await bcryptGen(data.newPassword, saltRounds);
+
         const result = await userRepository.updatePassword(
           userId,
           newPasswordHash
         );
 
         if (!result) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(
+            `[${MODULE_NAME}] User not found during update`
+          );
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -343,12 +381,21 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         return responseUser;
       } catch (error) {
         if (
+          error instanceof NotFoundError ||
+          error instanceof ConflictError ||
+          error instanceof UnauthorizedError
+        ) {
+          throw error;
+        }
+
+        if (
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User not found`);
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
-        throw new Error('Could not update the user password');
+
+        throw new Error(`[${MODULE_NAME}] Could not update the user password`);
       }
     },
 
@@ -357,7 +404,7 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
         const result = await userRepository.deactivate(userId);
 
         if (!result) {
-          throw new NotFoundError('User not found');
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -368,9 +415,9 @@ export const UserService = (userRepository: IUserRepository): IUserService => {
           error instanceof Error &&
           error.message.includes('ConditionalCheckFailedException')
         ) {
-          throw new NotFoundError(`User not found`);
+          throw new NotFoundError(`[${MODULE_NAME}] User not found`);
         }
-        throw new Error('Could not deactivate the user');
+        throw new Error(`[${MODULE_NAME}] Could not deactivate the user`);
       }
     },
   };
