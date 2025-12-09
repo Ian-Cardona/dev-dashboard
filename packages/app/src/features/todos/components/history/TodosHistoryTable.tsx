@@ -119,8 +119,8 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="relative min-h-0 flex-1 overflow-auto">
-        <table className="w-full table-fixed border-collapse">
+      <div className="relative min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+        <table className="w-full min-w-[1100px] border-collapse">
           <TodosHistoryTableHeader
             getSortIcon={getSortIcon}
             handleSort={handleSort}

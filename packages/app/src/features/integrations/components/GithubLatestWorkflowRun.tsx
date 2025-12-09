@@ -145,12 +145,15 @@ const GithubLatestWorkflowRun = () => {
   }
 
   if (repositoriesError) {
-    const isUnauthorized = repositoriesErrorData?.message?.includes('401') || 
-                           repositoriesErrorData?.message?.includes('unauthorized');
-    
+    const isUnauthorized =
+      repositoriesErrorData?.message?.includes('401') ||
+      repositoriesErrorData?.message?.includes('unauthorized');
+
     return (
       <ErrorState
-        message={repositoriesErrorData?.message ?? 'Failed to load repositories'}
+        message={
+          repositoriesErrorData?.message ?? 'Failed to load repositories'
+        }
         onRetry={refetchRepositories}
         isUnauthorized={isUnauthorized}
       />
@@ -192,7 +195,9 @@ const GithubLatestWorkflowRun = () => {
       {workflowsError && (
         <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
           <ErrorState
-            message={workflowsErrorData?.message ?? 'Failed to load workflow data'}
+            message={
+              workflowsErrorData?.message ?? 'Failed to load workflow data'
+            }
             onRetry={refetchWorkflows}
           />
         </div>

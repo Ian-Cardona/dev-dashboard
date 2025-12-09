@@ -28,7 +28,7 @@ const TodosHistoryTableRow = ({ todo }: TodosHistoryTableRowProps) => {
         isResolved ? 'bg-green-600/5' : 'hover:bg-[var(--color-bg)]'
       }`}
     >
-      <td className="px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
+      <td className="w-40 px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
         <div className="flex items-center gap-2">
           {isResolved ? (
             <CheckCircleIcon className="h-5 w-5 text-green-700" />
@@ -40,12 +40,12 @@ const TodosHistoryTableRow = ({ todo }: TodosHistoryTableRowProps) => {
           </span>
         </div>
       </td>
-      <td className="max-w-xs px-6 py-4 align-middle text-base font-semibold text-[var(--color-fg)] normal-case">
+      <td className="min-w-64 px-6 py-4 align-middle text-base font-semibold text-[var(--color-fg)] normal-case">
         <span className={isResolved ? 'text-[var(--color-accent)]' : ''}>
           {todo.content}
         </span>
       </td>
-      <td className="px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
+      <td className="w-64 px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
         <div className="relative">
           <div
             className="cursor-help truncate font-medium"
@@ -67,14 +67,14 @@ const TodosHistoryTableRow = ({ todo }: TodosHistoryTableRowProps) => {
           )}
         </div>
       </td>
-      <td className="px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
+      <td className="w-56 px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
         <span className={isResolved ? 'text-[var(--color-accent)]' : ''}>
           {latestOccurrence
             ? new Date(latestOccurrence.syncedAt).toLocaleString()
             : '-'}
         </span>
       </td>
-      <td className="px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
+      <td className="w-56 px-6 py-4 align-middle text-base text-[var(--color-fg)] normal-case">
         {isResolved && todo.resolvedAt ? (
           <div className="flex flex-col">
             <span className="font-semibold text-green-700">

@@ -31,21 +31,11 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
   const isLoading = registerMutation.isPending;
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
-      <div className="mb-6 text-center">
-        <h2 className="mb-2 text-xl text-[var(--color-fg)]">Your Profile</h2>
-        <p className="text-sm text-[var(--color-accent)]">
-          Complete your account setup
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <div className="space-y-1.5">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-[var(--color-fg)]"
-            >
+    <div className="w-full max-w-none">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-[var(--color-fg)]">
               Email
             </label>
             <input
@@ -54,18 +44,15 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
               value={email}
               onChange={e => setEmail(e.target.value)}
               disabled={flow === 'email' || isLoading}
-              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="your@email.com"
+              placeholder="you@example.com"
               required
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none placeholder:text-[var(--color-accent)]/70 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-[var(--color-fg)]"
-              >
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--color-fg)]">
                 First Name
               </label>
               <input
@@ -74,17 +61,14 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 disabled={isLoading}
-                className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Dev"
                 required
+                className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none placeholder:text-[var(--color-accent)]/70 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-[var(--color-fg)]"
-              >
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--color-fg)]">
                 Last Name
               </label>
               <input
@@ -93,23 +77,23 @@ const OnboardingForm = ({ email: emailProp }: OnboardingFormProps) => {
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 disabled={isLoading}
-                className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Dashboard"
                 required
+                className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none placeholder:text-[var(--color-accent)]/70 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
           </div>
+        </div>
 
-          <button
-            type="submit"
-            disabled={!isValid || isLoading}
-            className="w-full rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-busy={isLoading}
-          >
-            {isLoading ? 'Setting up...' : 'Complete'}
-          </button>
-        </form>
-      </div>
+        <button
+          type="submit"
+          disabled={!isValid || isLoading}
+          className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-6 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-busy={isLoading}
+        >
+          {isLoading ? 'Setting up...' : 'Complete Setup'}
+        </button>
+      </form>
     </div>
   );
 };

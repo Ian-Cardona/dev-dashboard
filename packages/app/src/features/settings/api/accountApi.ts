@@ -1,5 +1,9 @@
 import { protectedClient } from '../../../lib/api/protectedClient';
-import type { UserPasswordUpdate, UserPublic } from '@dev-dashboard/shared';
+import type {
+  UpdateUser,
+  UserPasswordUpdate,
+  UserPublic,
+} from '@dev-dashboard/shared';
 
 export const fetchUserProfile = async (): Promise<UserPublic> => {
   const response = await protectedClient.get<UserPublic>('/user/profile');
@@ -7,9 +11,19 @@ export const fetchUserProfile = async (): Promise<UserPublic> => {
 };
 
 export const updateUserProfile = async (
-  data: UserPasswordUpdate
+  data: Partial<UpdateUser>
 ): Promise<UserPublic> => {
   const response = await protectedClient.put<UserPublic>('/user/profile', data);
+  return response.data as UserPublic;
+};
+
+export const updateUserPassword = async (
+  data: UserPasswordUpdate
+): Promise<UserPublic> => {
+  const response = await protectedClient.put<UserPublic>(
+    '/user/password',
+    data
+  );
   return response.data as UserPublic;
 };
 

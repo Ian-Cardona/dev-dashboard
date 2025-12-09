@@ -22,7 +22,7 @@ const TodosHistoryTableHeader = ({
     <thead className="sticky top-0 z-2 border-b border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
       <tr className="border-b border-[var(--color-accent)]/20">
         <th
-          className="w-36 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]"
+          className="w-40 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]"
           onMouseEnter={() => setShowTypeDropdown(true)}
           onMouseLeave={() => setShowTypeDropdown(false)}
         >
@@ -73,7 +73,7 @@ const TodosHistoryTableHeader = ({
             )}
           </div>
         </th>
-        <th className="px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
+        <th className="min-w-64 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
           <button
             onClick={() => handleSort('content')}
             className="flex cursor-pointer items-center gap-2 text-[var(--color-fg)] transition-colors duration-200 select-none hover:text-[var(--color-primary)]"
@@ -84,7 +84,7 @@ const TodosHistoryTableHeader = ({
             {getSortIcon('content')}
           </button>
         </th>
-        <th className="w-56 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
+        <th className="w-64 px-6 py-3 text-left text-base font-semibold whitespace-nowrap text-[var(--color-fg)]">
           <button
             onClick={() => handleSort('filePath')}
             className="flex cursor-pointer items-center gap-2 text-[var(--color-fg)] transition-colors duration-200 select-none hover:text-[var(--color-primary)]"
