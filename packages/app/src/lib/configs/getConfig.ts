@@ -14,6 +14,10 @@ export const getConfig = () => {
       OAUTH_ERROR_COOKIE_KEYS: {
         error: 'gh_o_e',
       },
+      OAUTH_LINK_COOKIE_KEYS: {
+        error: 'gh_o_e',
+        success: 'gh_o_s',
+      },
       REG_INIT_COOKIE_KEYS: {
         registration_token: 'regintkn',
         registration_id: 'reginid',
@@ -50,4 +54,5 @@ export const isProduction = () => config.ENVIRONMENT === 'production';
 
 export const getOAuthSuccessCookieKeys = () => config.OAUTH_SUCCESS_COOKIE_KEYS;
 export const getOAuthErrorCookieKeys = () => config.OAUTH_ERROR_COOKIE_KEYS;
+export const getOAuthLinkCookieKeys = () => config.OAUTH_LINK_COOKIE_KEYS;
 export const getRegInitCookieKeys = () => config.REG_INIT_COOKIE_KEYS;

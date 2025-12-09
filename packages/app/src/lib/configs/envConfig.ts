@@ -13,6 +13,10 @@ declare global {
       OAUTH_ERROR_COOKIE_KEYS: {
         error: string;
       };
+      OAUTH_LINK_COOKIE_KEYS: {
+        error: string;
+        success: string;
+      };
       REG_INIT_COOKIE_KEYS: {
         registration_token: string;
         registration_id: string;

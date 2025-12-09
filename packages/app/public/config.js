@@ -12,6 +12,10 @@ window.__APP_CONFIG__ = {
   OAUTH_ERROR_COOKIE_KEYS: {
     error: 'gh_o_e',
   },
+  OAUTH_LINK_COOKIE_KEYS: {
+    error: 'gh_o_e',
+    success: 'gh_o_s',
+  },
   REG_INIT_COOKIE_KEYS: {
     registration_token: 'regintkn',
     registration_id: 'reginid',

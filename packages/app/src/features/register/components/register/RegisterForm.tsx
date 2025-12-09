@@ -132,30 +132,31 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
 
   return (
     <div className="w-full max-w-none">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
         <button
           type="button"
           onClick={handleGithubRegisterClick}
           disabled={isConnecting || isLoading}
-          className="group flex w-full items-center justify-center gap-3 rounded-lg border border-[var(--color-accent)]/20 px-6 py-3 text-base font-semibold text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--github-blue)] hover:bg-[var(--github-blue)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-6 py-4 text-base text-[var(--color-fg)] transition-all duration-200 outline-none hover:border-[var(--github-blue)] hover:bg-[var(--github-blue)] hover:text-white focus:border-[var(--github-blue)] focus:ring-2 focus:ring-[var(--github-blue)]/20 disabled:cursor-not-allowed disabled:opacity-50"
           aria-busy={isConnecting}
         >
-          <GithubSvg className="h-5 w-5 transition-colors duration-200 group-hover:text-white" />
-          {isConnecting ? 'Connecting...' : 'GitHub'}
+          <div className="flex items-center justify-center gap-3">
+            <GithubSvg className="h-5 w-5 transition-colors duration-200" />
+            <span>
+              {isConnecting ? 'Connecting...' : 'Continue with GitHub'}
+            </span>
+          </div>
         </button>
 
-        <div className="my-2 flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <div className="h-px flex-grow border-t border-[var(--color-accent)]/20"></div>
           <span className="text-sm text-[var(--color-accent)]">or</span>
           <div className="h-px flex-grow border-t border-[var(--color-accent)]/20"></div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="space-y-2">
-            <label
-              htmlFor="email"
-              className="block text-sm font-semibold text-[var(--color-fg)]"
-            >
+            <label className="block text-sm font-semibold text-[var(--color-fg)]">
               Email
             </label>
             <input
@@ -163,19 +164,16 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
               type="email"
               value={email}
               onChange={handleEmailChange}
-              placeholder="Enter your email"
+              placeholder="you@example.com"
               required
               disabled={isLoading}
-              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none placeholder:text-[var(--color-accent)]/70 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
               aria-invalid={!isValid}
             />
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="block text-sm font-semibold text-[var(--color-fg)]"
-            >
+            <label className="block text-sm font-semibold text-[var(--color-fg)]">
               Password
             </label>
             <input
@@ -186,11 +184,11 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
               placeholder="Enter your password"
               required
               disabled={isLoading}
-              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none placeholder:text-[var(--color-accent)]/70 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
               aria-invalid={!isValid}
             />
 
-            <div className="mt-3 flex flex-col gap-2">
+            <div className="mt-4 flex flex-col gap-2">
               {PASSWORD_CHECKS.map(({ label, test }) => {
                 const isCheckValid = test(password);
                 return (
@@ -206,7 +204,7 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
                     <span
                       className={
                         isCheckValid
-                          ? 'text-green-600 line-through transition-all duration-200'
+                          ? 'text-green-600 transition-all duration-200'
                           : 'text-[var(--color-accent)] transition-all duration-200'
                       }
                     >
@@ -219,10 +217,7 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-semibold text-[var(--color-fg)]"
-            >
+            <label className="block text-sm font-semibold text-[var(--color-fg)]">
               Confirm Password
             </label>
             <input
@@ -233,11 +228,13 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
               placeholder="Confirm your password"
               required
               disabled={isLoading}
-              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-[var(--color-fg)] transition-all duration-200 placeholder:text-[var(--color-accent)] hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none placeholder:text-[var(--color-accent)]/70 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
               aria-invalid={!passwordsMatch && confirmPassword.length > 0}
             />
             {!passwordsMatch && confirmPassword.length > 0 && (
-              <p className="text-sm text-red-600">Passwords do not match</p>
+              <p className="mt-2 text-sm text-red-600">
+                Passwords do not match
+              </p>
             )}
           </div>
         </div>
@@ -245,13 +242,13 @@ const RegisterForm = ({ onError }: RegisterFormProps) => {
         <button
           type="submit"
           disabled={isLoading || !isValid}
-          className="w-full rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-3 text-base font-semibold text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-6 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-50"
           aria-busy={isLoading}
         >
           {isLoading ? 'Creating account...' : 'Create account'}
         </button>
 
-        <div className="mt-4 text-center">
+        <div className="mt-2 text-center">
           <p className="text-sm text-[var(--color-accent)]">
             Already have an account?{' '}
             <button
