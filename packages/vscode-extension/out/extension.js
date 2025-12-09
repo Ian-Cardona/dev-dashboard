@@ -67,22 +67,16 @@ const activate = async (context) => {
 exports.activate = activate;
 const initializeUI = async (context) => {
     const needsOnboarding = await (0, should_show_onboarding_1.shouldShowOnboarding)(context);
-    console.log('🔧 initializeUI - needsOnboarding:', needsOnboarding);
     await vscode.commands.executeCommand('setContext', 'devDashboard.hasApiKey', !needsOnboarding);
     if (needsOnboarding) {
-        console.log('🔮 Setting up onboarding...');
         const onboardingProvider = new onboarding_provider_1.OnboardingProvider(context);
         context.subscriptions.push(vscode.window.registerWebviewViewProvider(onboarding_provider_1.OnboardingProvider.viewType, onboardingProvider));
         vscode.commands.executeCommand('devDashboardOnboarding.focus');
     }
     else {
-        console.log('🚀 Setting up protected client...');
         (0, api_1.setupProtectedClient)(context);
-        // Increase delay and add retry logic
         setTimeout(() => {
-            console.log('🎯 Attempting to focus main view...');
             vscode.commands.executeCommand('devDashboardMain.focus');
-            // Retry after another second if still loading
             setTimeout(() => {
                 vscode.commands.executeCommand('devDashboardMain.focus');
             }, 1000);

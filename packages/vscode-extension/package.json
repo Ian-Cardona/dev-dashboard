@@ -4,6 +4,10 @@
   "publisher": "iancardona",
   "description": "Scan and send TODO from your workspace to your dashboard.",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ian-Cardona/dev-dashboard"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },

@@ -44,7 +44,6 @@ export const userSchema = z.object({
 export const updateUserSchema = userSchema.pick({
   firstName: true,
   lastName: true,
-  email: true,
 });
 
 export const userPublicSchema = userSchema.pick({

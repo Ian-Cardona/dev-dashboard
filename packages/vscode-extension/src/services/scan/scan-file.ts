@@ -9,7 +9,6 @@ export const scanFile = async (filePath: string): Promise<RawTodo[]> => {
     const lines = content.split('\n');
 
     lines.forEach((line, index) => {
-      // Known tags (TODO, FIXME, etc.) - uppercase only, followed by colon or dash
       const knownMatch =
         line.match(/^\s*\/\/\s*(TODO|FIXME|HACK|NOTE|BUG|XXX)[:\\-]\s*(.+)$/) ||
         line.match(
@@ -27,14 +26,12 @@ export const scanFile = async (filePath: string): Promise<RawTodo[]> => {
         return;
       }
 
-      // Custom tags - all caps words 2-20 letters, no @, followed by colon or dash
       const customMatch =
         line.match(/^\s*\/\/\s*([A-Z]{2,20})[:\\-]\s*(.+)$/) ||
         line.match(/^\s*(?:\/\*+|\*)\s*([A-Z]{2,20})[:\\-]\s*(.+)$/);
 
       if (customMatch) {
         const tag = customMatch[1];
-        // Exclude common words like IMPORT or other known non-tags
         if (
           ![
             'IMPORT',
