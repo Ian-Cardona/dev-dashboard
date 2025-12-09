@@ -15,25 +15,16 @@ const OnboardingExtension = ({ onNext }: OnboardingExtensionProps) => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
-      <div className="mb-6 text-center">
-        <h2 className="mb-2 text-xl text-[var(--color-fg)]">
-          VS Code Extension
-        </h2>
-        <p className="text-sm text-[var(--color-accent)]">
-          Track activity and sync todos from your editor
-        </p>
-      </div>
-
-      <div className="mb-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-5">
-          <h3 className="mb-2 text-base font-semibold text-[var(--color-fg)]">
+    <div className="w-full max-w-none">
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] p-5">
+          <h3 className="mb-3 text-base font-semibold text-[var(--color-fg)]">
             Marketplace
           </h3>
-          <ol className="mb-3 space-y-1 text-sm text-[var(--color-accent)]">
-            <li>Extensions (Ctrl+Shift+X)</li>
-            <li>Search "DevDashboard"</li>
-            <li>Install</li>
+          <ol className="mb-4 space-y-2 text-sm text-[var(--color-accent)]">
+            <li>1. Open Extensions (Ctrl+Shift+X)</li>
+            <li>2. Search "DevDashboard"</li>
+            <li>3. Click Install</li>
           </ol>
           <a
             href="https://marketplace.visualstudio.com/items?itemName=devdashboard.extension"
@@ -41,41 +32,41 @@ const OnboardingExtension = ({ onNext }: OnboardingExtensionProps) => {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-sm text-[var(--color-primary)] transition-all hover:opacity-80"
           >
-            Open
+            Open Marketplace
             <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
           </a>
         </div>
 
-        <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-5">
-          <h3 className="mb-2 text-base font-semibold text-[var(--color-fg)]">
+        <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] p-5">
+          <h3 className="mb-3 text-base font-semibold text-[var(--color-fg)]">
             Command
           </h3>
-          <div className="mb-3 rounded-lg bg-[var(--color-bg)] p-3">
-            <code className="font-mono text-xs text-[var(--color-fg)]">
+          <div className="mb-4 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] p-3">
+            <code className="font-mono text-sm text-[var(--color-fg)]">
               ext install devdashboard.extension
             </code>
           </div>
           <button
             onClick={handleCopyCommand}
-            className="text-sm text-[var(--color-primary)] transition-all hover:opacity-80"
+            className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-2.5 text-sm text-[var(--color-fg)] transition-all duration-200 outline-none hover:border-[var(--color-primary)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
           >
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? 'Copied!' : 'Copy Command'}
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+      <div className="mt-6 flex flex-col gap-4">
         <button
           onClick={onNext}
-          className="w-full rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 sm:w-auto"
+          className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-6 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
         >
           Continue
         </button>
         <button
           onClick={onNext}
-          className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] px-6 py-2.5 text-sm font-semibold text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-accent)]/40 sm:w-auto"
+          className="w-full rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-6 py-3 text-base text-[var(--color-fg)] transition-all duration-200 outline-none hover:border-[var(--color-accent)]/40 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20"
         >
-          Skip
+          Skip for now
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import ConfirmModal from '../../../components/ui/modals/ConfirmModal';
 import ErrorModal from '../../../components/ui/modals/ErrorModal';
 import {
   AccountHeader,
+  ChangePasswordSection,
   EmailSection,
   LogoutSection,
   ProfileNameSection,
@@ -9,31 +10,31 @@ import {
 } from '../../../features/settings/components/account';
 import {
   useMutateLogout,
+  useMutateUpdateUserPassword,
   useQueryFetchUserProfile,
 } from '../../../features/settings/hooks';
+import { useMutateUpdateUserProfile } from '../../../features/settings/hooks/useMutateUpdateUserProfile';
 import { useToast } from '../../../hooks/useToast';
 import { queryClient } from '../../../lib/tanstack/queryClient';
-import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
-import { getAndClearCookieValue } from '../../../utils/document/getAndClearCookieValue';
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 
 const SettingsAccount = () => {
   const { data: userProfile } = useQueryFetchUserProfile();
-  const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('link');
 
-  const [isConnecting, setIsConnecting] = useState(false);
   const logoutMutation = useMutateLogout();
+  const updateProfileMutation = useMutateUpdateUserProfile();
+  const updatePasswordMutation = useMutateUpdateUserPassword();
   const toast = useToast();
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [isPending, setIsPending] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [passwordFormKey, setPasswordFormKey] = useState(0);
 
   useEffect(() => {
     if (userProfile) {
@@ -41,42 +42,6 @@ const SettingsAccount = () => {
       setLastName(userProfile.lastName ?? '');
     }
   }, [userProfile]);
-
-  useEffect(() => {
-    const oauthError = getAndClearCookieValue('gh_o_e');
-    const oauthSuccess = getAndClearCookieValue('gh_o_s');
-
-    if (oauthError) {
-      const errorMessages: Record<string, string> = {
-        not_found: 'User not found. Please try again.',
-        github_already_linked:
-          'This GitHub account is already linked to another user.',
-        link_failed: 'Failed to link GitHub account. Please try again.',
-      };
-      setErrorMessage(
-        errorMessages[oauthError] ||
-          'An error occurred during GitHub connection.'
-      );
-      setShowErrorModal(true);
-    }
-
-    if (oauthSuccess) {
-      const successMessages: Record<string, string> = {
-        github_connected: 'GitHub account successfully connected!',
-      };
-      toast.showSuccess(successMessages[oauthSuccess] || 'Success!');
-      queryClient.invalidateQueries({ queryKey: ['githubIntegration'] });
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    if (githubAuthorizeQuery.isError && !isConnecting) {
-      setErrorMessage(
-        'Could not retrieve GitHub registration link. Please try again later.'
-      );
-      setShowErrorModal(true);
-    }
-  }, [githubAuthorizeQuery.isError, isConnecting]);
 
   const handleCloseErrorModal = () => {
     setShowErrorModal(false);
@@ -88,19 +53,60 @@ const SettingsAccount = () => {
   };
 
   const handleSave = async () => {
-    setIsPending(true);
-    try {
-      queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
-      setIsEditMode(false);
-    } finally {
-      setIsPending(false);
-    }
+    updateProfileMutation.mutate(
+      { firstName, lastName },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
+          toast.showSuccess('Profile updated successfully!');
+          setIsEditMode(false);
+        },
+        onError: error => {
+          console.error('Failed to update profile:', error);
+          toast.showError('Failed to update profile. Please try again.');
+        },
+      }
+    );
   };
 
   const handleCancel = () => {
     setFirstName(userProfile?.firstName ?? '');
     setLastName(userProfile?.lastName ?? '');
     setIsEditMode(false);
+  };
+
+  const handleChangePassword = (passwordData: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
+    updatePasswordMutation.mutate(
+      {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword,
+      },
+      {
+        onSuccess: () => {
+          toast.showSuccess('Password updated successfully!');
+          queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
+
+          setPasswordFormKey(prev => prev + 1);
+        },
+        onError: (error: any) => {
+          console.error('Failed to update password:', error);
+          let errorMessage = 'Failed to update password. Please try again.';
+
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          toast.showError(errorMessage);
+        },
+      }
+    );
   };
 
   const handleDeleteAccount = () => {
@@ -112,13 +118,11 @@ const SettingsAccount = () => {
   };
 
   const handleLogout = async () => {
-    setIsPending(true);
     try {
       await logoutMutation.mutateAsync();
     } catch (err) {
       console.error('Logout failed', err);
-    } finally {
-      setIsPending(false);
+      toast.showError('Logout failed. Please try again.');
     }
   };
 
@@ -151,13 +155,22 @@ const SettingsAccount = () => {
 
             <EmailSection email={userProfile?.email} />
 
-            <LogoutSection isPending={isPending} onLogout={handleLogout} />
+            <ChangePasswordSection
+              key={passwordFormKey}
+              isPending={updatePasswordMutation.isPending}
+              onChangePassword={handleChangePassword}
+            />
+
+            <LogoutSection
+              isPending={logoutMutation.isPending}
+              onLogout={handleLogout}
+            />
           </div>
 
           {isEditMode && (
             <SaveChangesButton
               hasChanges={!!hasChanges}
-              isPending={isPending}
+              isPending={updateProfileMutation.isPending}
               onSave={handleSave}
             />
           )}

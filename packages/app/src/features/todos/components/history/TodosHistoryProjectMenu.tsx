@@ -20,21 +20,21 @@ const TodosHistoryProjectMenu = ({
       <button
         onClick={onGoLeft}
         disabled={!canGoLeft}
-        className="flex items-center justify-center rounded-lg border border-[var(--color-accent)]/20 p-2 text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex items-center justify-center rounded-lg border border-[var(--color-accent)]/20 p-2 text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Previous Project"
       >
-        <ChevronLeftIcon className="h-4 w-4" />
+        <ChevronLeftIcon className="h-5 w-5" />
       </button>
-      <span className="min-w-[160px] text-center text-base font-semibold text-[var(--color-fg)] uppercase select-none">
+      <span className="min-w-[160px] text-center text-base font-semibold text-[var(--color-fg)] select-none">
         {title}
       </span>
       <button
         onClick={onGoRight}
         disabled={!canGoRight}
-        className="flex items-center justify-center rounded-lg border border-[var(--color-accent)]/20 p-2 text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-bg)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex items-center justify-center rounded-lg border border-[var(--color-accent)]/20 p-2 text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Next Project"
       >
-        <ChevronRightIcon className="h-4 w-4" />
+        <ChevronRightIcon className="h-5 w-5" />
       </button>
     </div>
   );

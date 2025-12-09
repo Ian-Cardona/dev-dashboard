@@ -16,10 +16,10 @@ export const SaveChangesButton = ({
       <button
         onClick={onSave}
         disabled={!hasChanges || isPending}
-        className={`flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/20 px-5 py-3 text-base font-semibold transition-all duration-200 ${
+        className={`relative flex items-center gap-2 rounded-lg border border-[var(--color-accent)]/20 px-4 py-2 text-sm transition-all duration-200 ${
           !hasChanges || isPending
             ? 'cursor-not-allowed opacity-50'
-            : 'hover:border-green-600 hover:bg-green-600 hover:text-white'
+            : 'hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white'
         }`}
       >
         <CheckIcon className="h-5 w-5" />

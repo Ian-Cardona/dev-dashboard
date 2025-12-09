@@ -56,7 +56,7 @@ const RegisterPage = () => {
           />
           <div>
             <h1
-              className="text-lg font-bold text-[var(--color-fg)]"
+              className="text-lg font-semibold text-[var(--color-fg)]"
               style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
             >
               DevDashboard
@@ -65,7 +65,7 @@ const RegisterPage = () => {
         </div>
 
         <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] p-4 sm:p-8">
-          <div className="mx-auto w-full max-w-2xl">
+          <div className="mx-auto w-full max-w-md">
             <div className="mb-8 text-center">
               <h1 className="mb-2 text-2xl text-[var(--color-fg)]">
                 Create your account
@@ -75,15 +75,13 @@ const RegisterPage = () => {
               </p>
             </div>
 
-            <div className="relative w-full min-w-80 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 sm:p-8">
-              {displayError && (
-                <div className="mb-4 rounded-lg border border-red-600/20 bg-red-600/10 p-3">
-                  <p className="text-sm text-red-600">{displayError}</p>
-                </div>
-              )}
+            {displayError && (
+              <div className="mb-6 rounded-lg border border-red-600/20 bg-red-600/10 p-4">
+                <p className="text-sm text-red-600">{displayError}</p>
+              </div>
+            )}
 
-              <RegisterForm onError={setDisplayError} />
-            </div>
+            <RegisterForm onError={setDisplayError} />
           </div>
         </div>
       </div>

@@ -1,12 +1,11 @@
 import ResolutionsTableHeader from './ResolutionsTableHeader';
 import ResolutionsTableRow from './ResolutionsTableRow';
 import type { TodoResolution } from '@dev-dashboard/shared';
+import { useEffect } from 'react';
 
 interface ResolutionsTableProps {
   isEditMode?: boolean;
   resolutions: TodoResolution[];
-  isLoading: boolean;
-  isError: boolean;
   getSortIcon: (key: string) => React.ReactNode;
   handleSort: (field: string) => void;
   setTypeFilter: (filter: string) => void;
@@ -19,8 +18,6 @@ interface ResolutionsTableProps {
 const ResolutionsTable = ({
   isEditMode = false,
   resolutions,
-  isLoading,
-  isError,
   getSortIcon,
   handleSort,
   setTypeFilter,
@@ -29,29 +26,11 @@ const ResolutionsTable = ({
   selectedReasons,
   onReasonChange,
 }: ResolutionsTableProps) => {
-  if (isLoading) {
-    return (
-      <div className="px-6 text-[var(--color-fg)]">
-        Loading pending resolutions...
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="px-6 text-[var(--color-primary)]">
-        Error loading pending resolutions.
-      </div>
-    );
-  }
-
-  if (!resolutions || resolutions.length === 0) {
-    return (
-      <div className="px-6 text-[var(--color-fg)]">
-        No pending resolutions found.
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (typeFilter && resolutions.length === 0) {
+      setTypeFilter('');
+    }
+  }, [resolutions, typeFilter, setTypeFilter]);
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">

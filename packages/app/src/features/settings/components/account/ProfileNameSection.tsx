@@ -39,7 +39,7 @@ export const ProfileNameSection = ({
             />
           ) : (
             <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base font-medium text-[var(--color-fg)]">
-              {firstName || 'Not set'}
+              {firstName}
             </div>
           )}
         </div>
@@ -61,7 +61,7 @@ export const ProfileNameSection = ({
             />
           ) : (
             <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-bg)] px-4 py-3 text-base font-medium text-[var(--color-fg)]">
-              {lastName || 'Not set'}
+              {lastName}
             </div>
           )}
         </div>

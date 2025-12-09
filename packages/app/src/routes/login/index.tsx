@@ -79,7 +79,7 @@ const LoginPage = () => {
             />
             <div>
               <h1
-                className="text-lg font-bold text-[var(--color-fg)]"
+                className="text-lg font-semibold text-[var(--color-fg)]"
                 style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}
               >
                 DevDashboard
@@ -90,7 +90,7 @@ const LoginPage = () => {
       </div>
 
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)] p-4 sm:p-8">
-        <div className="mx-auto w-full max-w-2xl">
+        <div className="mx-auto w-full max-w-md">
           <div className="mb-8 text-center">
             {isLoading ? (
               <Skeleton width={250} height={32} className="mx-auto mb-2" />
@@ -101,28 +101,26 @@ const LoginPage = () => {
             )}
           </div>
 
-          <div className="relative w-full min-w-80 rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 sm:p-8">
-            {displayError && !isLoading && (
-              <div className="mb-4 rounded-lg border border-red-600/20 bg-red-600/10 p-3">
-                <p className="text-sm text-red-600">{displayError}</p>
-              </div>
-            )}
+          {displayError && !isLoading && (
+            <div className="mb-6 rounded-lg border border-red-600/20 bg-red-600/10 p-4">
+              <p className="text-sm text-red-600">{displayError}</p>
+            </div>
+          )}
 
-            {isLoading ? (
-              <div className="space-y-6">
-                <Skeleton height={40} />
-                <Skeleton height={40} />
-                <Skeleton height={48} />
-                <Skeleton height={40} />
-              </div>
-            ) : (
-              <LoginForm
-                isLoginPending={isLoading}
-                onError={setDisplayError}
-                onSuccess={handleLoginSuccess}
-              />
-            )}
-          </div>
+          {isLoading ? (
+            <div className="space-y-6">
+              <Skeleton height={40} />
+              <Skeleton height={40} />
+              <Skeleton height={48} />
+              <Skeleton height={40} />
+            </div>
+          ) : (
+            <LoginForm
+              isLoginPending={isLoading}
+              onError={setDisplayError}
+              onSuccess={handleLoginSuccess}
+            />
+          )}
         </div>
       </div>
     </div>

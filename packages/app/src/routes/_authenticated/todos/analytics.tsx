@@ -127,7 +127,7 @@ const TodosAnalytics = () => {
   return (
     <section className="relative flex h-full flex-col rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)]">
       <div className="flex h-24 items-center justify-between border-b border-[var(--color-accent)]/20 px-6">
-        <h2 className="text-2xl font-bold text-[var(--color-fg)]">Analytics</h2>
+        <h2 className="text-2xl text-[var(--color-fg)]">Analytics</h2>
       </div>
       <div className="flex-1 overflow-hidden">
         {emptyState ? (

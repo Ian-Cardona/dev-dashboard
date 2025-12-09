@@ -407,6 +407,7 @@ export const UserRepository = (
     },
 
     async updateLastLogin(id: string, timestamp: string): Promise<User> {
+      const updatedAt = new Date().toISOString();
       const result = await docClient.send(
         new UpdateCommand({
           TableName: USERS_TABLE,
@@ -419,7 +420,7 @@ export const UserRepository = (
           },
           ExpressionAttributeValues: {
             ':lastLoginAt': timestamp,
-            ':updatedAt': new Date().toISOString(),
+            ':updatedAt': updatedAt,
           },
           ConditionExpression: 'attribute_exists(id)',
           ReturnValues: 'ALL_NEW',
@@ -430,6 +431,7 @@ export const UserRepository = (
     },
 
     async updatePassword(id: string, passwordHash: string): Promise<User> {
+      const updatedAt = new Date().toISOString();
       const result = await docClient.send(
         new UpdateCommand({
           TableName: USERS_TABLE,
@@ -443,8 +445,8 @@ export const UserRepository = (
           },
           ExpressionAttributeValues: {
             ':passwordHash': passwordHash,
-            ':updatedAt': new Date().toISOString(),
-            ':passwordUpdatedAt': new Date().toISOString(),
+            ':updatedAt': updatedAt,
+            ':passwordUpdatedAt': updatedAt,
           },
           ConditionExpression: 'attribute_exists(id)',
           ReturnValues: 'ALL_NEW',
@@ -455,6 +457,7 @@ export const UserRepository = (
     },
 
     async deactivate(id: string): Promise<User> {
+      const updatedAt = new Date().toISOString();
       const result = await docClient.send(
         new UpdateCommand({
           TableName: USERS_TABLE,
@@ -468,7 +471,7 @@ export const UserRepository = (
           },
           ExpressionAttributeValues: {
             ':isActive': false,
-            ':updatedAt': new Date().toISOString(),
+            ':updatedAt': updatedAt,
             ':lastLoginAt': null,
           },
           ConditionExpression: 'attribute_exists(id)',

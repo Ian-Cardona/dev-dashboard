@@ -1,61 +1,76 @@
+import ErrorModal from '../../../components/ui/modals/ErrorModal';
 import GithubSvg from '../../../components/ui/svg/GithubSvg';
 import { useQueryFetchProviders } from '../../../features/settings/hooks/useQueryFetchProviders';
-import {
-  LinkIcon,
-  ClockIcon,
-  CheckCircleIcon,
-} from '@heroicons/react/24/outline';
+import { useToast } from '../../../hooks/useToast';
+import { getOAuthLinkCookieKeys } from '../../../lib/configs/getConfig';
+import { queryClient } from '../../../lib/tanstack/queryClient';
+import useQueryFetchGithubOAuthLink from '../../../oauth/hooks/useQueryFetchGithubAuthLink';
+import { getAndClearCookieValue } from '../../../utils/document/getAndClearCookieValue';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { createFileRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 
 const SettingsConnections = () => {
-  const { data: providers, isLoading } = useQueryFetchProviders();
+  const { data: providers = [] } = useQueryFetchProviders();
+  const githubAuthorizeQuery = useQueryFetchGithubOAuthLink('link');
+  const oauthLinkCookieKeys = getOAuthLinkCookieKeys();
+  const toast = useToast();
 
-  const getProviderDisplay = (providerName: string) => {
-    const lowerProvider = providerName.toLowerCase();
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-    switch (lowerProvider) {
-      case 'github':
-        return {
-          name: 'GitHub',
-          icon: <GithubSvg className="h-6 w-6" />,
-          color: 'text-[#333]',
-          bgColor: 'bg-[#333]/10',
-        };
-      default:
-        return {
-          name: providerName.charAt(0).toUpperCase() + providerName.slice(1),
-          icon: <LinkIcon className="h-6 w-6" />,
-          color: 'text-[var(--color-primary)]',
-          bgColor: 'bg-[var(--color-primary)]/10',
-        };
+  const githubProvider = providers.find(p => p.provider === 'github');
+
+  useEffect(() => {
+    const oauthError = getAndClearCookieValue(oauthLinkCookieKeys.error);
+    const oauthSuccess = getAndClearCookieValue(oauthLinkCookieKeys.success);
+
+    if (oauthError) {
+      const errorMessages: Record<string, string> = {
+        not_found: 'User not found. Please try again.',
+        github_already_linked:
+          'This GitHub account is already linked to another user.',
+        link_failed: 'Failed to link GitHub account. Please try again.',
+      };
+      setErrorMessage(
+        errorMessages[oauthError] ||
+          'An error occurred during GitHub connection.'
+      );
+      setShowErrorModal(true);
     }
+
+    if (oauthSuccess) {
+      const successMessages: Record<string, string> = {
+        github_connected: 'GitHub account successfully connected!',
+      };
+      toast.showSuccess(successMessages[oauthSuccess] || 'Success!');
+      queryClient.invalidateQueries({ queryKey: ['connections', 'list'] });
+    }
+  }, [toast]);
+
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+    setErrorMessage('');
   };
 
-  const formatDate = (dateString: string) => {
+  const handleConnectGitHub = async (): Promise<void> => {
     try {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const response = await githubAuthorizeQuery.refetch();
+      const url = response?.data?.authorize_uri;
 
-      if (diffDays === 0) {
-        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-        if (diffHours === 0) {
-          const diffMinutes = Math.floor(diffMs / (1000 * 60));
-          return diffMinutes <= 1 ? 'Just now' : `${diffMinutes} minutes ago`;
-        }
-        return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+      if (!url || typeof url !== 'string') {
+        setErrorMessage('GitHub authorize URL not found. Please try again.');
+        setShowErrorModal(true);
+        return;
       }
-      if (diffDays === 1) return 'Yesterday';
-      if (diffDays < 7) return `${diffDays} days ago`;
 
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    } catch {
-      return dateString;
+      window.location.href = url;
+    } catch (error) {
+      console.error('GitHub connection error:', error);
+      setErrorMessage(
+        'Failed to initiate GitHub connection. Please try again.'
+      );
+      setShowErrorModal(true);
     }
   };
 
@@ -74,79 +89,70 @@ const SettingsConnections = () => {
             workflow.
           </p>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8 text-sm">
-              <div className="animate-pulse rounded-lg bg-[var(--color-primary)]/20 px-6 py-3 font-semibold text-[var(--color-primary)]">
-                Loading connections...
+          <div className="rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex flex-1 items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#333]/10">
+                  <GithubSvg className="h-6 w-6 text-[#333]" />
+                </div>
+
+                <div className="flex-1">
+                  <div className="mb-2 flex items-center gap-3">
+                    <h4 className="text-lg font-bold text-[var(--color-fg)]">
+                      GitHub
+                    </h4>
+                    {githubProvider && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-600">
+                        <CheckCircleIcon className="h-3.5 w-3.5" />
+                        Connected
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-[var(--color-accent)]">
+                    Connect your GitHub account to sync repositories and
+                    activities
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                {githubProvider ? (
+                  <a
+                    href="https://github.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg bg-[#333] px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-[#444]"
+                  >
+                    Open GitHub
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleConnectGitHub}
+                    disabled={githubAuthorizeQuery.isFetching}
+                    className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Connect GitHub"
+                  >
+                    {githubAuthorizeQuery.isFetching
+                      ? 'Loading...'
+                      : 'Connect GitHub'}
+                  </button>
+                )}
               </div>
             </div>
-          ) : providers && providers.length > 0 ? (
-            <div>
-              <h3 className="mb-4 text-lg font-semibold text-[var(--color-fg)]">
-                Active Connections ({providers.length})
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                {providers.map(provider => {
-                  const displayInfo = getProviderDisplay(provider.provider);
-
-                  return (
-                    <div
-                      key={provider.provider}
-                      className="group rounded-lg border border-[var(--color-accent)]/20 bg-[var(--color-surface)] p-6 transition-all duration-200 hover:border-[var(--color-primary)]/40 hover:shadow-md"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex flex-1 items-start gap-4">
-                          <div
-                            className={`flex h-12 w-12 items-center justify-center rounded-lg ${displayInfo.bgColor} ${displayInfo.color}`}
-                          >
-                            {displayInfo.icon}
-                          </div>
-
-                          <div className="flex-1">
-                            <div className="mb-3 flex items-center gap-3">
-                              <h4 className="text-lg font-bold text-[var(--color-fg)]">
-                                {displayInfo.name}
-                              </h4>
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)]/10 px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
-                                <CheckCircleIcon className="h-3.5 w-3.5" />
-                                Connected
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-sm text-[var(--color-accent)]">
-                              <ClockIcon className="h-4 w-4" />
-                              <span className="font-medium">Last Updated:</span>
-                              <span>{formatDate(provider.updatedAt)}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* <button
-                          type="button"
-                          className="rounded-lg border border-[var(--color-accent)]/20 px-4 py-2 text-sm font-medium text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
-                          aria-label={`Manage ${displayInfo.name} connection`}
-                        >
-                          Manage
-                        </button> */}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <LinkIcon className="mb-4 h-16 w-16 text-[var(--color-accent)]/40" />
-              <p className="text-sm text-[var(--color-accent)]">
-                No connections have been established yet.
-              </p>
-              <p className="mt-2 text-xs text-[var(--color-accent)]/70">
-                Connect external services to get started.
-              </p>
-            </div>
-          )}
+          </div>
         </div>
       </div>
+
+      {showErrorModal && (
+        <ErrorModal
+          onClose={handleCloseErrorModal}
+          title="Connection Error"
+          message={errorMessage}
+          closeText="Close"
+        />
+      )}
     </section>
   );
 };

@@ -15,7 +15,7 @@ interface TodosHistoryTableProps {
 const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   const [typeFilter, setTypeFilter] = useState('');
   const [sortField, setSortField] = useState<
-    'type' | 'content' | 'resolvedAt' | null
+    'type' | 'content' | 'resolvedAt' | 'filePath' | null
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -25,7 +25,12 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   );
 
   const handleSort = (field: string) => {
-    if (field === 'type' || field === 'content' || field === 'resolvedAt') {
+    if (
+      field === 'type' ||
+      field === 'content' ||
+      field === 'resolvedAt' ||
+      field === 'filePath'
+    ) {
       if (sortField === field) {
         setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
       } else {
@@ -36,10 +41,15 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
   };
 
   const getSortIcon = (key: string): React.ReactNode => {
-    if (key !== 'type' && key !== 'content' && key !== 'resolvedAt') {
+    if (
+      key !== 'type' &&
+      key !== 'content' &&
+      key !== 'resolvedAt' &&
+      key !== 'filePath'
+    ) {
       return null;
     }
-    const field = key as 'type' | 'content' | 'resolvedAt';
+    const field = key as 'type' | 'content' | 'resolvedAt' | 'filePath';
     if (sortField !== field) {
       return (
         <ChevronUpDownIcon
@@ -80,6 +90,10 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
             aValue = a.content.toLowerCase();
             bValue = b.content.toLowerCase();
             break;
+          case 'filePath':
+            aValue = a.filePath.toLowerCase();
+            bValue = b.filePath.toLowerCase();
+            break;
           case 'resolvedAt':
             aValue = a.resolvedAt ? new Date(a.resolvedAt).getTime() : 0;
             bValue = b.resolvedAt ? new Date(b.resolvedAt).getTime() : 0;
@@ -105,8 +119,8 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="relative min-h-0 flex-1 overflow-auto">
-        <table className="w-full table-fixed border-collapse">
+      <div className="relative min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+        <table className="w-full min-w-[1100px] border-collapse">
           <TodosHistoryTableHeader
             getSortIcon={getSortIcon}
             handleSort={handleSort}
