@@ -34,7 +34,6 @@
           "id": "devDashboardOnboarding",
           "name": "Welcome",
           "type": "webview",
-          "contextualTitle": "Dev Dashboard",
           "when": "!devDashboard.hasApiKey",
           "icon": "$(pass)",
           "visibility": "visible"
@@ -51,31 +50,32 @@
     "commands": [
       {
         "command": "dev-dashboard.scanTodos",
-        "title": "Dev Dashboard: Scan workspace for TODOs",
+        "title": "Scan for TODOs",
         "category": "Dev Dashboard",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "tooltip": "Scan your workspace for TODO, FIXME, HACK, NOTE, BUG, and XXX comments"
       },
       {
         "command": "dev-dashboard.sendTodos",
-        "title": "Dev Dashboard: Upload TODOs to Dashboard",
+        "title": "Upload TODOs to Dashboard",
         "category": "Dev Dashboard",
-        "icon": "$(cloud-upload)"
+        "icon": "$(cloud-upload)",
+        "tooltip": "Send all scanned TODOs to your Dev Dashboard"
       },
       {
         "command": "dev-dashboard.setApiKey",
-        "title": "Dev Dashboard: Set API Key"
+        "title": "Set API Key",
+        "category": "Dev Dashboard"
       },
       {
         "command": "dev-dashboard.resetSecrets",
-        "title": "Dev Dashboard: Reset Secrets"
-      },
-      {
-        "command": "dev-dashboard.openTodo",
-        "title": "Dev Dashboard: Open Todo"
+        "title": "Reset Secrets",
+        "category": "Dev Dashboard"
       },
       {
         "command": "dev-dashboard.showTodos",
-        "title": "Dev Dashboard: Show TODOs"
+        "title": "Show TODOs",
+        "category": "Dev Dashboard"
       }
     ],
     "menus": {
@@ -89,6 +89,16 @@
           "command": "dev-dashboard.sendTodos",
           "when": "view == devDashboardMain",
           "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "dev-dashboard.openTodo",
+          "when": "false"
+        },
+        {
+          "command": "dev-dashboard.showTodos",
+          "when": "false"
         }
       ]
     }

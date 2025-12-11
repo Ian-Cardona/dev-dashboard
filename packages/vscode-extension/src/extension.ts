@@ -71,34 +71,6 @@ const initializeUI = async (context: vscode.ExtensionContext) => {
   }
 };
 
-// const initializeUI = async (context: vscode.ExtensionContext) => {
-//   const needsOnboarding = await shouldShowOnboarding(context);
-
-//   await vscode.commands.executeCommand(
-//     'setContext',
-//     'devDashboard.hasApiKey',
-//     !needsOnboarding
-//   );
-
-//   if (needsOnboarding) {
-//     const onboardingProvider = new OnboardingProvider(context);
-//     context.subscriptions.push(
-//       vscode.window.registerWebviewViewProvider(
-//         OnboardingProvider.viewType,
-//         onboardingProvider
-//       )
-//     );
-
-//     vscode.commands.executeCommand('devDashboardOnboarding.focus');
-//   } else {
-//     setupProtectedClient(context);
-
-//     setTimeout(() => {
-//       vscode.commands.executeCommand('devDashboardMain.focus');
-//     }, 100);
-//   }
-// };
-
 const registerCommands = (
   context: vscode.ExtensionContext,
   todosProvider: TodosProvider

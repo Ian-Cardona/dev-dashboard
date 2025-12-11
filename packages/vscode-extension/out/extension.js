@@ -83,29 +83,6 @@ const initializeUI = async (context) => {
         }, 1500);
     }
 };
-// const initializeUI = async (context: vscode.ExtensionContext) => {
-//   const needsOnboarding = await shouldShowOnboarding(context);
-//   await vscode.commands.executeCommand(
-//     'setContext',
-//     'devDashboard.hasApiKey',
-//     !needsOnboarding
-//   );
-//   if (needsOnboarding) {
-//     const onboardingProvider = new OnboardingProvider(context);
-//     context.subscriptions.push(
-//       vscode.window.registerWebviewViewProvider(
-//         OnboardingProvider.viewType,
-//         onboardingProvider
-//       )
-//     );
-//     vscode.commands.executeCommand('devDashboardOnboarding.focus');
-//   } else {
-//     setupProtectedClient(context);
-//     setTimeout(() => {
-//       vscode.commands.executeCommand('devDashboardMain.focus');
-//     }, 100);
-//   }
-// };
 const registerCommands = (context, todosProvider) => {
     const withApiKeyGuard = (commandHandler) => async () => {
         const hasApiKey = await (0, secret_key_manager_1.getSecretKey)(context, constants_1.API_KEY);

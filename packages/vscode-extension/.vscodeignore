@@ -1,16 +1,31 @@
+# Ignore everything by default, then re-include only what's needed for the packaged extension
 *
 
-!out/
+# Keep compiled output and essential metadata
+!out/**
 !package.json
 !README.md
+!readme.md
 !LICENSE
 
-../
-**/../*
-packages/
-!packages/vscode-extension/
-
+# Explicitly exclude sources, tests, git, env and tooling artifacts
 node_modules/**
-src/**
 **/*.ts
+**/*.tsx
 **/*.map
+**/*.spec.*
+**/*.test.*
+**/__tests__/**
+src/**
+.vscode/**
+.git/**
+.env
+.env.*
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+Dockerfile*
+docker-compose.yml
+vsc-extension-quickstart.md
+tsconfig.json
+.DS_Store
