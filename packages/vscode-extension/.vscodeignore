@@ -1,24 +1,13 @@
-# Ignore everything by default, then re-include only what's needed for the packaged extension
-*
-
-# Keep compiled output and essential metadata
-!out/**
-!package.json
-!README.md
-!readme.md
-!LICENSE
-
-# Explicitly exclude sources, tests, git, env and tooling artifacts
-node_modules/**
+src/
 **/*.ts
 **/*.tsx
 **/*.map
 **/*.spec.*
 **/*.test.*
 **/__tests__/**
-src/**
-.vscode/**
-.git/**
+node_modules/
+.vscode/
+.git/
 .env
 .env.*
 npm-debug.log
@@ -29,3 +18,8 @@ docker-compose.yml
 vsc-extension-quickstart.md
 tsconfig.json
 .DS_Store
+../api/
+../app/
+../shared/
+../.DS_Store
+../../
