@@ -20,6 +20,13 @@ This section explains how to set up and start using the Dev Dashboard. The proce
 4.  **Sync on-demand** - TODOs are synced from VS Code to the web app
 5.  **Open the dashboard** in your browser to see all your development information in one place
 
+## Roadmap
+
+### Post-Deployment Plans
+
+- **More Integrations:** Integrate with Netlify, Vercel, or AWS for seamless deployment and hosting of the web application.
+- **Business Model:** To ensure long-term sustainability, explore implementing a freemium model (free basic features with premium options) or migrating the database to a more cost-effective solution to manage operational costs.
+
 ## Contributing
 
 This section will be updated once the initial development phase is complete. Contribution guidelines, setup instructions for local development, and information on how to submit issues or pull requests will be added here.
