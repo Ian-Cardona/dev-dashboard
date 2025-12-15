@@ -16,6 +16,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { ENV } from './config/env';
+import { timeoutMiddleware } from './middlewares/timeout.middleware';
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
 app.use(loggerMiddleware);
+app.use(timeoutMiddleware);
 
 const v1Router = express.Router();
 v1Router.use('/auth', authenticationRouter);

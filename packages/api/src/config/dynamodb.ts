@@ -11,6 +11,10 @@ console.log(
 
 const clientConfig: DynamoDBClientConfig = {
   region: ENV.AWS_REGION,
+  requestHandler: {
+    requestTimeout: 25000,
+    connectionTimeout: 5000,
+  },
 };
 
 if (ENV.AWS_DYNAMODB_ENDPOINT) {
