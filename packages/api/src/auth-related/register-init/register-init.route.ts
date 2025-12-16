@@ -4,6 +4,7 @@ import { IRegisterInitService } from './interfaces/iregister-init.service';
 import { RegisterInitController } from './register-init.controller';
 import { RegisterInitService } from './register-init.service';
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { redisClient } from 'src/config/redis';
 import { UserRepository } from 'src/user/user.repository';
 
@@ -21,9 +22,31 @@ const registerInitControllerInstance = RegisterInitController(
   registerInitServiceInstance
 );
 
-router.get('/email/session', registerInitControllerInstance.getEmailSession);
-router.get('/oauth/session', registerInitControllerInstance.getOAuthSession);
-router.post('/email', registerInitControllerInstance.email);
-router.post('/github', registerInitControllerInstance.github);
+const initLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many registration attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const sessionLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 20,
+  message: 'Too many requests.',
+});
+
+router.get(
+  '/email/session',
+  sessionLimiter,
+  registerInitControllerInstance.getEmailSession
+);
+router.get(
+  '/oauth/session',
+  sessionLimiter,
+  registerInitControllerInstance.getOAuthSession
+);
+router.post('/email', initLimiter, registerInitControllerInstance.email);
+router.post('/github', initLimiter, registerInitControllerInstance.github);
 
 export default router;

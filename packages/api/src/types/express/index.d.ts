@@ -16,4 +16,7 @@ declare global {
       githubUser?: GithubToken;
     }
   }
+  export interface Response {
+    timedOut?: boolean;
+  }
 }

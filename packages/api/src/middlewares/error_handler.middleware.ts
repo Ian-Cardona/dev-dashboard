@@ -3,9 +3,10 @@ import {
   ConflictError,
   NotFoundError,
   UnauthorizedError,
+  DatabaseTimeoutError,
 } from '../utils/errors.utils';
-import { logger } from './logger.middleware';
 import { NextFunction, Request, Response } from 'express';
+import { logger } from 'src/utils/logger.utils';
 
 export const errorHandlerMiddleware = (
   error: unknown,
@@ -40,6 +41,14 @@ export const errorHandlerMiddleware = (
     error.message.includes('request entity too large');
   const isSyntaxError = error instanceof SyntaxError && 'body' in error;
 
+  const isAwsTimeoutError =
+    error instanceof Error &&
+    (error.name === 'TimeoutError' || error.name === 'RequestAbortedError');
+
+  if (isAwsTimeoutError) {
+    return sendError(res, 'Request Timeout', 'Database request timed out', 408);
+  }
+
   if (isLargePayloadError) {
     return sendError(
       res,
@@ -56,6 +65,10 @@ export const errorHandlerMiddleware = (
       'Request body contains malformed JSON',
       400
     );
+  }
+
+  if (error instanceof DatabaseTimeoutError) {
+    return sendError(res, 'Request Timeout', error.message, 408);
   }
 
   if (error instanceof UnauthorizedError) {
