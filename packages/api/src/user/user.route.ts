@@ -31,13 +31,11 @@ const profileUpdateLimiter = rateLimit({
 
 router.get('/profile', userControllerInstance.getUserProfile);
 router.get('/profile/providers', userControllerInstance.findProvidersByUserId);
-
 router.put(
   '/profile',
   profileUpdateLimiter,
   userControllerInstance.updateUserAccount
 );
-
 router.put(
   '/password',
   sensitiveWriteLimiter,

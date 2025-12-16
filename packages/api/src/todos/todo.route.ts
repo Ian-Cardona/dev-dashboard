@@ -31,29 +31,25 @@ const resolutionWriteLimiter = rateLimit({
 
 router.post(
   '/batches',
-  apiKeysMiddleware,
   batchWriteLimiter,
+  apiKeysMiddleware,
   controllerInstance.createBatch
 );
-
 router.get(
   '/batches',
   accessAuthorizationMiddleware,
   controllerInstance.getBatchesByUserId
 );
-
 router.get(
   '/batches/latest',
   accessAuthorizationMiddleware,
   controllerInstance.getLatestBatchByUserId
 );
-
 router.get(
   '/batches/recent',
   accessAuthorizationMiddleware,
   controllerInstance.getRecentBatchesByUserId
 );
-
 router.get(
   '/batches/:syncId',
   accessAuthorizationMiddleware,
@@ -65,7 +61,6 @@ router.get(
   accessAuthorizationMiddleware,
   controllerInstance.getProjectsByUserId
 );
-
 router.get(
   '/projects/:projectName/batches',
   accessAuthorizationMiddleware,
@@ -77,17 +72,15 @@ router.get(
   accessAuthorizationMiddleware,
   controllerInstance.getResolved
 );
-
 router.get(
   '/resolutions/pending',
   accessAuthorizationMiddleware,
   controllerInstance.getPendingResolutionsByUserId
 );
-
 router.post(
   '/resolutions',
-  accessAuthorizationMiddleware,
   resolutionWriteLimiter,
+  accessAuthorizationMiddleware,
   controllerInstance.updateResolutionsAsResolved
 );
 
