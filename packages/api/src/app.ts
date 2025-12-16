@@ -39,13 +39,13 @@ app.use(
   })
 );
 
-const limiter = rateLimit({
+const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use(limiter);
+app.use(globalLimiter);
 
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());

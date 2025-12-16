@@ -3,6 +3,7 @@ import { TodoController } from './todo.controller';
 import { TodoRepository } from './todo.repository';
 import { TodoService } from './todo.service';
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { apiKeysMiddleware } from 'src/middlewares/api-keys.middleware';
 import { accessAuthorizationMiddleware } from 'src/middlewares/authorization/access-authorization.middleware';
 
@@ -12,7 +13,29 @@ const modelInstance = TodoRepository(docClient);
 const serviceInstance = TodoService(modelInstance);
 const controllerInstance = TodoController(serviceInstance);
 
-router.post('/batches', apiKeysMiddleware, controllerInstance.createBatch);
+const batchWriteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  message: 'Too many batch operations.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const resolutionWriteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: 'Too many resolution updates.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.post(
+  '/batches',
+  apiKeysMiddleware,
+  batchWriteLimiter,
+  controllerInstance.createBatch
+);
+
 router.get(
   '/batches',
   accessAuthorizationMiddleware,
@@ -24,6 +47,7 @@ router.get(
   accessAuthorizationMiddleware,
   controllerInstance.getLatestBatchByUserId
 );
+
 router.get(
   '/batches/recent',
   accessAuthorizationMiddleware,
@@ -41,6 +65,7 @@ router.get(
   accessAuthorizationMiddleware,
   controllerInstance.getProjectsByUserId
 );
+
 router.get(
   '/projects/:projectName/batches',
   accessAuthorizationMiddleware,
@@ -52,14 +77,17 @@ router.get(
   accessAuthorizationMiddleware,
   controllerInstance.getResolved
 );
+
 router.get(
   '/resolutions/pending',
   accessAuthorizationMiddleware,
   controllerInstance.getPendingResolutionsByUserId
 );
+
 router.post(
   '/resolutions',
   accessAuthorizationMiddleware,
+  resolutionWriteLimiter,
   controllerInstance.updateResolutionsAsResolved
 );
 

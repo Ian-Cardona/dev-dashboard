@@ -2,6 +2,7 @@ import { GithubController } from './github.controller';
 import { GithubRepository } from './github.repository';
 import { GithubService } from './github.service';
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { RegisterInitService } from 'src/auth-related/register-init/register-init.service';
 import { docClient } from 'src/config/dynamodb';
 import { redisClient } from 'src/config/redis';
@@ -23,11 +24,21 @@ const controller = GithubController(
   userService
 );
 
+const oauthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many OAuth attempts.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.get(
   '/authorize/callback',
   conditionalAccessAuthorizationMiddleware,
+  oauthLimiter,
   controller.getAuthorizationCallbackUrl
 );
-router.get('/authorize/link', controller.getAuthorizeLink);
+
+router.get('/authorize/link', oauthLimiter, controller.getAuthorizeLink);
 
 export default router;
