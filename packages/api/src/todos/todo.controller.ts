@@ -1,3 +1,4 @@
+import { ITodoController } from './interfaces/itodo.controller';
 import { ITodoService } from './interfaces/itodo.service';
 import {
   VALIDATION_CONSTANTS,
@@ -9,7 +10,7 @@ import { NextFunction, Request, Response } from 'express';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 import z from 'zod';
 
-export const TodoController = (todoService: ITodoService) => {
+export const TodoController = (todoService: ITodoService): ITodoController => {
   return {
     async createBatch(req: Request, res: Response, next: NextFunction) {
       try {
