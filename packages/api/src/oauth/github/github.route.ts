@@ -34,11 +34,10 @@ const oauthLimiter = rateLimit({
 
 router.get(
   '/authorize/callback',
-  conditionalAccessAuthorizationMiddleware,
   oauthLimiter,
+  conditionalAccessAuthorizationMiddleware,
   controller.getAuthorizationCallbackUrl
 );
-
 router.get('/authorize/link', oauthLimiter, controller.getAuthorizeLink);
 
 export default router;
