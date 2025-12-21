@@ -3,7 +3,7 @@
   "displayName": "Dev Dashboard",
   "publisher": "iancardona",
   "description": "Scan and send TODOs to your dashboard.",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "icon": "DevDashboard.png",
   "repository": {
     "type": "git",
@@ -93,10 +93,6 @@
         }
       ],
       "commandPalette": [
-        {
-          "command": "dev-dashboard.openTodo",
-          "when": "false"
-        },
         {
           "command": "dev-dashboard.showTodos",
           "when": "false"
