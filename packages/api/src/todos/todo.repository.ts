@@ -189,6 +189,25 @@ export const TodoRepository = (
       return (result.Items as TodoResolution[]) || [];
     },
 
+    async getResolvedByProject(
+      userId: string,
+      projectName: string
+    ): Promise<TodoResolution[]> {
+      const result = await docClient.send(
+        new QueryCommand({
+          TableName: RESOLUTIONS_TABLE,
+          KeyConditionExpression: 'userId = :userId',
+          FilterExpression: 'projectName = :projectName',
+          ExpressionAttributeValues: {
+            ':userId': userId,
+            ':projectName': projectName,
+          },
+        })
+      );
+
+      return (result.Items as TodoResolution[]) || [];
+    },
+
     async createCurrent(items: TodoResolution[]): Promise<TodoResolution[]> {
       if (!items.length) return [];
 

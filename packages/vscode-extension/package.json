@@ -3,7 +3,7 @@
   "displayName": "Dev Dashboard",
   "publisher": "iancardona",
   "description": "Scan and send TODOs to your dashboard.",
-  "version": "0.0.2",
+  "version": "0.0.7",
   "icon": "DevDashboard.png",
   "repository": {
     "type": "git",
@@ -94,10 +94,6 @@
       ],
       "commandPalette": [
         {
-          "command": "dev-dashboard.openTodo",
-          "when": "false"
-        },
-        {
           "command": "dev-dashboard.showTodos",
           "when": "false"
         }
@@ -105,12 +101,14 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "vscode:prepublish": "npm run package",
+    "compile": "node build.js",
+    "watch": "node build.js --watch",
+    "package": "node build.js --production"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0"
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.27.2"
   },
   "dependencies": {
     "@dev-dashboard/shared": "1.0.0",

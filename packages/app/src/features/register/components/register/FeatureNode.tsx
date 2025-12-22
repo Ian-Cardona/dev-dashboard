@@ -13,7 +13,6 @@ const FeatureNode = ({
   title,
   subtitle,
   delay,
-  index,
 }: FeatureNodeProps) => (
   <motion.div
     className="group flex items-start gap-5 rounded-2xl border border-[var(--color-accent)]/15 bg-[var(--color-surface)] p-5 transition-all duration-300 hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-surface)]/95"

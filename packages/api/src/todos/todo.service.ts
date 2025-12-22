@@ -96,6 +96,7 @@ export const TodoService = (TodoModel: ITodoRepository): ITodoService => {
           filePath: todo.filePath,
           lineNumber: todo.lineNumber,
           userId,
+          projectName: projectName,
           syncId: batchToDb.syncId,
           createdAt: timestamp,
           resolved: false,
@@ -186,7 +187,7 @@ export const TodoService = (TodoModel: ITodoRepository): ITodoService => {
       try {
         const [batches, resolvedTodos] = await Promise.all([
           TodoModel.findByUserIdAndProject(userId, projectName, limit),
-          TodoModel.getResolved(userId),
+          TodoModel.getResolvedByProject(userId, projectName),
         ]);
 
         const todosMap = new Map<string, TodoHistory>();
@@ -342,6 +343,7 @@ export const TodoService = (TodoModel: ITodoRepository): ITodoService => {
           return {
             ...todo,
             userId,
+            projectName: projectName,
             syncId: comparison.prevBatchSyncId!,
             createdAt: new Date().toISOString(),
             resolved: false,

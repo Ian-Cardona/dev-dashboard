@@ -141,6 +141,10 @@ export const todoResolutionSchema = todoSchema
   .and(
     z.object({
       syncId: todoBatchSchema.shape.syncId,
+      projectName: z
+        .string()
+        .min(1)
+        .max(VALIDATION_CONSTANTS.TODO.PROJECT_NAME.MAX_LENGTH),
       createdAt: z.iso.datetime().optional(),
     })
   );
