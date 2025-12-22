@@ -17,6 +17,8 @@ WORKDIR /app
 
 COPY --from=build /app/packages/api/dist ./dist
 
+COPY --from=build /app/packages/shared/dist ./node_modules/@dev-dashboard/shared/dist
+
 COPY --from=build /app/packages/api/package.json ./package.json
 
 COPY --from=build /app/node_modules ./node_modules
