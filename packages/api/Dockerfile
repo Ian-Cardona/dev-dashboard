@@ -15,7 +15,6 @@ RUN npm run build:api
 FROM node:20-alpine AS runtime
 WORKDIR /app
 
-
 COPY --from=build /app/packages/api/dist ./dist
 
 COPY --from=build /app/packages/api/package.json ./package.json
