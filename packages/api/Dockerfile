@@ -10,7 +10,7 @@ COPY . .
 
 RUN npm ci --no-audit --no-fund
 
-RUN npm run build:api
+RUN npm run build -w @dev-dashboard/shared && npm run build -w api
 
 FROM node:20-alpine AS runtime
 WORKDIR /app
