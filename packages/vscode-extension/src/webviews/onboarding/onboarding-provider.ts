@@ -103,7 +103,6 @@ export class OnboardingProvider implements vscode.WebviewViewProvider {
   private getWelcomeHtml(): string {
     const htmlPath = vscode.Uri.joinPath(
       this.context.extensionUri,
-      'src',
       'webviews',
       'onboarding',
       'onboarding.html'

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Onboarding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="flex min-h-screen items-center justify-center">
+    <div class="w-full max-w-md space-y-6 p-8">
+      <div class="text-center">
+        <svg
+          class="mx-auto h-8 w-8 pb-2"
+          viewBox="0 0 103 100"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M0 0H21L71 50L21 100H0L50 50L0 0Z" fill="currentColor" />
+          <path d="M32 0H53L103 50L53 100H32L82 50L32 0Z" fill="currentColor" />
+        </svg>
+        <h2 class="text-2xl font-bold">Welcome to DevDashboard</h2>
+      </div>
+
+      <div class="text-center">
+        <p>Enter your API Key to get started.</p>
+      </div>
+
+      <form id="api-key-form" novalidate>
+        <div id="input-error-message" class="hidden text-red-500"></div>
+        <div class="mb-6">
+          <label
+            for="api-key-input"
+            class="mb-2 block font-semibold text-inherit"
+            >API Key</label
+          >
+          <input
+            type="text"
+            name="api-key"
+            id="api-key-input"
+            placeholder="Enter API Key..."
+            class="w-full border bg-inherit p-1"
+          />
+        </div>
+
+        <div id="submit-error-message" class="mb-1 hidden text-red-500"></div>
+        <div>
+          <button
+            type="submit"
+            id="submit-button"
+            class="w-full bg-sky-600 p-1 text-white"
+          >
+            Submit and Verify
+          </button>
+        </div>
+      </form>
+    </div>
+  </body>
+
+  <script>
+    (function () {
+      const vscode = acquireVsCodeApi();
+
+      const form = document.getElementById('api-key-form');
+      const apiKeyInput = document.getElementById('api-key-input');
+
+      const inputErrorMessage = document.getElementById('input-error-message');
+      const submitErrorMessage = document.getElementById(
+        'submit-error-message'
+      );
+
+      const submitButton = document.getElementById('submit-button');
+
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+
+        const apiKey = apiKeyInput.value.trim();
+
+        if (!apiKey) {
+          clearErrors();
+          showError(inputErrorMessage, 'API Key is required');
+          return;
+        }
+
+        clearErrors();
+        setLoadingState(true);
+
+        vscode.postMessage({
+          type: 'saveApiKey',
+          apiKey: apiKey,
+        });
+      });
+
+      window.addEventListener('message', event => {
+        const message = event.data;
+        if (message.type === 'statusUpdate') {
+          updateStatus(message.text, message.status);
+        }
+      });
+
+      const showError = (element, message) => {
+        element.textContent = message;
+        element.classList.remove('hidden');
+      };
+
+      const clearErrors = () => {
+        inputErrorMessage.classList.add('hidden');
+        submitErrorMessage.classList.add('hidden');
+      };
+
+      const setLoadingState = isLoading => {
+        if (isLoading) {
+          submitButton.textContent = 'Validating...';
+          submitButton.disabled = true;
+          submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+          submitButton.textContent = 'Submit and Verify';
+          submitButton.disabled = false;
+          submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      };
+
+      const updateStatus = (text, status) => {
+        setLoadingState(status === 'loading');
+
+        if (status === 'error') {
+          showError(submitErrorMessage, text);
+        } else if (status === 'success') {
+          clearErrors();
+          submitButton.textContent = text;
+          submitButton.classList.add('bg-green-600');
+          submitButton.classList.remove('bg-sky-600');
+        }
+      };
+    })();
+  </script>
+</html>

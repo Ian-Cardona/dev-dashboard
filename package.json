@@ -18,6 +18,7 @@
     "build:api": "cd packages/api && tsc -b tsconfig.build.json",
     "build:app": "cd packages/app && vite build",
     "build:ext": "cd packages/vscode-extension && tsc -p ./",
+    "build:shared": "npm run build -w @dev-dashboard/shared",
     "clean": "rimraf packages/*/dist packages/*/out",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
