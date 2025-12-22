@@ -19,6 +19,7 @@ COPY --from=build /app/node_modules ./node_modules
 
 COPY --from=build /app/packages/api/dist ./dist
 
+COPY --from=build /app/packages/api/dist ./dist
 COPY --from=build /app/packages/api/package.json ./package.json
 
 COPY --from=build /app/packages/shared/package.json ./node_modules/@dev-dashboard/shared/package.json
