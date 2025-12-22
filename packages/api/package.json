@@ -5,10 +5,11 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsdown src/server.ts --format esm --clean", 
+    "start": "node dist/server.js",
     "test": "vitest",
     "test:watch": "vitest --watch"
   },
