@@ -14,6 +14,7 @@
     "dev:shared": "npm run dev -w @dev-dashboard/shared",
     "dev": "concurrently \"npm run dev:shared\" \"npm run dev:api\" \"npm run dev:app\"",
     "build": "npm run build -w @dev-dashboard/shared && npm run build -ws --if-present",
+    "build:api:container": "npm run build -w @dev-dashboard/shared && npm run build -w api",
     "clean": "rimraf packages/*/dist packages/*/out",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
