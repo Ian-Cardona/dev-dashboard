@@ -8,8 +8,8 @@
   "main": "dist/server.mjs",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsdown src/server.ts --format esm --clean",
-    "start": "node dist/server.js",
+    "build": "tsdown src/server.ts --format esm --clean --outFile dist/server.mjs",
+    "start": "node dist/server.mjs",
     "test": "vitest",
     "test:watch": "vitest --watch"
   },
