@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
     "rootDir": "./src",
     "outDir": "./dist",
     "declaration": true,
@@ -12,8 +11,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "paths": {},
-    "noEmit": false,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
