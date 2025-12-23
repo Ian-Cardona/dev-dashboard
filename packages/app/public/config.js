@@ -1,6 +1,5 @@
 window.__APP_CONFIG__ = {
-  // API_URL: 'http://13.229.151.152:3000/v1',
-  API_URL: 'http://localhost:3000/v1',
+  API_URL: 'http://api.devdashboard.app/v1',
   CLIENT_APP_NAME: 'DevDashboardUI',
   ENVIRONMENT: 'production',
   OAUTH_SUCCESS_COOKIE_KEYS: {
