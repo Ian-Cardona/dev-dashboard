@@ -1,6 +1,6 @@
 window.__APP_CONFIG__ = {
   API_URL: 'http://api.devdashboard.app/v1',
-  CLIENT_APP_NAME: 'DevDashboardUI',
+  CLIENT_APP_NAME: 'DevDashboardApp',
   ENVIRONMENT: 'production',
   OAUTH_SUCCESS_COOKIE_KEYS: {
     provider: 'gh_o_p',
