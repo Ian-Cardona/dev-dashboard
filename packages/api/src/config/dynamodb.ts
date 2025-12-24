@@ -2,13 +2,6 @@ import { ENV } from './env';
 import { DynamoDBClient, DynamoDBClientConfig } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-console.log('ENV.AWS_REGION:', ENV.AWS_REGION);
-console.log('ENV.AWS_DYNAMODB_ENDPOINT:', ENV.AWS_DYNAMODB_ENDPOINT);
-console.log(
-  'process.env.AWS_DYNAMODB_ENDPOINT:',
-  process.env.AWS_DYNAMODB_ENDPOINT
-);
-
 const clientConfig: DynamoDBClientConfig = {
   region: ENV.AWS_REGION,
   requestHandler: {
@@ -17,18 +10,21 @@ const clientConfig: DynamoDBClientConfig = {
   },
 };
 
-if (ENV.AWS_DYNAMODB_ENDPOINT) {
+if (ENV.NODE_ENV !== 'production') {
   if (!ENV.AWS_ACCESS_KEY_ID || !ENV.AWS_SECRET_ACCESS_KEY) {
     throw new Error(
-      'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required when using local DynamoDB'
+      'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required in development'
     );
   }
 
-  clientConfig.endpoint = ENV.AWS_DYNAMODB_ENDPOINT;
   clientConfig.credentials = {
     accessKeyId: ENV.AWS_ACCESS_KEY_ID,
     secretAccessKey: ENV.AWS_SECRET_ACCESS_KEY,
   };
+
+  if (ENV.AWS_DYNAMODB_ENDPOINT) {
+    clientConfig.endpoint = ENV.AWS_DYNAMODB_ENDPOINT;
+  }
 }
 
 const client = new DynamoDBClient(clientConfig);

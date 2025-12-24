@@ -6,7 +6,7 @@ export const apiKeysApi = {
 
     // FIXME: Add to env variables
     const response = await axios.get('/api-keys/check', {
-      baseURL: 'http://localhost:3000/v1',
+      baseURL: 'http://api.devdashboard.app/v1',
       headers: {
         'Content-Type': 'application/json',
         ...headers,
