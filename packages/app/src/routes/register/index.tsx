@@ -32,7 +32,6 @@ const RegisterPage = () => {
 
   const handleCloseModal = () => {
     setModalError(null);
-    // Clear the search params instead of replaceState
     window.history.replaceState({}, document.title, window.location.pathname);
   };
 

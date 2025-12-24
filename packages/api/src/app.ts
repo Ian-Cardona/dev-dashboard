@@ -20,8 +20,10 @@ import { timeoutMiddleware } from './middlewares/timeout.middleware';
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(cors({
-  origin: ENV.APP_BASE_URL,
+  origin: ENV.APP_BASE_URL?.replace(/\/$/, ''),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-App'],
