@@ -1,5 +1,5 @@
 window.__APP_CONFIG__ = {
-  API_URL: 'http://api.devdashboard.app/v1',
+  API_URL: 'https://api.devdashboard.app/v1',
   CLIENT_APP_NAME: 'DevDashboardApp',
   ENVIRONMENT: 'production',
   OAUTH_SUCCESS_COOKIE_KEYS: {
