@@ -68,11 +68,22 @@ app.use('/v1', v1Router);
 
 app.get('/health', (req, res) => res.send({ status: 'ok' }));
 
+app.get('/test-cookie', (req, res) => {
+  res.cookie('test_cookie', 'works', {
+    domain: '.devdashboard.app',
+    path: '/',
+    secure: true,
+    sameSite: 'none',
+  });
+  res.json({ success: true });
+});
+
 app.use((req, res) => {
   res
     .status(404)
     .json({ status: 'Not Found', message: 'Path does not exist.' });
 });
+
 
 app.use(errorHandlerMiddleware);
 

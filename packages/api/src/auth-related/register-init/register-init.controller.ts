@@ -7,9 +7,8 @@ import {
   uuidSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
+import { setCrossDomainCookie } from 'src/utils/api.utils';
 import { handleValidationError } from 'src/utils/validation-error.utils';
-
-const REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60;
 
 export const RegisterInitController = (
   registerInitService: IRegisterInitService
@@ -90,20 +89,11 @@ export const RegisterInitController = (
           registerInitEmailRequestSchema.parse(req.body);
         const result = await registerInitService.email(validatedData);
 
-        res.cookie('regintkn', result.registrationToken, {
+        setCrossDomainCookie(res, 'regintkn', result.registrationToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: '/',
-          maxAge: REFRESH_TOKEN_EXPIRY,
         });
-
-        res.cookie('esi1', result.registrationId, {
+        setCrossDomainCookie(res, 'esi1', result.registrationId, {
           httpOnly: false,
-          secure: true,
-          sameSite: 'none',
-          path: '/',
-          maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
         res.status(201).json({
@@ -123,20 +113,11 @@ export const RegisterInitController = (
         const validatedData = oauthRequestSchema.parse(req.body);
         const result = await registerInitService.github(validatedData);
 
-        res.cookie('regintkn', result.registrationToken, {
+        setCrossDomainCookie(res, 'regintkn', result.registrationToken, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: '/',
-          maxAge: REFRESH_TOKEN_EXPIRY,
         });
-
-        res.cookie('reginid', result.registrationId, {
+        setCrossDomainCookie(res, 'reginid', result.registrationId, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: '/',
-          maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
         res.status(201).json();

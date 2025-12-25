@@ -18,9 +18,15 @@ const RegisterPage = () => {
   const [displayError, setDisplayError] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>();
 
-  const [sessionId] = useState(() =>
-    getAndClearCookieValue(`${oauthRegInitCookieKeys.registration_id}`)
-  );
+  const [sessionId] = useState(() => {
+    const storedSession = localStorage.getItem('registration_session');
+    if (storedSession) {
+      localStorage.removeItem('registration_session');
+      return storedSession;
+    }
+
+    return getAndClearCookieValue(`${oauthRegInitCookieKeys.registration_id}`);
+  });
 
   useQueryFetchOAuthSession(sessionId);
 
