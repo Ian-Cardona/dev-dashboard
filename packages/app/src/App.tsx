@@ -8,6 +8,9 @@ export const router = createRouter({
   context: {
     queryClient,
   },
+  basepath: '/',
+  defaultPreload: 'intent',
+  defaultStructuralSharing: false,
 });
 
 const App = () => {

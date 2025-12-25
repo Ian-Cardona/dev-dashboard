@@ -30,5 +30,6 @@ export const setCrossDomainCookie = (
     path: '/',
     domain: '.devdashboard.app',
     maxAge: options.maxAge || REFRESH_TOKEN_EXPIRY,
+    partitioned: false,
   });
 };
