@@ -24,10 +24,10 @@ if (ENV.NODE_ENV !== 'production') {
     accessKeyId: ENV.AWS_ACCESS_KEY_ID,
     secretAccessKey: ENV.AWS_SECRET_ACCESS_KEY,
   };
+}
 
-  if (ENV.AWS_DYNAMODB_ENDPOINT) {
-    clientConfig.endpoint = ENV.AWS_DYNAMODB_ENDPOINT;
-  }
+if (ENV.NODE_ENV === 'development' && ENV.AWS_DYNAMODB_ENDPOINT) {
+  clientConfig.endpoint = ENV.AWS_DYNAMODB_ENDPOINT;
 }
 
 const client = new DynamoDBClient(clientConfig);

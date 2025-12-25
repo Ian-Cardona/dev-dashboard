@@ -74,7 +74,7 @@ export const fetchOAuthSessionById = async (
 
 export const registerInitEmail = async (
   data: RegisterInitEmailRequest
-): Promise<void> => {
+): Promise<{ registrationId: string }> => {
   const response = await publicClient.post(
     getRegisterInitEndpoints().email,
     data
@@ -83,6 +83,8 @@ export const registerInitEmail = async (
   if (response.status !== 201) {
     throw new Error(`Failed to initiate register: ${response.status}`);
   }
+
+  return response.data;
 };
 
 export const registerInitGithub = async (): Promise<void> => {
