@@ -83,7 +83,7 @@ export const registerInitEmail = async (
   if (response.status !== 201) {
     throw new Error(`Failed to initiate register: ${response.status}`);
   }
-  
+
   return response.data;
 };
 

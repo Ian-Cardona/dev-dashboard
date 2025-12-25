@@ -7,7 +7,7 @@ export const useMutateRegisterInitEmail = () => {
 
   return useMutation({
     mutationFn: registerInitEmail,
-    onSuccess: (data) => {
+    onSuccess: data => {
       const sessionId = data.registrationId;
 
       if (sessionId) {
