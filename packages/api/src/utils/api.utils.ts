@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { ENV } from 'src/config/env';
 
 const REFRESH_TOKEN_EXPIRY = 1000 * 60 * 60;
 
@@ -28,8 +29,8 @@ export const setCrossDomainCookie = (
     secure: true,
     sameSite: 'none',
     path: '/',
-    domain: '.devdashboard.app',
-    maxAge: options.maxAge || REFRESH_TOKEN_EXPIRY,
+    domain: ENV.NODE_ENV === 'production' ? '.devdashboard.app' : 'localhost',
+    maxAge: options.maxAge ?? REFRESH_TOKEN_EXPIRY,
     partitioned: false,
   });
 };
