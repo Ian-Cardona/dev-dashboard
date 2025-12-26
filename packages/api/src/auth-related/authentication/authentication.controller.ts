@@ -15,7 +15,7 @@ import {
   refreshRequestPrivateSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
-import { ENV } from 'src/config/env';
+import { setCrossDomainCookie } from 'src/utils/api.utils';
 import { redisDel } from 'src/utils/redis';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
@@ -35,18 +35,13 @@ export const AuthenticationController = (
           completeRegisterByEmailRequestSchema.parse(req.onboardingData);
         const result = await authService.completeRegisterByEmail(validatedData);
 
-        res.cookie('rt1', result.refreshTokenPlain, {
+        setCrossDomainCookie(res, 'rt1', result.refreshTokenPlain, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        res.cookie('rt2', result.refreshTokenId, {
+        setCrossDomainCookie(res, 'rt2', result.refreshTokenId, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
@@ -73,18 +68,13 @@ export const AuthenticationController = (
           completeRegisterByOAuthRequestSchema.parse(req.onboardingData);
         const result = await authService.completeRegisterByOAuth(validatedData);
 
-        res.cookie('rt1', result.refreshTokenPlain, {
+        setCrossDomainCookie(res, 'rt1', result.refreshTokenPlain, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        res.cookie('rt2', result.refreshTokenId, {
+        setCrossDomainCookie(res, 'rt2', result.refreshTokenId, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
@@ -111,18 +101,13 @@ export const AuthenticationController = (
           loginRequestPublicSchema.parse(req.body);
         const result = await authService.loginByEmail(validatedData);
 
-        res.cookie('rt1', result.refreshTokenPlain, {
+        setCrossDomainCookie(res, 'rt1', result.refreshTokenPlain, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        res.cookie('rt2', result.refreshTokenId, {
+        setCrossDomainCookie(res, 'rt2', result.refreshTokenId, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
@@ -146,21 +131,15 @@ export const AuthenticationController = (
         const validatedData: OAuthRequest = oauthRequestSchema.parse(req.body);
         const result = await authService.loginByOAuth(validatedData);
 
-        res.cookie('rt1', result.refreshTokenPlain, {
+        setCrossDomainCookie(res, 'rt1', result.refreshTokenPlain, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        res.cookie('rt2', result.refreshTokenId, {
+        setCrossDomainCookie(res, 'rt2', result.refreshTokenId, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
-
         const response: LoginPublic = {
           accessToken: result.accessToken,
           user: result.user,
@@ -190,21 +169,15 @@ export const AuthenticationController = (
 
         const result = await authService.refreshAccessToken(validatedData);
 
-        res.cookie('rt1', result.refreshTokenPlain, {
+        setCrossDomainCookie(res, 'rt1', result.refreshTokenPlain, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
-          path: ENV.NODE_ENV === 'development' ? '/' : '/api/auth/refresh',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
 
-        res.cookie('rt2', result.refreshTokenId, {
+        setCrossDomainCookie(res, 'rt2', result.refreshTokenId, {
           httpOnly: true,
-          secure: true,
-          sameSite: 'none',
           maxAge: REFRESH_TOKEN_EXPIRY,
         });
-
         const response: AuthorizationJwt = {
           accessToken: result.accessToken,
         };

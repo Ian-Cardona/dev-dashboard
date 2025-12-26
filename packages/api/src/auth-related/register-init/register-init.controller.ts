@@ -120,7 +120,9 @@ export const RegisterInitController = (
           httpOnly: true,
         });
 
-        res.status(201).json();
+        res.status(201).json({
+          registrationId: result.registrationId,
+        });
       } catch (error) {
         handleValidationError(
           error,

@@ -10,9 +10,12 @@ import { NextFunction, Request, Response } from 'express';
 import { IRegisterInitService } from 'src/auth-related/register-init/interfaces/iregister-init.service';
 import { ENV } from 'src/config/env';
 import { IUserService } from 'src/user/interfaces/iuser.service';
+import { setCrossDomainCookie } from 'src/utils/api.utils';
 import { encrypt } from 'src/utils/crypto.utils';
 import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { handleValidationError } from 'src/utils/validation-error.utils';
+
+const REFRESH_TOKEN_EXPIRY = 3 * 10 * 10 * 1000;
 
 export const GithubController = (
   githubService: IGithubService,
@@ -36,11 +39,9 @@ export const GithubController = (
             flow = decoded.flow || 'login';
           } catch {
             res.clearCookie('gh_o_e');
-            res.cookie('gh_o_e', 'invalid_state', {
-              secure: true,
+            setCrossDomainCookie(res, 'gh_o_e', 'invalid_state', {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
           }
@@ -52,11 +53,9 @@ export const GithubController = (
         } catch (error) {
           console.error('Error during token exchange:', error);
           res.clearCookie('gh_o_e');
-          res.cookie('gh_o_e', 'oauth_failed', {
-            secure: true,
+          setCrossDomainCookie(res, 'gh_o_e', 'oauth_failed', {
             httpOnly: false,
-            sameSite: 'none',
-            maxAge: 300000,
+            maxAge: REFRESH_TOKEN_EXPIRY,
           });
           return res.redirect(`${ENV.APP_BASE_URL}/login`);
         }
@@ -78,11 +77,9 @@ export const GithubController = (
 
             if (existingUser && existingUser.id !== userId) {
               res.clearCookie('gh_o_e');
-              res.cookie('gh_o_e', 'not_found', {
-                secure: true,
+              setCrossDomainCookie(res, 'gh_o_e', 'not_found', {
                 httpOnly: false,
-                sameSite: 'none',
-                maxAge: 300000,
+                maxAge: REFRESH_TOKEN_EXPIRY,
               });
               return res.redirect(`${ENV.APP_BASE_URL}/settings`);
             }
@@ -94,11 +91,10 @@ export const GithubController = (
 
             if (existingUserProvider && existingUserProvider.id !== userId) {
               res.clearCookie('gh_o_e');
-              res.cookie('gh_o_e', 'github_already_linked', {
-                secure: true,
+
+              setCrossDomainCookie(res, 'gh_o_e', 'github_already_linked', {
                 httpOnly: false,
-                sameSite: 'none',
-                maxAge: 300000,
+                maxAge: REFRESH_TOKEN_EXPIRY,
               });
               return res.redirect(`${ENV.APP_BASE_URL}/settings`);
             }
@@ -107,22 +103,20 @@ export const GithubController = (
             await userService.linkProvider(existingUser, encryptedToken);
 
             res.clearCookie('gh_o_e');
-            res.cookie('gh_o_s', 'github_connected', {
-              secure: true,
+
+            setCrossDomainCookie(res, 'gh_o_e', 'github_connected', {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
 
             return res.redirect(`${ENV.APP_BASE_URL}/settings`);
           } catch (error) {
             console.error('Error during link flow:', error);
             res.clearCookie('gh_o_e');
-            res.cookie('gh_o_e', 'link_failed', {
-              secure: true,
+
+            setCrossDomainCookie(res, 'gh_o_e', 'link_failed', {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/settings`);
           }
@@ -138,40 +132,31 @@ export const GithubController = (
             });
 
             res.clearCookie('reginid');
-            res.cookie('reginid', token.registrationId, {
-              secure: true,
+            setCrossDomainCookie(res, 'reginid', token.registrationId, {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
 
             res.clearCookie('regintkn');
-            res.cookie('regintkn', token.registrationToken, {
-              secure: true,
+            setCrossDomainCookie(res, 'regintkn', token.registrationToken, {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
-
             return res.redirect(`${ENV.APP_BASE_URL}/register`);
           } catch (error) {
             if (error instanceof ConflictError) {
               res.clearCookie('gh_o_e');
-              res.cookie('gh_o_e', 'conflict', {
-                secure: true,
+              setCrossDomainCookie(res, 'gh_o_e', 'conflict', {
                 httpOnly: false,
-                sameSite: 'none',
-                maxAge: 300000,
+                maxAge: REFRESH_TOKEN_EXPIRY,
               });
               return res.redirect(`${ENV.APP_BASE_URL}/register`);
             }
 
             res.clearCookie('gh_o_e');
-            res.cookie('gh_o_e', 'oauth_failed', {
-              secure: true,
+            setCrossDomainCookie(res, 'gh_o_e', 'oauth_failed', {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/register`);
           }
@@ -191,50 +176,41 @@ export const GithubController = (
             res.clearCookie('gh_o_l');
             res.clearCookie('gh_o_enc');
 
-            res.cookie('gh_o_p', 'github', {
-              secure: true,
+            setCrossDomainCookie(res, 'gh_o_p', 'github', {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
-            res.cookie('gh_o_i', githubUser.id.toString(), {
-              secure: true,
+
+            setCrossDomainCookie(res, 'gh_o_i', githubUser.id.toString(), {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
-            res.cookie('gh_o_l', githubUser.login, {
-              secure: true,
+
+            setCrossDomainCookie(res, 'gh_o_l', githubUser.login.toString(), {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
-            res.cookie('gh_o_enc', encryptedToken, {
-              secure: true,
+
+            setCrossDomainCookie(res, 'gh_o_enc', encryptedToken, {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
           } catch (error) {
             if (error instanceof NotFoundError) {
-              console.log('Error during login flow:', error);
               res.clearCookie('gh_o_e');
-              res.cookie('gh_o_e', 'user_not_found', {
-                secure: true,
+
+              setCrossDomainCookie(res, 'gh_o_e', 'user_not_found', {
                 httpOnly: false,
-                sameSite: 'none',
-                maxAge: 300000,
+                maxAge: REFRESH_TOKEN_EXPIRY,
               });
               return res.redirect(`${ENV.APP_BASE_URL}/register`);
             }
 
             res.clearCookie('gh_o_e');
-            res.cookie('gh_o_e', 'oauth_failed', {
-              secure: true,
+            setCrossDomainCookie(res, 'gh_o_e', 'oauth_failed', {
               httpOnly: false,
-              sameSite: 'none',
-              maxAge: 300000,
+              maxAge: REFRESH_TOKEN_EXPIRY,
             });
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
           }
