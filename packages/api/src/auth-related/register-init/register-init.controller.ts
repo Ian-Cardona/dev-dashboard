@@ -92,7 +92,7 @@ export const RegisterInitController = (
         setCrossDomainCookie(res, 'regintkn', result.registrationToken, {
           httpOnly: true,
         });
-        setCrossDomainCookie(res, 'esi1', result.registrationId, {
+        setCrossDomainCookie(res, 'reginid', result.registrationId, {
           httpOnly: false,
         });
 
