@@ -6,29 +6,25 @@ import { getRegInitCookieKeys } from '../../lib/configs/getConfig';
 import { authQueryKeys, fetchAuth } from '../../lib/tanstack/auth';
 import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { useEffect, useRef, useState } from 'react';
 
 const RegisterPage = () => {
   const { error: modalErrorMessage } = Route.useSearch();
-
+  const navigate = useNavigate();
   const oauthRegInitCookieKeys = getRegInitCookieKeys();
   const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
   const [displayError, setDisplayError] = useState<string | null>(null);
-  const [modalError, setModalError] = useState<string | null>();
+  const [modalError, setModalError] = useState<string | null>(null);
+  const hasNavigated = useRef(false);
 
   const [sessionId] = useState(() => {
-    const storedSession = localStorage.getItem('registration_session');
-    if (storedSession) {
-      localStorage.removeItem('registration_session');
-      return storedSession;
-    }
-
     return getAndClearCookieValue(`${oauthRegInitCookieKeys.registration_id}`);
   });
 
-  useQueryFetchOAuthSession(sessionId);
+  const { data: oauthSession, isLoading: isLoadingSession } =
+    useQueryFetchOAuthSession(sessionId);
 
   useEffect(() => {
     if (modalErrorMessage) {
@@ -46,6 +42,43 @@ const RegisterPage = () => {
       setDisplayError(oauthErrorFromCookie);
     }
   }, [oauthErrorFromCookie]);
+
+  useEffect(() => {
+    if (
+      oauthSession &&
+      !hasNavigated.current &&
+      !oauthErrorFromCookie &&
+      !isLoadingSession
+    ) {
+      hasNavigated.current = true;
+
+      navigate({
+        to: '/register/oauth',
+        search: {
+          sessionId: sessionId,
+        },
+      });
+    }
+  }, [
+    oauthSession,
+    oauthErrorFromCookie,
+    isLoadingSession,
+    navigate,
+    sessionId,
+  ]);
+
+  if (isLoadingSession) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)]">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-[var(--color-primary)]"></div>
+          <p className="mt-4 text-[var(--color-fg)]">
+            Loading registration session...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

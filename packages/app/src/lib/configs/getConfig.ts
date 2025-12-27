@@ -2,7 +2,6 @@ export const getConfig = () => {
   if (!window.__APP_CONFIG__) {
     console.error('App config not loaded!');
     return {
-      // API_URL: 'http://localhost:3000/v1',
       API_URL: 'https://api.devdashboard.app/v1',
       CLIENT_APP_NAME: 'DevDashboardApp',
       ENVIRONMENT: 'development',

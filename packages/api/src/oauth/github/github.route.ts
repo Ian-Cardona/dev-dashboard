@@ -38,6 +38,7 @@ router.get(
   conditionalAccessAuthorizationMiddleware,
   controller.getAuthorizationCallbackUrl
 );
+
 router.get('/authorize/link', oauthLimiter, controller.getAuthorizeLink);
 
 export default router;
