@@ -87,7 +87,9 @@ export const registerInitEmail = async (
   return response.data;
 };
 
-export const registerInitGithub = async (): Promise<void> => {
+export const registerInitGithub = async (): Promise<{
+  registrationId: string;
+}> => {
   const response = await publicClient.post(getRegisterInitEndpoints().github);
 
   if (response.status !== 201) {
@@ -95,6 +97,8 @@ export const registerInitGithub = async (): Promise<void> => {
       `Failed to initialize OAuth registration: ${response.status}`
     );
   }
+
+  return response.data;
 };
 
 export const completeRegistrationEmail = async (
