@@ -23,8 +23,11 @@ const RegisterPage = () => {
     return getAndClearCookieValue(`${oauthRegInitCookieKeys.registration_id}`);
   });
 
-  const { data: oauthSession, isLoading: isLoadingSession } =
-    useQueryFetchOAuthSession(sessionId);
+  const {
+    data: oauthSession,
+    isLoading: isLoadingSession,
+    isSuccess,
+  } = useQueryFetchOAuthSession(sessionId);
 
   useEffect(() => {
     if (modalErrorMessage) {
@@ -44,29 +47,36 @@ const RegisterPage = () => {
   }, [oauthErrorFromCookie]);
 
   useEffect(() => {
+    console.log('DEBUG:', {
+      oauthSession,
+      isSuccess,
+      isLoadingSession,
+      oauthErrorFromCookie,
+      sessionId,
+    });
+
     if (
+      isSuccess &&
       oauthSession &&
       !hasNavigated.current &&
-      !oauthErrorFromCookie &&
-      !isLoadingSession
+      !oauthErrorFromCookie
     ) {
+      console.log('Navigating to onboarding...');
       hasNavigated.current = true;
 
+      if (sessionId) {
+        localStorage.setItem('registration_session', sessionId);
+      }
+
       navigate({
-        to: '/register/oauth',
+        to: '/register/onboarding',
         search: {
-          sessionId: sessionId,
+          flow: 'oauth',
+          session: sessionId,
         },
       });
     }
-  }, [
-    oauthSession,
-    oauthErrorFromCookie,
-    isLoadingSession,
-    navigate,
-    sessionId,
-  ]);
-
+  }, [oauthSession, isSuccess, oauthErrorFromCookie, navigate, sessionId]);
   if (isLoadingSession) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)]">

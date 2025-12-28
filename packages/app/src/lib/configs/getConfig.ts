@@ -3,7 +3,7 @@ export const getConfig = () => {
     console.error('App config not loaded!');
     return {
       API_URL: 'https://api.devdashboard.app/v1',
-      CLIENT_APP_NAME: 'DevDashboardApp',
+      CLIENT_APP_NAME: 'DevDashboard',
       ENVIRONMENT: 'development',
       OAUTH_SUCCESS_COOKIE_KEYS: {
         provider: 'gh_o_p',
