@@ -16,6 +16,7 @@ import { ConflictError, NotFoundError } from 'src/utils/errors.utils';
 import { handleValidationError } from 'src/utils/validation-error.utils';
 
 const REFRESH_TOKEN_EXPIRY = 3 * 10 * 10 * 1000;
+const ERROR_COOKIE_EXPIRY = 30000;
 
 export const GithubController = (
   githubService: IGithubService,
@@ -38,9 +39,11 @@ export const GithubController = (
             const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
             flow = decoded.flow || 'login';
           } catch {
-            return res.redirect(
-              `${ENV.APP_BASE_URL}/login?error=invalid_state`
-            );
+            setCrossDomainCookie(res, 'gh_o_e', 'invalid_state', {
+              httpOnly: false,
+              maxAge: ERROR_COOKIE_EXPIRY, // 30 seconds
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/login`);
           }
         }
 
@@ -49,7 +52,11 @@ export const GithubController = (
           tokenData = await githubService.exchangeCodeForToken(code);
         } catch (error) {
           console.error('Error during token exchange:', error);
-          return res.redirect(`${ENV.APP_BASE_URL}/login?error=oauth_failed`);
+          setCrossDomainCookie(res, 'gh_o_e', 'oauth_failed', {
+            httpOnly: false,
+            maxAge: ERROR_COOKIE_EXPIRY,
+          });
+          return res.redirect(`${ENV.APP_BASE_URL}/login`);
         }
 
         const validatedToken = githubTokenSchema.parse(tokenData);
@@ -68,9 +75,11 @@ export const GithubController = (
             const existingUser = await userService.findByEmailPrivate(email);
 
             if (existingUser && existingUser.id !== userId) {
-              return res.redirect(
-                `${ENV.APP_BASE_URL}/settings?error=not_found`
-              );
+              setCrossDomainCookie(res, 'gh_o_e', 'not_found', {
+                httpOnly: false,
+                maxAge: ERROR_COOKIE_EXPIRY,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/settings`);
             }
 
             const existingUserProvider = await userService.findByProvider(
@@ -79,9 +88,11 @@ export const GithubController = (
             );
 
             if (existingUserProvider && existingUserProvider.id !== userId) {
-              return res.redirect(
-                `${ENV.APP_BASE_URL}/settings?error=github_already_linked`
-              );
+              setCrossDomainCookie(res, 'gh_o_e', 'github_already_linked', {
+                httpOnly: false,
+                maxAge: ERROR_COOKIE_EXPIRY,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/settings`);
             }
 
             const encryptedToken = encrypt(validatedToken.access_token);
@@ -92,9 +103,11 @@ export const GithubController = (
             );
           } catch (error) {
             console.error('Error during link flow:', error);
-            return res.redirect(
-              `${ENV.APP_BASE_URL}/settings?error=link_failed`
-            );
+            setCrossDomainCookie(res, 'gh_o_e', 'link_failed', {
+              httpOnly: false,
+              maxAge: ERROR_COOKIE_EXPIRY,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/settings`);
           }
         }
 
@@ -121,14 +134,18 @@ export const GithubController = (
             return res.redirect(`${ENV.APP_BASE_URL}/register`);
           } catch (error) {
             if (error instanceof ConflictError) {
-              return res.redirect(
-                `${ENV.APP_BASE_URL}/register?error=conflict`
-              );
+              setCrossDomainCookie(res, 'gh_o_e', 'conflict', {
+                httpOnly: false,
+                maxAge: ERROR_COOKIE_EXPIRY,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/register`);
             }
 
-            return res.redirect(
-              `${ENV.APP_BASE_URL}/register?error=oauth_failed`
-            );
+            setCrossDomainCookie(res, 'gh_o_e', 'oauth_failed', {
+              httpOnly: false,
+              maxAge: ERROR_COOKIE_EXPIRY,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/register`);
           }
         }
 
@@ -168,12 +185,18 @@ export const GithubController = (
             return res.redirect(`${ENV.APP_BASE_URL}/login`);
           } catch (error) {
             if (error instanceof NotFoundError) {
-              return res.redirect(
-                `${ENV.APP_BASE_URL}/register?error=user_not_found`
-              );
+              setCrossDomainCookie(res, 'gh_o_e', 'user_not_found', {
+                httpOnly: false,
+                maxAge: ERROR_COOKIE_EXPIRY,
+              });
+              return res.redirect(`${ENV.APP_BASE_URL}/register`);
             }
 
-            return res.redirect(`${ENV.APP_BASE_URL}/login?error=oauth_failed`);
+            setCrossDomainCookie(res, 'gh_o_e', 'oauth_failed', {
+              httpOnly: false,
+              maxAge: ERROR_COOKIE_EXPIRY,
+            });
+            return res.redirect(`${ENV.APP_BASE_URL}/login`);
           }
         }
 
