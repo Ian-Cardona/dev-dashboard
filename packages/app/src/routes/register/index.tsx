@@ -5,30 +5,19 @@ import RegisterForm from '../../features/register/components/register/RegisterFo
 import useQueryFetchOAuthSession from '../../features/register/hooks/useQueryFetchOAuthSession';
 import { getRegInitCookieKeys } from '../../lib/configs/getConfig';
 import { authQueryKeys, fetchAuth } from '../../lib/tanstack/auth';
+import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 
-const OAUTH_ERROR_MESSAGES: { [key: string]: string } = {
-  invalid_state:
-    'Your session has expired or is invalid. Please try signing up again.',
-  oauth_failed: 'Authentication with GitHub failed. Please try again.',
-  conflict:
-    'This GitHub account is already linked to an existing user. Please log in.',
-  user_not_found:
-    'This GitHub account is not registered. Please complete the sign-up.',
-  default: 'An unknown error occurred during GitHub sign-up. Please try again.',
-};
-
 const RegisterPage = () => {
-  const { error: errorCode } = Route.useSearch();
   const navigate = useNavigate();
   const oauthRegInitCookieKeys = getRegInitCookieKeys();
+  const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
   const [displayError, setDisplayError] = useState<string | null>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const hasNavigated = useRef(false);
-  const errorShownRef = useRef(false);
 
   const [sessionId] = useState(() => {
     return getAndClearCookieValue(`${oauthRegInitCookieKeys.registration_id}`);
@@ -38,28 +27,10 @@ const RegisterPage = () => {
     useQueryFetchOAuthSession(sessionId);
 
   useEffect(() => {
-    if (errorCode && !errorShownRef.current) {
-      const message =
-        OAUTH_ERROR_MESSAGES[errorCode] || OAUTH_ERROR_MESSAGES.default;
-      setDisplayError(message);
-      errorShownRef.current = true;
-
-      sessionStorage.setItem(`error_shown_${errorCode}`, 'true');
-
-      navigate({
-        to: '/register',
-        replace: true,
-      });
-    } else if (
-      errorCode &&
-      sessionStorage.getItem(`error_shown_${errorCode}`)
-    ) {
-      navigate({
-        to: '/register',
-        replace: true,
-      });
+    if (oauthErrorFromCookie) {
+      setDisplayError(oauthErrorFromCookie);
     }
-  }, [errorCode, navigate]);
+  }, [oauthErrorFromCookie]);
 
   const handleCloseModal = () => {
     setModalError(null);
