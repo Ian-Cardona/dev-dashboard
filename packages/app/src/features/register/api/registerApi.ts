@@ -18,13 +18,11 @@ const isEmailSessionResponse = (data: unknown): data is { email: string } => {
   );
 };
 
-const isOAuthSessionResponse = (
-  data: unknown
-): data is { createdAt: number } => {
+const isOAuthSessionResponse = (data: unknown): data is { oauth: number } => {
   return (
     typeof data === 'object' &&
     data !== null &&
-    typeof (data as { createdAt?: unknown }).createdAt === 'number'
+    typeof (data as { oauth?: unknown }).oauth === 'number'
   );
 };
 
@@ -52,7 +50,7 @@ export const fetchEmailSessionById = async (
 
 export const fetchOAuthSessionById = async (
   sessionId: string
-): Promise<{ createdAt: number }> => {
+): Promise<{ oauth: number }> => {
   if (!sessionId || sessionId.trim() === '') {
     throw new Error('Valid OAuth session ID is required for fetching.');
   }

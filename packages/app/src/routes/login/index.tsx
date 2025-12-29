@@ -3,15 +3,23 @@ import LoginForm from '../../features/login/components/LoginForm.tsx';
 import { useMutateLoginOAuth } from '../../features/login/hooks/useMutateLoginOAuth.ts';
 import { getOAuthSuccessCookieKeys } from '../../lib/configs/getConfig.ts';
 import { authQueryKeys, fetchAuth } from '../../lib/tanstack/auth.ts';
-import { useOAuthErrorFromCookie } from '../../oauth/hooks/useOauthErrorFromCookie.ts';
 import { getAndClearCookieValue } from '../../utils/document/getAndClearCookieValue.ts';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 
+const OAUTH_ERROR_MESSAGES: { [key: string]: string } = {
+  invalid_state:
+    'Your session has expired or is invalid. Please try signing in again.',
+  oauth_failed: 'Authentication with GitHub failed. Please try again.',
+  user_not_found:
+    'This GitHub account is not registered. Please sign up first.',
+  default: 'An unknown error occurred during sign in. Please try again.',
+};
+
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { redirect: redirectUrl } = Route.useSearch();
+  const { redirect: redirectUrl, error: errorCode } = Route.useSearch();
 
   const handleLoginSuccess = () => {
     navigate({ to: redirectUrl || '/todos/pending' });
@@ -20,27 +28,42 @@ const LoginPage = () => {
   const mutation = useMutateLoginOAuth();
 
   const oauthSuccessCookieKeys = getOAuthSuccessCookieKeys();
-  const oauthErrorFromCookie = useOAuthErrorFromCookie();
 
   const [displayError, setDisplayError] = useState<string | null>(null);
-
   const hasInitiated = useRef(false);
+  const errorShownRef = useRef(false);
 
   useEffect(() => {
-    if (oauthErrorFromCookie) {
-      setDisplayError(oauthErrorFromCookie);
+    if (errorCode && !errorShownRef.current) {
+      const message =
+        OAUTH_ERROR_MESSAGES[errorCode] || OAUTH_ERROR_MESSAGES.default;
+      setDisplayError(message);
+      errorShownRef.current = true;
+
+      sessionStorage.setItem(`error_shown_${errorCode}`, 'true');
+
+      navigate({
+        to: '/login',
+        search: redirectUrl ? { redirect: redirectUrl } : undefined,
+        replace: true,
+      });
+    } else if (
+      errorCode &&
+      sessionStorage.getItem(`error_shown_${errorCode}`)
+    ) {
+      navigate({
+        to: '/login',
+        search: redirectUrl ? { redirect: redirectUrl } : undefined,
+        replace: true,
+      });
     }
-  }, [oauthErrorFromCookie]);
+  }, [errorCode, navigate, redirectUrl]);
 
   useEffect(() => {
     const provider = getAndClearCookieValue(oauthSuccessCookieKeys.provider);
     const id = getAndClearCookieValue(oauthSuccessCookieKeys.id);
     const login = getAndClearCookieValue(oauthSuccessCookieKeys.login);
     const enc = getAndClearCookieValue(oauthSuccessCookieKeys.enc);
-
-    if (oauthErrorFromCookie) {
-      return;
-    }
 
     if (provider && id && login && !hasInitiated.current && enc) {
       mutation.mutate(
@@ -58,7 +81,7 @@ const LoginPage = () => {
       );
       hasInitiated.current = true;
     }
-  }, [mutation, oauthErrorFromCookie, handleLoginSuccess]);
+  }, [mutation, handleLoginSuccess]);
 
   const isLoading = mutation.isPending && hasInitiated.current;
 
@@ -102,8 +125,27 @@ const LoginPage = () => {
           </div>
 
           {displayError && !isLoading && (
-            <div className="mb-6 rounded-lg border border-red-600/20 bg-red-600/10 p-4">
-              <p className="text-sm text-red-600">{displayError}</p>
+            <div className="relative mb-6 rounded-lg border border-red-600/20 bg-red-600/10 p-4">
+              <button
+                onClick={() => setDisplayError(null)}
+                className="absolute top-2 right-2 text-red-600 transition-colors hover:text-red-700"
+                aria-label="Close error"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <p className="pr-6 text-sm text-red-600">{displayError}</p>
             </div>
           )}
 
@@ -129,11 +171,14 @@ const LoginPage = () => {
 
 type LoginSearch = {
   redirect?: string;
+  error?: string;
 };
+
 export const Route = createFileRoute('/login/')({
   validateSearch: (search: Record<string, unknown>): LoginSearch => {
     return {
       redirect: (search.redirect as string) || undefined,
+      error: (search.error as string) || undefined,
     };
   },
   beforeLoad: async ({ context }) => {
