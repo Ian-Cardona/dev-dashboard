@@ -50,12 +50,6 @@ const LoginForm = ({
     }
   }, [loginEmailMutation.isSuccess, onSuccess]);
 
-  useEffect(() => {
-    if (githubAuthorizeQuery.isError && !isConnecting) {
-      onError('Could not retrieve GitHub login link. Please try again later.');
-    }
-  }, [githubAuthorizeQuery.isError, isConnecting, onError]);
-
   const handleGithubLoginClick = async (): Promise<void> => {
     setIsConnecting(true);
     onError(null);
@@ -105,7 +99,6 @@ const LoginForm = ({
   const handleNavigateToRegister = (): void => {
     navigate({
       to: '/register',
-      search: {},
     });
   };
 

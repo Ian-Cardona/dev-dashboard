@@ -11,7 +11,7 @@ export const useMutateRegisterInitEmail = () => {
       const sessionId = data.registrationId;
 
       if (sessionId) {
-        localStorage.setItem('registration_session', sessionId);
+        localStorage.setItem('reginId', sessionId);
         navigate({
           to: '/register/onboarding',
           search: {
