@@ -40,8 +40,6 @@ const RegisterPage = () => {
     if (isSuccess && !hasNavigated.current && sessionId) {
       hasNavigated.current = true;
 
-      localStorage.setItem('reginId', sessionId);
-
       navigate({
         to: '/register/onboarding',
         search: {
@@ -150,4 +148,7 @@ export const Route = createFileRoute('/register/')({
     throw redirect({ to: '/todos/pending' });
   },
   component: RegisterPage,
+  notFoundComponent: () => {
+    throw new Error('Route not found');
+  },
 });

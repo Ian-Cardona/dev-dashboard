@@ -3,7 +3,7 @@
   "displayName": "Dev Dashboard",
   "publisher": "iancardona",
   "description": "Scan and send TODOs to your dashboard.",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "icon": "DevDashboard.png",
   "repository": {
     "type": "git",

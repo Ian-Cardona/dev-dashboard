@@ -1,7 +1,7 @@
-import { ErrorState } from '../../../components/ui/states/ErrorState';
 import { timeSince } from '../../../utils/temporal/timeSince';
 import useQueryFetchGithubWorkflow from '../hooks/useQueryFetchGithubWorkflow';
 import useQueryFetchUserRepositories from '../hooks/useQueryFetchUserRepositories';
+import { ErrorState } from './ErrorState';
 import type {
   GithubRepository,
   GithubWorkflowResponse,

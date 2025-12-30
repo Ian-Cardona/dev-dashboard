@@ -3,7 +3,7 @@ import { getSecretKey } from '../utils/secret-key-manager';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import * as vscode from 'vscode';
 
-const baseURL = 'http://api.devdashboard.app/v1';
+const baseURL = 'https://api.devdashboard.app/v1';
 
 export const protectedClient = axios.create({
   baseURL,
