@@ -37,4 +37,13 @@ If something feels off, confusing, or unnecessary, open an issue and tell me why
 
 Once the core pieces settle down, I’ll add proper local setup instructions and contribution guidelines.
 
+### Branching Strategy
+
+This repository intentionally keeps things simple with just two main branches:
+
+- `develop` is where active development happens. New features, fixes, and experiments land here first.
+- `main` represents the current production-ready state of the app.
+
+The reason for this setup is that the app is built primarily for developers, and feedback drives development. Changes are made quickly in `develop`, validated through real usage and feedback, and then promoted to `main` when they’re ready.
+
 **Thank you for showing interest and supporting this project :)**
