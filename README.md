@@ -1,6 +1,6 @@
 # Dev Dashboard
 
-A specialized dashboard for core development tasks and notifications that consolidates information from various services (e.g., GitHub) and in-file TODOs into a single interface. Instead of switching between multiple browser tabs, you can quickly check GitHub deployment status, notifications, and review code TODO lists from one place:
+An opinionated dashboard for core development tasks and notifications that consolidates information from various services (e.g., GitHub) and in-file TODOs into a single interface. Instead of switching between multiple browser tabs, you can quickly check GitHub deployment status, notifications, and review code TODO lists from one place:
 
 - **GitHub Integration:** View notifications and monitor workflow runs per repository
 - **TODO Sync:** Scan, organize, and tag `// TODO:` comments from your VS Code workspace across all projects to the web app
@@ -24,8 +24,10 @@ This section explains how to set up and start using the Dev Dashboard. The proce
 
 ### Post-Deployment Plans
 
-- **More Integrations:** Integrate with Netlify, Vercel, or AWS for seamless deployment and hosting of the web application.
-- **Business Model:** To ensure long-term sustainability, explore implementing a freemium model (free basic features with premium options) or migrating the database to a more cost-effective solution to manage operational costs.
+- **Deployment Status Tracking:** Surface deployment status and recent deploy history from platforms like GitHub Actions, Netlify, Vercel, and AWS in one place.
+- **Refine TODOs Implementation:** Will improve what really needs to be displayed for the TODOs.
+- **Performance & Cost Optimizations:** Continue refining infrastructure to keep the app fast and reliable while keeping it as free as possible.
+- **Quality of Life Improvements:** Better loading states, error handling, and small UX refinements.
 
 ## Contributing
 
