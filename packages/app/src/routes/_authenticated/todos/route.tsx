@@ -70,4 +70,7 @@ const TodosLayout = () => {
 
 export const Route = createFileRoute('/_authenticated/todos')({
   component: TodosLayout,
+  notFoundComponent: () => {
+    throw new Error('Route not found');
+  },
 });

@@ -32,4 +32,7 @@ export const Route = createFileRoute('/_authenticated')({
       <Outlet />
     </AppLayout>
   ),
+  notFoundComponent: () => {
+    throw new Error('Route not found');
+  },
 });

@@ -1,4 +1,3 @@
-import devDashboardLogo from '../../assets/devdb-logo.png';
 import LoginForm from '../../features/login/components/LoginForm.tsx';
 import { useMutateLoginOAuth } from '../../features/login/hooks/useMutateLoginOAuth.ts';
 import { getOAuthSuccessCookieKeys } from '../../lib/configs/getConfig.ts';
@@ -96,7 +95,7 @@ const LoginPage = () => {
         ) : (
           <>
             <img
-              src={devDashboardLogo}
+              src="/devdashboard.svg"
               alt="DevDB Logo"
               className="h-6 w-6 object-contain"
             />
@@ -196,4 +195,7 @@ export const Route = createFileRoute('/login/')({
     throw redirect({ to: '/todos/pending' });
   },
   component: LoginPage,
+  notFoundComponent: () => {
+    throw new Error('Route not found');
+  },
 });

@@ -16,7 +16,7 @@ export const LoadingLayout = () => {
             ease: 'easeInOut',
           }}
         >
-          <span className="text-xl font-bold text-white">DD</span>
+          <img src="/devdashboard.svg" alt="DevDB" className="h-8 w-8" />
         </motion.div>
         <p className="mt-6 text-base text-[var(--color-accent)]">Loading...</p>
       </div>
