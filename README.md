@@ -31,6 +31,19 @@ This section explains how to set up and start using the Dev Dashboard. The proce
 
 ## Contributing
 
-This section will be updated once the initial development phase is complete. Contribution guidelines, setup instructions for local development, and information on how to submit issues or pull requests will be added here.
+Best way to contribute is using it and giving honest feedback.
+
+If something feels off, confusing, or unnecessary, open an issue and tell me why. If you have an idea that would genuinely fit the workflow this app is trying to support, I’m open to hearing it.
+
+Once the core pieces settle down, I’ll add proper local setup instructions and contribution guidelines.
+
+### Branching Strategy
+
+This repository intentionally keeps things simple with just two main branches:
+
+- `develop` is where active development happens. New features, fixes, and experiments land here first.
+- `main` represents the current production-ready state of the app.
+
+The reason for this setup is that the app is built primarily for developers, and feedback drives development. Changes are made quickly in `develop`, validated through real usage and feedback, and then promoted to `main` when they’re ready.
 
 **Thank you for showing interest and supporting this project :)**
