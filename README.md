@@ -31,6 +31,10 @@ This section explains how to set up and start using the Dev Dashboard. The proce
 
 ## Contributing
 
-This section will be updated once the initial development phase is complete. Contribution guidelines, setup instructions for local development, and information on how to submit issues or pull requests will be added here.
+Best way to contribute is using it and giving honest feedback.
+
+If something feels off, confusing, or unnecessary, open an issue and tell me why. If you have an idea that would genuinely fit the workflow this app is trying to support, I’m open to hearing it.
+
+Once the core pieces settle down, I’ll add proper local setup instructions and contribution guidelines.
 
 **Thank you for showing interest and supporting this project :)**
