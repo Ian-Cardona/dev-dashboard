@@ -24,12 +24,14 @@ export const setCrossDomainCookie = (
     maxAge?: number;
   } = {}
 ) => {
+  const isProduction = ENV.NODE_ENV === 'production';
+
   res.cookie(name, value, {
     httpOnly: options.httpOnly ?? false,
     secure: true,
-    sameSite: 'none',
+    sameSite: isProduction ? 'lax' : 'none',
     path: '/',
-    domain: ENV.NODE_ENV === 'production' ? '.devdashboard.app' : 'localhost',
+    domain: isProduction ? '.devdashboard.app' : 'localhost',
     maxAge: options.maxAge ?? REFRESH_TOKEN_EXPIRY,
     partitioned: false,
   });
