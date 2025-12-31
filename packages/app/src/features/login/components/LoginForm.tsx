@@ -59,7 +59,7 @@ const LoginForm = ({
       const url = response?.data?.authorize_uri;
 
       if (!url || typeof url !== 'string') {
-        onError('GitHub authorize URL not found. Please try again.');
+        onError('GitHub not found. Please try again.');
         setIsConnecting(false);
         return;
       }
