@@ -84,7 +84,6 @@ app.use((req, res) => {
     .json({ status: 'Not Found', message: 'Path does not exist.' });
 });
 
-
 app.use(errorHandlerMiddleware);
 
 export default app;
