@@ -1,11 +1,11 @@
 import { IApiKeysController } from './interfaces/iapi-keys.controller';
 import { IApiKeysService } from './interfaces/iapi-keys.service';
 import {
-  ApiKey,
   apiKeyIdSchemaFlexible,
   ApiKeyPublic,
   CreateApiKey,
   createApiKeySchema,
+  SafeApiKey,
   uuidSchema,
 } from '@dev-dashboard/shared';
 import { NextFunction, Request, Response } from 'express';
@@ -44,7 +44,7 @@ export const ApiKeysController = (
     async findByUserId(req: Request, res: Response, next: NextFunction) {
       try {
         const userId: string = uuidSchema.parse(req.user?.userId);
-        const result: ApiKey[] = await apiKeysService.findByUserId(userId);
+        const result: SafeApiKey[] = await apiKeysService.findByUserId(userId);
         res.json(result);
       } catch (error) {
         handleValidationError(error, res, next, 'Invalid User ID format');

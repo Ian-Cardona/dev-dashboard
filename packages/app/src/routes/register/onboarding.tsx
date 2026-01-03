@@ -131,7 +131,7 @@ export const Route = createFileRoute('/register/onboarding')({
         const user = await fetchAuth();
         context.queryClient.setQueryData(authQueryKeys.user(), user);
         throw redirect({ to: '/todos/pending' });
-      } catch (error) {
+      } catch {
         localStorage.removeItem('accessToken');
         context.queryClient.setQueryData(authQueryKeys.user(), null);
       }

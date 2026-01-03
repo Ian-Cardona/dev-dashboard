@@ -18,7 +18,7 @@ export const Route = createFileRoute('/_authenticated')({
     try {
       const user = await fetchAuth();
       context.queryClient.setQueryData(authQueryKeys.user(), user);
-    } catch (error) {
+    } catch {
       localStorage.removeItem('accessToken');
       context.queryClient.setQueryData(authQueryKeys.user(), null);
       throw redirect({
