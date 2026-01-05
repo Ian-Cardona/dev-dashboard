@@ -93,13 +93,17 @@ const SettingsAccount = () => {
 
           setPasswordFormKey(prev => prev + 1);
         },
-        onError: (error: any) => {
-          console.error('Failed to update password:', error);
+        onError: (error: unknown) => {
           let errorMessage = 'Failed to update password. Please try again.';
 
-          if (error.response?.data?.message) {
-            errorMessage = error.response.data.message;
-          } else if (error.message) {
+          if (error && typeof error === 'object' && 'response' in error) {
+            const axiosError = error as {
+              response?: { data?: { message?: string } };
+            };
+            if (axiosError.response?.data?.message) {
+              errorMessage = axiosError.response.data.message;
+            }
+          } else if (error instanceof Error) {
             errorMessage = error.message;
           }
 

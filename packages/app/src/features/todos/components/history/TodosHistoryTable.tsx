@@ -34,7 +34,7 @@ const TodosHistoryTable = ({ data }: TodosHistoryTableProps) => {
       if (sortField === field) {
         setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
       } else {
-        setSortField(field as any);
+        setSortField(field);
         setSortDirection('asc');
       }
     }

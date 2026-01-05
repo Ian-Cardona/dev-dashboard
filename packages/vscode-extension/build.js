@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const esbuild = require('esbuild');
 
 const production = process.argv.includes('--production');

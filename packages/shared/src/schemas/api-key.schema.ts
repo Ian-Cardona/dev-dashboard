@@ -23,6 +23,12 @@ export const apiKeyPublicSchema = z.object({
   pkey: z.string().min(1).max(255),
 });
 
+export const safeApiKeySchema = z.object({
+  id: z.string().min(1).max(36),
+  createdAt: isoDatetimeSchema,
+  description: descriptionSchema,
+});
+
 export const createApiKeySchema = z.object({
   description: descriptionSchema,
 });

@@ -6,7 +6,7 @@ import {
   QueryCommand,
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-import { ApiKey } from '@dev-dashboard/shared';
+import { ApiKey, SafeApiKey } from '@dev-dashboard/shared';
 import { ENV } from 'src/config/env';
 
 const API_KEYS_TABLE = ENV.API_KEYS_TABLE;
@@ -36,7 +36,7 @@ export const ApiKeysRepository = (
       return result.Item as ApiKey;
     },
 
-    async findByUserId(userId: string): Promise<ApiKey[]> {
+    async findByUserId(userId: string): Promise<SafeApiKey[]> {
       const result = await docClient.send(
         new QueryCommand({
           TableName: API_KEYS_TABLE,
@@ -52,7 +52,18 @@ export const ApiKeysRepository = (
           },
         })
       );
-      return result.Items as ApiKey[];
+
+      if (!result.Items) {
+        return [];
+      }
+
+      const safeResult: SafeApiKey[] = result.Items.map(item => ({
+        id: item.id,
+        createdAt: item.createdAt,
+        description: item.description,
+      }));
+
+      return safeResult;
     },
 
     async revoke(userId: string, id: string): Promise<void> {

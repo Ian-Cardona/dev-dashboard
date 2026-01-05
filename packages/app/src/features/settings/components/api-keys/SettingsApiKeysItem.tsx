@@ -1,5 +1,6 @@
 import ConfirmModal from '../../../../components/ui/modals/ConfirmModal';
 import { useMutateRevokeKey } from '../../hooks/useMutateRevokeKey';
+import type { SafeApiKey } from '@dev-dashboard/shared';
 import {
   CalendarIcon,
   EllipsisVerticalIcon,
@@ -9,16 +10,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState, useRef, useEffect } from 'react';
 
 type SettingsApiKeysItemProps = {
-  id: string;
-  description?: string;
-  createdAt: string;
+  data: SafeApiKey;
 };
 
-const SettingsApiKeysItem = ({
-  id,
-  description,
-  createdAt,
-}: SettingsApiKeysItemProps) => {
+const SettingsApiKeysItem = ({ data }: SettingsApiKeysItemProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -76,7 +71,7 @@ const SettingsApiKeysItem = ({
   };
 
   const handleConfirmRevoke = () => {
-    revokeKey.mutate(id, {
+    revokeKey.mutate(data.id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['api-keys', 'list'] });
         setShowConfirm(false);
@@ -95,11 +90,11 @@ const SettingsApiKeysItem = ({
           <div className="flex flex-1 items-start gap-4">
             <div className="flex flex-1 flex-col">
               <h4 className="mb-2 text-lg font-bold text-[var(--color-fg)]">
-                {description || 'Untitled Key'}
+                {data.description || 'Untitled Key'}
               </h4>
               <div className="flex items-center gap-2 text-sm text-[var(--color-accent)]">
                 <CalendarIcon className="h-4 w-4" />
-                <span>{formatDate(createdAt)}</span>
+                <span>{formatDate(data.createdAt)}</span>
               </div>
             </div>
           </div>
@@ -109,7 +104,7 @@ const SettingsApiKeysItem = ({
               type="button"
               onClick={() => setShowMenu(!showMenu)}
               className="rounded-lg border border-[var(--color-accent)]/20 p-2 text-[var(--color-fg)] transition-all duration-200 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
-              aria-label={`Manage ${description || 'Untitled Key'}`}
+              aria-label={`Manage ${data.description || 'Untitled Key'}`}
               disabled={isRevoking}
             >
               <EllipsisVerticalIcon className="h-5 w-5" />
@@ -134,7 +129,7 @@ const SettingsApiKeysItem = ({
       {showConfirm && (
         <ConfirmModal
           title="Revoke API Key"
-          message={`Are you sure you want to revoke "${description || 'Untitled Key'}"? This action cannot be undone and any applications using this key will immediately lose access.`}
+          message={`Are you sure you want to revoke "${data.description || 'Untitled Key'}"? This action cannot be undone and any applications using this key will immediately lose access.`}
           onConfirm={handleConfirmRevoke}
           onCancel={() => setShowConfirm(false)}
           confirmText={isRevoking ? 'Revoking...' : 'Revoke Key'}

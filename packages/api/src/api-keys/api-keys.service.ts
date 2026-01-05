@@ -1,6 +1,6 @@
 import { IApiKeysRepository } from './interfaces/iapi-keys.repository';
 import { IApiKeysService } from './interfaces/iapi-keys.service';
-import { ApiKey, ApiKeyPublic } from '@dev-dashboard/shared';
+import { ApiKey, ApiKeyPublic, SafeApiKey } from '@dev-dashboard/shared';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { ENV } from 'src/config/env';
@@ -110,7 +110,7 @@ export const ApiKeysService = (
       return apiKey;
     },
 
-    async findByUserId(userId: string): Promise<ApiKey[]> {
+    async findByUserId(userId: string): Promise<SafeApiKey[]> {
       try {
         return apiKeysRepository.findByUserId(userId);
       } catch (error) {

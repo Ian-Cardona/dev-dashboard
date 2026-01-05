@@ -5,6 +5,7 @@ import {
   useMutateCreateKey,
   useQueryFetchKeys,
 } from '../../../features/settings/hooks';
+import type { SafeApiKey } from '@dev-dashboard/shared';
 import {
   CheckIcon,
   ClipboardDocumentIcon,
@@ -211,13 +212,8 @@ const SettingsApiKeys = () => {
                   Existing API Keys ({keys.length})
                 </h3>
                 <ul className="space-y-4">
-                  {keys.map((key: any) => (
-                    <SettingsApiKeysItem
-                      key={key.id}
-                      id={key.id}
-                      description={key.description}
-                      createdAt={key.createdAt}
-                    />
+                  {keys.map((key: SafeApiKey) => (
+                    <SettingsApiKeysItem key={key.id} data={key} />
                   ))}
                 </ul>
               </div>
