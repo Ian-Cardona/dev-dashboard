@@ -10,7 +10,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsdown src/server.ts --format esm --clean --outFile dist/server.mjs",
     "start": "node dist/server.mjs",
-    "test": "vitest",
+    "test": "npm run build -w @dev-dashboard/shared && vitest run",
+    "test:dev": "npm run build -w @dev-dashboard/shared && vitest",
+    "test:ci": "vitest run",
     "test:watch": "vitest --watch"
   },
   "dependencies": {
