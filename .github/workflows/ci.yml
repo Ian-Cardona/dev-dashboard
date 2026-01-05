@@ -24,4 +24,24 @@ jobs:
       - run: npm run format
       - run: npm run lint
       - run: npm run build -w @dev-dashboard/shared
-      - run: npm test -w api
+      - name: Create test environment file
+        run: |
+          # Create .env.test with dummy values (not real secrets)
+          cat > packages/api/.env.test << 'EOF'
+          NODE_ENV=test
+          APP_BASE_URL=http://localhost:3000
+          ENCRYPTION_KEY=12345678901234567890123456789012
+          JWT_SECRET=test-jwt-secret-must-be-32-chars-long!!!
+          AWS_REGION=us-east-1
+          GITHUB_OAUTH_CLIENT_ID=test-client-id
+          GITHUB_OAUTH_CLIENT_SECRET=test-client-secret
+          GITHUB_OAUTH_REDIRECT_URI=http://localhost:3000/auth/callback
+          USERS_TABLE=test-users
+          EMAILS_TABLE=test-emails
+          PROVIDERS_TABLE=test-providers
+          EOF
+      - name: Run API tests
+        run: npm test -w api
+      - name: Cleanup test environment file
+        if: always()
+        run: rm -f packages/api/.env.test
